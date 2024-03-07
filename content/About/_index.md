@@ -1,5 +1,5 @@
 +++
-title = 'Resume'
+title = 'About'
 date = 2024-03-07T15:00:59+08:00
 draft = true
 +++
@@ -7,26 +7,23 @@ draft = true
 
 # 杨博 <font size="9">(Aaron)</font>
 
-{% include cv-contact.html %}
+### <span>&#127919;</span>求职意向
+__希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
 
-## <span>&#127919;</span>求职意向
-#### __希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
-
-## <span>&#128170;</span>擅长技能
+### <span>&#128170;</span>擅长技能
 
 
+__1. 熟练掌握<span><img src="../assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>,<span><img src="../assets/icons/podman.jpg" height="15" width="16">Podman</span>,<span><img src="../assets/icons/calcite.png" height="15" width="16">Apache Calicite</span>等框架和中间件的使用，能够使用<span><img src="../assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理__
 
-#### __1. 熟练掌握<span><img src="../assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>,<span><img src="../assets/icons/podman.jpg" height="15" width="16">Podman</span>,<span><img src="../assets/icons/calcite.png" height="15" width="16">Apache Calicite</span>等框架和中间件的使用，能够使用<span><img src="../assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理__
+__2. 熟悉 <span><img src="../assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="../assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
 
-#### __2. 熟悉 <span><img src="../assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="../assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
+__3. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
 
-#### __3. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
+__4. 能够使用<span><img src="../assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
 
-#### __4. 能够使用<span><img src="../assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
+### <span>&#128084;</span>工作经验
 
-## <span>&#128084;</span>工作经验
-
-### [__之江实验室-天文计算研究中心, 杭州, 中国__]()  `2024.01 - Present`
+[__之江实验室-天文计算研究中心, 杭州, 中国__]()  `2024.01 - Present`
 _高级工程专员_<br><br>
 
 主要负责
@@ -38,7 +35,7 @@ _高级工程专员_<br><br>
     - <span><img src="../assets/icons/flink.png" height="15" width="15">Flink</span>, <span><img src="../assets/icons/clickhouse.png" height="15" width="16">Clickhouse</span>, <span><img src="../assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="../assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="../assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>
 <br>
 
-### [__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
+[__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
 _工程专员_<br><br>
 
 主要负责团队大数据分析平台的优化和开发，保证数据处理，任务调度的高效稳定运行。对多源异构数据处理以及联邦查询服务有相关了解。
@@ -49,7 +46,7 @@ _工程专员_<br><br>
     - <span><img src="../assets/icons/springboot.png" height="15" width="16">SpringBoot 2.5</span>, <span><img src="../assets/icons/postgresql.png" height="15" width="16">Postgres</span>, <span><img src="../assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, <span><img src="../assets/icons/mysql.png" height="20" width="30">Mysql</span>, <span><img src="../assets/icons/neo4j.png" height="18" width="40"/> Neo4J</span>,<span><img src="../assets/icons/minio.png" height="15" width="16">Minio</span>
 <br>
 
-### [__银江股份有限公司-中央研究院, 杭州, 中国__]()  `2017.01 - 2018.04`
+[__银江股份有限公司-中央研究院, 杭州, 中国__]()  `2017.01 - 2018.04`
 _Java Web 后台开发工程师_<br><br>
 
 主要负责公司大数据产品以及研究课题项目的服务器接口API开发，>熟悉前后端分离开发协作模式, <br> 精通Springboot快速开发框架和SwaggerAPI文档接口应用。对主流关系型数据库Oracle以及常用格式JSON、XML有相关了解。
@@ -61,9 +58,9 @@ _Java Web 后台开发工程师_<br><br>
     - <span><img src="../assets/icons/springboot.png" height="15" width="16">SpringBoot 1.5</span>, <span><img src="https://img.icons8.com/color/14/000000/hadoop-distributed-file-system.png"  height="15" width="16">Hadoop2</span>, <span><img src="../assets/icons/mybatis.png" height="15" width="16">Mybatis 3</span>, <span><img src="../assets/icons/oracle.png" height="15" width="16">Oracle</span>, <span><img src = "../assets/icons/swagger.png" height="15" width="15"> Swagger</span>
 <br>
 
-## <span>&#127891;</span>教育经历 
+### <span>&#127891;</span>教育经历 
 
-### __南加利福尼亚大学 (USC), QS30, 洛杉矶, 美国__ `2019.01 - 2021.06`
+[__南加利福尼亚大学 (USC), QS30, 洛杉矶, 美国__]() `2019.01 - 2021.06`
 
 - <u>应用数据科学-硕士学位</u> [已获得]
 - GPA: 3.70 [[PDF](../assets/apds_4.pdf)]
@@ -85,7 +82,7 @@ _Java Web 后台开发工程师_<br><br>
     - [学术写作], [论文阅读], [沟通技巧] <br>
 <br>
 
-### __太原理工大学 (TYUT), 211, 太原, 中国__ `2013.09 - 2017.06`
+[__太原理工大学 (TYUT), 211, 太原, 中国__]() `2013.09 - 2017.06`
 
 - <u>软件工程-工学-学士学位</u> [已获得]
 - GPA: 3.56 [[PDF](../assets/typt.pdf)]
@@ -96,9 +93,9 @@ _Java Web 后台开发工程师_<br><br>
         - 使用: <span><img src="https://img.icons8.com/ios-filled/14/000000/unity.png"> Unity3D</span>, <span><img src="https://img.icons8.com/color/14/000000/c-sharp-logo.png"> C#</span>, <span><img src="https://img.icons8.com/color/14/000000/autodesk-maya.png"> Autodesk Maya</span>,<span><img src="https://img.icons8.com/color/16/000000/adobe-photoshop.png"> PhotoShop</span>
 
 
-## <span>&#128240;</span>专利 和 证书
+### <span>&#128240;</span>专利 和 证书
 
-### [__之江实验室, 作为主要作者__]()
+[__之江实验室, 作为主要作者__]()
 - 基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2022` [[PDF](../patent/ZL-2022-1-00568.pdf)] <br> 
 - 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF](../patent/nptq.png)] <br>
 - 一种多源异构数据关联查询加速方法、装置及设备, 专利号 [No. CN117056316B] `10/2023` [[PDF](../patent/ZL-2023-1-00906.pdf)] <br>
@@ -106,9 +103,9 @@ _Java Web 后台开发工程师_<br><br>
 - 一种基于neo4j及jena的知识图谱构建方法与系统, 专利号 [No. ZJ-2023-1-000450-CN-02] `11/2023` [[PDF](../patent/nptq.png)] <br>
 - 一种基于多通道交互的数据处理系统及方法, 专利号 [No. ZJ-2023-1-000194-CN-02] `11/2023` [[PDF](../patent/nptq.png)] <br>
 
-### [__银江股份有限公司, 作为参与者__]()
+[__银江股份有限公司, 作为参与者__]()
 - 一种面向数据共享的敏感信息脱敏方法及系统, 专利号 [No. CN107480549A], `12/2017`<br>
 - 基于卡口数据的城市道路交通拥堵指数计算方法, 专利号 [No. CN105869405B] `03/2018`<br>
 
-### [__软件设计师(中级), 中国__]()
+[__软件设计师(中级), 中国__]()
 - 全国计算机技术与软件专业技术中级资格证书, No. 1750500462. `02/2018` [[PDF](../assets/nptq.png)]

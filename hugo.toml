@@ -3,7 +3,13 @@ languageCode = 'en-us'
 title = 'AY Docs'
 theme = 'relearn'
 [params]
-  subtitle = 'The Best Widgets on Earth'
+  subtitle = 'Jotting Down some notes'
+  additionalContentLanguage = ['zh']
+  externalLinkTarget = '_blank'
+  themeVariant = 'learn'
   [params.contact]
-    email = 'info@example.org'
-    phone = '+1 202-555-1212'
+    email = 'aaron19940628@gmail.com'
+    phone = '+86 176-8234-9727'
+  [params.social]
+    facebook_admin = ''
+    twitter = ''
