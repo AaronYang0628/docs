@@ -1,0 +1,4 @@
+baseURL = 'https://aaronyang2333.gitlab.io'
+languageCode = 'en-us'
+title = 'AY Docs'
+theme = 'relearn'
