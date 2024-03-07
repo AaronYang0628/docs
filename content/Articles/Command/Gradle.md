@@ -4,16 +4,16 @@ date = 2024-03-07T19:58:45+08:00
 +++
 
 spotless
-```shell
+```sh
 ./gradlew spotlessApply
 ```
 
 shadowJar
-```shell
+```shell script
 ./gradlew shadowJar
 ```
 
 check dependency
-```shell
+```sh
 ./gradlew dependencies --configuration compileClasspath
 ```
