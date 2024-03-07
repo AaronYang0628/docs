@@ -2,3 +2,8 @@ baseURL = 'https://aaronyang2333.gitlab.io/docs/'
 languageCode = 'en-us'
 title = 'AY Docs'
 theme = 'relearn'
+[params]
+  subtitle = 'The Best Widgets on Earth'
+  [params.contact]
+    email = 'info@example.org'
+    phone = '+1 202-555-1212'
