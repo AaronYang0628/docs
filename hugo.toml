@@ -1,4 +1,4 @@
-baseURL = 'https://aaronyang2333.gitlab.io'
+baseURL = 'https://aaronyang2333.gitlab.io/docs/'
 languageCode = 'en-us'
 title = 'AY Docs'
 theme = 'relearn'
