@@ -1,10 +1,11 @@
 +++
-title = 'AY Docs'
+title = 'Index'
 date = 2024-03-07T15:00:59+08:00
 +++
 
 
+{{% notice default "Pay Attention to this Note!" %}}
+Due to some unknow Github Page issue, I have relocat my docs to the GitLab.
 
-{{% notice tip %}}
-All mentioned file names below can be clicked and show you the implementation for a better understanding.
+the original docs site is [https://aaronyang2333.github.io/](https://aaronyang2333.github.io/)
 {{% /notice %}}

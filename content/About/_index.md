@@ -30,7 +30,7 @@ _高级工程专员_<br><br>
 主要负责
 - 完成项目: 
     - [__宇宙触角__](https://nebula-inner.lab.zjvis.net/): 接受N个FPGA单元发送的UDP包，设计流量800GB/s，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现。
-    - [__CSST__](http://www.bao.ac.cn/csst/): 中国空间站工程巡天望远镜，数据处理支持。
+    - [__CSST__](http://www.bao.ac.cn/csst/): 中国空间站工程巡天望远镜，数据存储和数据处理支持。
 
 - 熟练掌握以下工具: 
     - <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>, <span><img src="assets/icons/clickhouse.png" height="15" width="16">Clickhouse</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>
@@ -99,11 +99,11 @@ _Java Web 后台开发工程师_<br><br>
 
 [__之江实验室, 作为主要作者__]()
 - 基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2022` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
-- 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF](assets/nptq.png)] <br>
+- 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF]()] <br>
 - 一种多源异构数据关联查询加速方法、装置及设备, 专利号 [No. CN117056316B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00906.pdf)] <br>
 - 一种基于知识图谱同概念下实体数据可视化配置方法与装置, 专利号 [No. CN117033420B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00846.pdf)] <br>
-- 一种基于neo4j及jena的知识图谱构建方法与系统, 专利号 [No. ZJ-2023-1-000450-CN-02] `11/2023` [[PDF](assets/nptq.png)] <br>
-- 一种基于多通道交互的数据处理系统及方法, 专利号 [No. ZJ-2023-1-000194-CN-02] `11/2023` [[PDF](assets/nptq.png)] <br>
+- 一种基于neo4j及jena的知识图谱构建方法与系统, 专利号 [No. ZJ-2023-1-000450-CN-02] `11/2023` [[PDF]()] <br>
+- 一种基于多通道交互的数据处理系统及方法, 专利号 [No. ZJ-2023-1-000194-CN-02] `11/2023` [[PDF]()] <br>
 
 [__银江股份有限公司, 作为参与者__]()
 - 一种面向数据共享的敏感信息脱敏方法及系统, 专利号 [No. CN107480549A], `12/2017`<br>
