@@ -67,10 +67,10 @@ _Java Web 后台开发工程师_<br><br>
 - <u>应用数据科学-硕士学位</u> [已获得]
 - GPA: 3.70 [[PDF](assets/apds_4.pdf)]
 - 已通过课程: 
-    - [机器学习](https://aaronyang2333.github.io/DSCI_552/), [数据挖掘](https://aaronyang2333.github.io/DSCI_553/), [机器学习应用（游戏方向）](https://aaronyang2333.github.io/LOL_Overlay_Assistant_Tool/), [自然语言处理](https://aaronyang2333.github.io/CSCI_544/), [知识图谱](https://aaronyang2333.github.io/DSCI_558/) <br>
+    - [机器学习](https://github.com/AaronYang2333/DSCI_552/blob/master/README.md), [数据挖掘](https://github.com/AaronYang2333/DSCI_553/blob/master/README.md), [机器学习应用（游戏方向）](https://github.com/AaronYang2333/LOL_Overlay_Assistant_Tool/blob/master/README.md), [自然语言处理](https://github.com/AaronYang2333/CSCI_544/blob/master/README.md), [知识图谱](https://github.com/AaronYang2333/DSCI_558/blob/master/README.md) <br>
 
 - 完成项目:
-    - [基于深度学习的LOL游戏助手](https://aaronyang2333.github.io/LOL_Overlay_Assistant_Tool/): 基于图像识别，和目标检测技术开发的MOBA游戏辅助客户端应用程序
+    - [基于深度学习的LOL游戏助手](https://github.com/AaronYang2333/LOL_Overlay_Assistant_Tool/blob/master/README.md): 基于图像识别，和目标检测技术开发的MOBA游戏辅助客户端应用程序
         - 使用: <span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2</span>, <span><img src="assets/icons/pyqt.png"> PyQT5</span>, <span><img src="https://img.icons8.com/color/18/000000/python.png"/> Python3</span>, <span><img src="https://img.icons8.com/metro/18/000000/general-ocr.png"/> OCR</span>
     - [混合推荐系统](https://github.com/AaronYang2333/DSCI_553/tree/master/project): 一个使用 switching 和 cascade 策略的推荐系统，可以实现向<img src="https://img.icons8.com/color/18/000000/yelp.png"/> Yelp（国外版大众点评）潜在用户群体推荐餐厅的功能.
         - 使用: <span><img src="assets/icons/spark.png" height="18" width="30"> Spark2</span>, <span><img src="https://img.icons8.com/ios/18/000000/pivot-table.png"/> 协同过滤</span>, <span><img src="https://img.icons8.com/windows/18/000000/change-user-male--v1.png"/> 用户画像</span>, <span><img src="assets/icons/xgboost.png" height="18" width="30"> XGboost</span>
@@ -98,12 +98,12 @@ _Java Web 后台开发工程师_<br><br>
 ### <span>&#128240;</span>专利 和 证书
 
 [__之江实验室, 作为主要作者__]()
-- 基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2022` [[PDF](../patent/ZL-2022-1-00568.pdf)] <br> 
-- 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF](../patent/nptq.png)] <br>
-- 一种多源异构数据关联查询加速方法、装置及设备, 专利号 [No. CN117056316B] `10/2023` [[PDF](../patent/ZL-2023-1-00906.pdf)] <br>
-- 一种基于知识图谱同概念下实体数据可视化配置方法与装置, 专利号 [No. CN117033420B] `10/2023` [[PDF](../patent/ZL-2023-1-00846.pdf)] <br>
-- 一种基于neo4j及jena的知识图谱构建方法与系统, 专利号 [No. ZJ-2023-1-000450-CN-02] `11/2023` [[PDF](../patent/nptq.png)] <br>
-- 一种基于多通道交互的数据处理系统及方法, 专利号 [No. ZJ-2023-1-000194-CN-02] `11/2023` [[PDF](../patent/nptq.png)] <br>
+- 基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2022` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
+- 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF](assets/nptq.png)] <br>
+- 一种多源异构数据关联查询加速方法、装置及设备, 专利号 [No. CN117056316B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00906.pdf)] <br>
+- 一种基于知识图谱同概念下实体数据可视化配置方法与装置, 专利号 [No. CN117033420B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00846.pdf)] <br>
+- 一种基于neo4j及jena的知识图谱构建方法与系统, 专利号 [No. ZJ-2023-1-000450-CN-02] `11/2023` [[PDF](assets/nptq.png)] <br>
+- 一种基于多通道交互的数据处理系统及方法, 专利号 [No. ZJ-2023-1-000194-CN-02] `11/2023` [[PDF](assets/nptq.png)] <br>
 
 [__银江股份有限公司, 作为参与者__]()
 - 一种面向数据共享的敏感信息脱敏方法及系统, 专利号 [No. CN107480549A], `12/2017`<br>
