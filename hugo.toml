@@ -51,12 +51,12 @@ weight = 11
 [[menu.shortcuts]]
 name = " <i class='fas fa-fw fa-video'></i>     BiliBili"
 identifier = "bilibili"
-url = "https://gitlab.com/AaronYang2333"
+url = "https://space.bilibili.com/475026324"
 weight = 12
 [[menu.shortcuts]]
 name = " <i class='fab fa-fw fa-youtube'></i>  Youtube"
 identifier = "youtube"
-url = "https://gitlab.com/AaronYang2333"
+url = "https://www.youtube.com/channel/UCXFfkXf4CxEkwpMXXbwNADQ"
 weight = 13
 [[menu.shortcuts]]
 name = " <i class='fas fa-book'></i>  Relearn"
