@@ -48,3 +48,18 @@ name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
 identifier = "gtlab"
 url = "https://gitlab.com/AaronYang2333"
 weight = 11
+[[menu.shortcuts]]
+name = " <i class='fas fa-fw fa-video'></i>     BiliBili"
+identifier = "bilibili"
+url = "https://gitlab.com/AaronYang2333"
+weight = 12
+[[menu.shortcuts]]
+name = " <i class='fab fa-fw fa-youtube'></i>  Youtube"
+identifier = "youtube"
+url = "https://gitlab.com/AaronYang2333"
+weight = 13
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Relearn"
+identifier = "relearn"
+url = "https://mcshelby.github.io/hugo-theme-relearn/"
+weight = 14

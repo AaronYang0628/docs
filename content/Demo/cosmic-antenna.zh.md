@@ -27,7 +27,7 @@ date = 2024-03-07T19:58:45+08:00
 
     ```shell
     # create a cluster using podman
-    curl -o kind.cluster.yaml -L https://gist.githubusercontent.com/AaronYang2333/71335475279c8f9214e58e3556b0e84f/raw/c7c3886444bf6824b87be3d2e700ed77844a7466/kind-cluster.yaml \
+    curl -o kind.cluster.yaml -L https://gitlab.com/-/snippets/3686427/raw/main/kind-cluster.yaml \
     && export KIND_EXPERIMENTAL_PROVIDER=podman \
     && kind create cluster --name cs-cluster --image m.daocloud.io/docker.io/kindest/node:v1.27.3 --config=./kind.cluster.yaml
     # need to modify ~/.kube/config ---BUG
@@ -56,7 +56,7 @@ date = 2024-03-07T19:58:45+08:00
     # install cert-manger ingress argo-cd
     kubectl create namespace argocd \
     && kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml \
-    && kubectl apply -n argocd -f https://gist.githubusercontent.com/AaronYang2333/10091b7dfeafb0c373aa38659ad9925b/raw/653421b67922e63c0df00b7f2b68886b2026a991/argo-cd.server.yaml
+    && kubectl apply -n argocd -f https://gitlab.com/-/snippets/3686428/raw/main/argo-cd.server.yaml
     # download argo-cd cli
     curl -sSL -o $HOME/bin/argocd https://hub.yzuu.cf/argoproj/argo-cd/releases/download/v2.8.4/argocd-linux-amd64 \
     && chmod u+x $HOME/bin/argocd
@@ -77,17 +77,17 @@ date = 2024-03-07T19:58:45+08:00
 3. install essential app on argocd
     ```shell
     # install cert manger    
-    curl -LO https://gist.githubusercontent.com/AaronYang2333/ec9446c1af9c0c0f7807dd84f81a7c0e/raw/0800c914c66f3e227732b5db8fcde5dc7f650804/cert-manager.yaml \
+    curl -LO https://gitlab.com/-/snippets/3686424/raw/main/cert-manager.yaml \
     && kubectl -n argocd apply -f cert-manager.yaml \
     && argocd app sync argocd/cert-manager
     
     # install ingress
-    curl -LO https://gist.githubusercontent.com/AaronYang2333/76afa21b7c07f0d4006b419c0c33a424/raw/a5ac2bc4b1e6b874eeea70fdccfa2d6440ec960a/ingress-nginx.yaml \
+    curl -LO https://gitlab.com/-/snippets/3686426/raw/main/ingress-nginx.yaml \
     && kubectl -n argocd apply -f ingress-nginx.yaml \
     && argocd app sync argocd/ingress-nginx
    
     # install flink-kubernetes-operator
-    curl -LO https://gist.githubusercontent.com/AaronYang2333/090b92143f5a212c5909fc87ccb84833/raw/0b51e2ff318ffe59963e7b283bb6b13ae16a12f5/flink-operator.yaml \
+    curl -LO https://gitlab.com/-/snippets/3686429/raw/main/flink-operator.yaml \
     && kubectl -n argocd apply -f flink-operator.yaml \
     && argocd app sync argocd/flink-operator
     ```
