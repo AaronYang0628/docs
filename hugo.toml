@@ -38,6 +38,10 @@ theme = 'relearn'
     mediaType = 'text/html'
     permalinkable = false
     noUgly = true
+[markup]
+  [markup.highlight]
+    lineNumbersInTable = false
+    noClasses = false
 [[menu.shortcuts]]
 name = "<i class='fab fa-fw fa-github'></i> GitHub repo"
 identifier = "github"
