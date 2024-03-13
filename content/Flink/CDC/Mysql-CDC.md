@@ -78,6 +78,34 @@ implementation("org.apache.flink:flink-table-planner_2.12:1.17")
 
 {{< /tabs >}}
 
+#### Example Code
+```java
+MySqlSource<String> mySqlSource =
+    MySqlSource.<String>builder()
+        .hostname("192.168.56.107")
+        .port(3306)
+        .databaseList("test") // set captured database
+        .tableList("test.table_a") // set captured table
+        .username("root")
+        .password("mysql")
+        .deserializer(
+            new JsonDebeziumDeserializationSchema()) // converts SourceRecord to JSON String
+        .serverTimeZone("UTC")
+        .build();
+
+StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+// enable checkpoint
+env.enableCheckpointing(3000);
+
+env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "MySQL Source")
+    // set 4 parallel source tasks
+    .setParallelism(4)
+    .print()
+    .setParallelism(1); // use parallelism 1 for sink to keep message ordering
+
+env.execute("Print MySQL Snapshot + Binlog");
+```
 
 ### usage for table/SQL API
 
