@@ -105,7 +105,13 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 8. prepare `deploy-clickhouse.yaml`
+#### 8. prepare clickhouse admin credentials secret
+```shell
+kubectl -n application create secret generic clickhouse-admin-credentials \
+    --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+```
+
+#### 9. prepare `deploy-clickhouse.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
@@ -185,28 +191,26 @@ spec:
                   pullPolicy: IfNotPresent
                 service:
                   type: ClusterIP
-                persistence:
-                  enabled: true
-                  storageClass: "alicloud-disk-topology-alltype"
-                  accessModes:
-                    - ReadWriteMany
-                  size: 50Gi
+                volumePermissions:
+                  enabled: false
+                  image:
+                    registry: m.daocloud.io/docker.io
+                    pullPolicy: IfNotPresent
                 ingress:
                   enabled: true
                   ingressClassName: nginx
                   annotations:
+                    cert-manager.io/cluster-issuer: self-signed-ca-issuer
                     nginx.ingress.kubernetes.io/rewrite-target: /$1
                   path: /?(.*)
-                  hosts:
-                    - clickhouse-api.dev
-                consoleIngress:
-                  enabled: true
-                  ingressClassName: nginx
-                  annotations:
-                    nginx.ingress.kubernetes.io/rewrite-target: /$1
-                  path: /?(.*)
-                  hosts:
-                    - clickhouse-console.dev
+                  hostname: clickhouse.dev.geekcity.tech
+                  tls: true
+                persistence:
+                  enabled: false
+                auth:
+                  username: admin
+                  existingSecret: clickhouse-admin-credentials
+                  existingSecretKey: password
                 zookeeper:
                   enabled: true
                   image:
@@ -215,14 +219,13 @@ spec:
                     tag: 3.8.3-debian-11-r2
                     pullPolicy: IfNotPresent
                   replicaCount: 3
-                  service:
-                    ports:
-                      client: 2181
                   persistence:
-                    storageClass: "alicloud-disk-topology-alltype"
-                    accessModes:
-                      - ReadWriteOnce
-                    size: 20Gi
+                    enabled: false
+                  volumePermissions:
+                    enabled: false
+                    image:
+                      registry: m.daocloud.io/docker.io
+                      pullPolicy: IfNotPresent
           destination:
             server: https://kubernetes.default.svc
             namespace: application
@@ -316,12 +319,12 @@ spec:
         argocd app wait argocd/ay-clickhouse
 ```
 
-#### 9. subimit to argo workflow client
+#### 10. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-clickhouse.yaml
 ```
 
-#### 10. check workflow status
+#### 11. check workflow status
 ```shell
 # list all flows
 argo -n business-workflows list
