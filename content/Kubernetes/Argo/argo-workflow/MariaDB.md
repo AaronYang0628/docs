@@ -1,7 +1,7 @@
 +++
 title = 'Install MariaDB'
 date = 2024-03-12T15:00:59+08:00
-weight = 14
+weight = 16
 +++
 
 ### Preliminary
@@ -56,21 +56,20 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare postgresql admin credentials secret
+#### 4. prepare mariadb credentials secret
 ```shell
-kubectl -n application create secret generic postgresql-credentials \
-    --from-literal=postgres-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
-
+kubectl -n application create secret generic mariadb-credentials \
+    --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 5. prepare `deploy-postgresql.yaml`
+#### 5. prepare `deploy-mariadb.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-pg-
+  generateName: deploy-argocd-app-mariadb-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -126,7 +125,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: app-postgresql
+          name: app-mariadb
           namespace: argocd
         spec:
           syncPolicy:
@@ -135,25 +134,23 @@ spec:
           project: default
           source:
             repoURL: https://charts.bitnami.com/bitnami
-            chart: postgresql
-            targetRevision: 14.2.2
+            chart: mariadb
+            targetRevision: 16.5.0
             helm:
-              releaseName: app-postgresql
+              releaseName: app-mariadb
               values: |
                 architecture: standalone
                 auth:
                   database: geekcity
                   username: aaron.yang
-                  existingSecret: postgresql-credentials
+                  existingSecret: mariadb-credentials
                 primary:
                   persistence:
                     enabled: false
-                readReplicas:
+                secondary:
                   replicaCount: 1
                   persistence:
                     enabled: false
-                backup:
-                  enabled: false
                 image:
                   registry: m.daocloud.io/docker.io
                   pullPolicy: IfNotPresent
@@ -224,7 +221,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/app-postgresql ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-mariadb ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -257,10 +254,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/app-postgresql
+        argocd app wait argocd/app-mariadb
 ```
 
 #### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-postgresql.yaml
+argo -n business-workflows submit deploy-mariadb.yaml
 ```

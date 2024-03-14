@@ -56,12 +56,18 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare `deploy-clickhouse.yaml`
+#### 4. prepare redis credentials secret
+```shell
+kubectl -n database create secret generic redis-credentials \
+    --from-literal=redis-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+```
+
+#### 5. prepare `deploy-redis.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-
+  generateName: deploy-argocd-app-redis-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -117,7 +123,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: ay-clickhouse
+          name: app-redis
           namespace: argocd
         spec:
           syncPolicy:
@@ -126,54 +132,55 @@ spec:
           project: default
           source:
             repoURL: https://charts.bitnami.com/bitnami
-            chart: clickhouse
-            targetRevision: 5.3.0
+            chart: redis
+            targetRevision: 18.16.0
             helm:
-              releaseName: ay-clickhouse
+              releaseName: app-redis
               values: |
+                architecture: replication
+                auth:
+                  enabled: true
+                  sentinel: true
+                  existingSecret: redis-credentials
+                master:
+                  count: 1
+                  disableCommands:
+                    - FLUSHDB
+                    - FLUSHALL
+                  persistence:
+                    enabled: false
+                replica:
+                  replicaCount: 3
+                  disableCommands:
+                    - FLUSHDB
+                    - FLUSHALL
+                  persistence:
+                    enabled: false
                 image:
                   registry: m.daocloud.io/docker.io
                   pullPolicy: IfNotPresent
-                service:
-                  type: ClusterIP
-                persistence:
-                  enabled: true
-                  storageClass: "alicloud-disk-topology-alltype"
-                  accessModes:
-                    - ReadWriteMany
-                  size: 50Gi
-                ingress:
-                  enabled: true
-                  ingressClassName: nginx
-                  annotations:
-                    nginx.ingress.kubernetes.io/rewrite-target: /$1
-                  path: /?(.*)
-                  hosts:
-                    - clickhouse-api.dev
-                consoleIngress:
-                  enabled: true
-                  ingressClassName: nginx
-                  annotations:
-                    nginx.ingress.kubernetes.io/rewrite-target: /$1
-                  path: /?(.*)
-                  hosts:
-                    - clickhouse-console.dev
-                zookeeper:
-                  enabled: true
+                sentinel:
+                  enabled: false
+                  persistence:
+                    enabled: false
                   image:
                     registry: m.daocloud.io/docker.io
-                    repository: bitnami/zookeeper
-                    tag: 3.8.3-debian-11-r2
                     pullPolicy: IfNotPresent
-                  replicaCount: 3
-                  service:
-                    ports:
-                      client: 2181
-                  persistence:
-                    storageClass: "alicloud-disk-topology-alltype"
-                    accessModes:
-                      - ReadWriteOnce
-                    size: 20Gi
+                metrics:
+                  enabled: false
+                  image:
+                    registry: m.daocloud.io/docker.io
+                    pullPolicy: IfNotPresent
+                volumePermissions:
+                  enabled: false
+                  image:
+                    registry: m.daocloud.io/docker.io
+                    pullPolicy: IfNotPresent
+                sysctl:
+                  enabled: false
+                  image:
+                    registry: m.daocloud.io/docker.io
+                    pullPolicy: IfNotPresent
           destination:
             server: https://kubernetes.default.svc
             namespace: application
@@ -231,7 +238,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/ay-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-redis ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -264,26 +271,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/ay-clickhouse
+        argocd app wait argocd/app-redis
 ```
 
-#### 5. subimit to argo workflow client
+#### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-clickhouse.yaml
-```
-
-#### 6. check workflow status
-```shell
-# list all flows
-argo -n business-workflows list
-```
-
-```shell
-# get specific flow status
-argo -n business-workflows get <$flow_name>
-```
-
-```shell
-# get specific flow log
-argo -n business-workflows logs <$flow_name>
+argo -n business-workflows submit deploy-redis.yaml
 ```

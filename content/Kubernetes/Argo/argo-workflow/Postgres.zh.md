@@ -1,7 +1,7 @@
 +++
-title = 'Install MariaDB'
+title = 'Install Postgresql'
 date = 2024-03-12T15:00:59+08:00
-weight = 14
+weight = 13
 +++
 
 ### Preliminary
