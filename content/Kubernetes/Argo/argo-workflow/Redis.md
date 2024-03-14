@@ -1,7 +1,7 @@
 +++
-title = 'Install Clickhouse'
-date = 2024-03-07T15:00:59+08:00
-weight = 12
+title = 'Install Redis'
+date = 2024-03-12T15:00:59+08:00
+weight = 15
 +++
 
 ### Preliminary
@@ -61,7 +61,7 @@ kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-ck-
+  generateName: deploy-argocd-app-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -117,7 +117,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: app-clickhouse
+          name: ay-clickhouse
           namespace: argocd
         spec:
           syncPolicy:
@@ -129,7 +129,7 @@ spec:
             chart: clickhouse
             targetRevision: 5.3.0
             helm:
-              releaseName: app-clickhouse
+              releaseName: ay-clickhouse
               values: |
                 image:
                   registry: m.daocloud.io/docker.io
@@ -231,7 +231,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/app-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/ay-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -264,7 +264,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/app-clickhouse
+        argocd app wait argocd/ay-clickhouse
 ```
 
 #### 5. subimit to argo workflow client

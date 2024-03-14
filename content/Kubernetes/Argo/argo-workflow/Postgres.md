@@ -1,7 +1,7 @@
 +++
-title = 'Install Clickhouse'
-date = 2024-03-07T15:00:59+08:00
-weight = 12
+title = 'Install Postgres'
+date = 2024-03-12T15:00:59+08:00
+weight = 13
 +++
 
 ### Preliminary
@@ -56,12 +56,12 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare `deploy-clickhouse.yaml`
+#### 4. prepare `deploy-postgres.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-ck-
+  generateName: deploy-argocd-app-pg-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -117,7 +117,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: app-clickhouse
+          name: app-postgres
           namespace: argocd
         spec:
           syncPolicy:
@@ -129,7 +129,7 @@ spec:
             chart: clickhouse
             targetRevision: 5.3.0
             helm:
-              releaseName: app-clickhouse
+              releaseName: app-postgres
               values: |
                 image:
                   registry: m.daocloud.io/docker.io
@@ -231,7 +231,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/app-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-postgres ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -264,26 +264,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/app-clickhouse
+        argocd app wait argocd/app-postgres
 ```
 
 #### 5. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-clickhouse.yaml
-```
-
-#### 6. check workflow status
-```shell
-# list all flows
-argo -n business-workflows list
-```
-
-```shell
-# get specific flow status
-argo -n business-workflows get <$flow_name>
-```
-
-```shell
-# get specific flow log
-argo -n business-workflows logs <$flow_name>
+argo -n business-workflows submit deploy-postgres.yaml
 ```
