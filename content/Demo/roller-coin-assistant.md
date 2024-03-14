@@ -10,7 +10,7 @@ There are two main funcs in this tool.
 
 1. Help you to crack the game, go {{% button href="https://www.youtube.com/watch?v=0LgMaCDIAsk" icon="fas fa-video" %}}Watch Video{{% /button %}} <br>
 
-[![RollerCoin Game Cracker](https://res.cloudinary.com/marcomontalbano/image/upload/v1630143009/video_to_markdown/images/youtube--0LgMaCDIAsk-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=0LgMaCDIAsk "RollerCoin Game Cracker")
+[![RollerCoin Game Cracker](../../images/content/roller-coin/video.jpg)](https://www.youtube.com/watch?v=0LgMaCDIAsk "RollerCoin Game Cracker")
   - only support 'Coin-Flip' Game for now.
   (I know, rollercoin.com has lower down the benefit from this game, thats why I make the repo public. [update](https://rollercoin.com/blog/gaming-rebalance-update/))
 

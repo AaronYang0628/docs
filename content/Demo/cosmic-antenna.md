@@ -4,10 +4,13 @@ date = 2024-03-07T19:58:45+08:00
 +++
 
 
-### design architecture
+### Design Architecture
+- #### objects
+continuous processing antenna signal and sending 3 dimension data matrixes to different astronomical algorithm.
+![asdsaa](../../images/content/cosmic-antenna/objects.png)
 
 
-### building from zero
+### Building From Zero
 
 Following these steps, you may build `comic-antenna` from nothing.
 #### 1. install podman
@@ -91,9 +94,8 @@ sudo dnf install -y git \
 && git clone --branch pv_pvc_template https://github.com/AaronYang2333/cosmic-antenna-demo.git $HOME/cosmic-antenna-demo
 ```
 
-#### 7. prepare image
+#### 7. prepare application image
 ```shell
-# build application images 
 # cd into  $HOME/cosmic-antenna-demo
 sudo dnf install -y java-11-openjdk.x86_64 \
 && $HOME/cosmic-antenna-demo/gradlew :s3sync:buildImage \
