@@ -1,5 +1,5 @@
 +++
-title = 'Install Postgres'
+title = 'Install Postgresql'
 date = 2024-03-12T15:00:59+08:00
 weight = 13
 +++
@@ -56,7 +56,16 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare `deploy-postgres.yaml`
+#### 4. prepare postgresql admin credentials secret
+```shell
+kubectl -n application create secret generic postgresql-credentials \
+    --from-literal=postgres-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+
+```
+
+#### 5. prepare `deploy-postgresql.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
@@ -117,7 +126,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: app-postgres
+          name: app-postgresql
           namespace: argocd
         spec:
           syncPolicy:
@@ -126,54 +135,38 @@ spec:
           project: default
           source:
             repoURL: https://charts.bitnami.com/bitnami
-            chart: clickhouse
-            targetRevision: 5.3.0
+            chart: postgresql
+            targetRevision: 14.2.2
             helm:
-              releaseName: app-postgres
+              releaseName: app-postgresql
               values: |
+                architecture: standalone
+                auth:
+                  database: geekcity
+                  username: aaron.yang
+                  existingSecret: postgresql-credentials
+                primary:
+                  persistence:
+                    enabled: false
+                readReplicas:
+                  replicaCount: 1
+                  persistence:
+                    enabled: false
+                backup:
+                  enabled: false
                 image:
                   registry: m.daocloud.io/docker.io
                   pullPolicy: IfNotPresent
-                service:
-                  type: ClusterIP
-                persistence:
-                  enabled: true
-                  storageClass: "alicloud-disk-topology-alltype"
-                  accessModes:
-                    - ReadWriteMany
-                  size: 50Gi
-                ingress:
-                  enabled: true
-                  ingressClassName: nginx
-                  annotations:
-                    nginx.ingress.kubernetes.io/rewrite-target: /$1
-                  path: /?(.*)
-                  hosts:
-                    - clickhouse-api.dev
-                consoleIngress:
-                  enabled: true
-                  ingressClassName: nginx
-                  annotations:
-                    nginx.ingress.kubernetes.io/rewrite-target: /$1
-                  path: /?(.*)
-                  hosts:
-                    - clickhouse-console.dev
-                zookeeper:
-                  enabled: true
+                volumePermissions:
+                  enabled: false
                   image:
                     registry: m.daocloud.io/docker.io
-                    repository: bitnami/zookeeper
-                    tag: 3.8.3-debian-11-r2
                     pullPolicy: IfNotPresent
-                  replicaCount: 3
-                  service:
-                    ports:
-                      client: 2181
-                  persistence:
-                    storageClass: "alicloud-disk-topology-alltype"
-                    accessModes:
-                      - ReadWriteOnce
-                    size: 20Gi
+                metrics:
+                  enabled: false
+                  image:
+                    registry: m.daocloud.io/docker.io
+                    pullPolicy: IfNotPresent
           destination:
             server: https://kubernetes.default.svc
             namespace: application
@@ -231,7 +224,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/app-postgres ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-postgresql ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -264,10 +257,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/app-postgres
+        argocd app wait argocd/app-postgresql
 ```
 
-#### 5. subimit to argo workflow client
+#### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-postgres.yaml
+argo -n business-workflows submit deploy-postgresql.yaml
 ```

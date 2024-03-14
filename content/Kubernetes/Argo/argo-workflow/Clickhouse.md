@@ -1,66 +1,17 @@
 +++
 title = 'Install Clickhouse'
 date = 2024-03-07T15:00:59+08:00
+weight = 11
 +++
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
 - argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
-- minio is ready for artifact repository
+- minio artifact repository has been configured, if not check [link](kubernetes/command/artifact_repository/index.html)
     > endpoint: minio.storage:9000
 
 ### Steps
-#### 1. prepare bucket for s3 artifact repository
-```shell
-# K8S_MASTER_IP could be you master ip or loadbalancer external ip
-K8S_MASTER_IP=172.27.253.27
-MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.rootPassword}' | base64 -d)
-podman run --rm \
---entrypoint bash \
---add-host=minio-api.dev.geekcity.tech:${K8S_MASTER_IP} \
--it docker.io/minio/mc:latest \
--c "mc alias set minio http://minio-api.dev.geekcity.tech admin ${MINIO_ACCESS_SECRET} \
-    && mc ls minio \
-    && mc mb --ignore-existing minio/argo-workflows-artifacts"
-```
-
-#### 2. prepare secret `s3-artifact-repository-credentials`
-> will create **business-workflows** namespace
-```shell
-MINIO_ACCESS_KEY=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.rootUser}' | base64 -d)
-kubectl -n business-workflows create secret generic s3-artifact-repository-credentials \
-    --from-literal=accessKey=${MINIO_ACCESS_KEY} \
-    --from-literal=secretKey=${MINIO_ACCESS_SECRET}
-```
-
-#### 3. prepare configMap `artifact-repositories.yaml` 
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: artifact-repositories
-  annotations:
-    workflows.argoproj.io/default-artifact-repository: default-artifact-repository
-data:
-  default-artifact-repository: |
-    s3:
-      endpoint: minio.storage:9000
-      insecure: true
-      accessKeySecret:
-        name: s3-artifact-repository-credentials
-        key: accessKey
-      secretKeySecret:
-        name: s3-artifact-repository-credentials
-        key: secretKey
-      bucket: argo-workflows-artifacts
-```
-
-#### 4. apply `artifact-repositories.yaml` to k8s
-```shell
-kubectl -n business-workflows apply -f artifact-repositories.yaml
-```
-
-#### 5. prepare secret `argocd-login-credentials`
+#### 1. prepare secret `argocd-login-credentials`
 ```shell
 ARGOCD_USERNAME=admin
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -69,7 +20,7 @@ kubectl -n business-workflows create secret generic argocd-login-credentials \
     --from-literal=password=${ARGOCD_PASSWORD}
 ```
 
-#### 6. prepare RoleBinding `deploy-argocd-app-rbac.yaml`
+#### 2. prepare RoleBinding `deploy-argocd-app-rbac.yaml`
 ```yaml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -100,23 +51,23 @@ subjects:
   namespace: business-workflows
 ```
 
-#### 7. apply `deploy-argocd-app-rbac.yaml` to k8s
+#### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 8. prepare clickhouse admin credentials secret
+#### 4. prepare clickhouse admin credentials secret
 ```shell
 kubectl -n application create secret generic clickhouse-admin-credentials \
     --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 9. prepare `deploy-clickhouse.yaml`
+#### 5. prepare `deploy-clickhouse.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-
+  generateName: deploy-argocd-app-ck-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -172,7 +123,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: ay-clickhouse
+          name: app-clickhouse
           namespace: argocd
         spec:
           syncPolicy:
@@ -184,7 +135,7 @@ spec:
             chart: clickhouse
             targetRevision: 5.3.0
             helm:
-              releaseName: ay-clickhouse
+              releaseName: app-clickhouse
               values: |
                 image:
                   registry: m.daocloud.io/docker.io
@@ -283,7 +234,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/ay-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -316,10 +267,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/ay-clickhouse
+        argocd app wait argocd/app-clickhouse
 ```
 
-#### 10. subimit to argo workflow client
+#### 6. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-clickhouse.yaml
 ```
