@@ -5,7 +5,7 @@ date = 2024-03-07T15:00:59+08:00
 
 ### Preliminary
 - Kubernets has installed
-- Helm binary is working
+> [Optional](): Helm binary is working
 
 ### 1. install argoCD binary
 ```shell
@@ -18,68 +18,85 @@ mkdir -p ${HOME}/bin
 mv -f argocd ${HOME}/bin
 ```
 
-### 2. prepare `argocd.values.yaml`
+### 2. install components
 
-```yaml
-crds:
-  install: true
-  keep: false
-global:
-  revisionHistoryLimit: 3
-  image:
-    repository: m.daocloud.io/quay.io/argoproj/argocd
-    imagePullPolicy: IfNotPresent
-redis:
-  enabled: true
-  image:
-    repository: m.daocloud.io/docker.io/library/redis
-  exporter:
-    enabled: false
-    image:
-      repository: m.daocloud.io/bitnami/redis-exporter
-  metrics:
-    enabled: false
-redis-ha:
-  enabled: false
-  image:
-    repository: m.daocloud.io/docker.io/library/redis
-  configmapTest:
-    repository: m.daocloud.io/docker.io/koalaman/shellcheck
-  haproxy:
-    enabled: false
-    image:
-      repository: m.daocloud.io/docker.io/library/haproxy
-  exporter:
-    enabled: false
-    image: m.daocloud.io/docker.io/oliver006/redis_exporter
-dex:
-  enabled: true
-  image:
-    repository: m.daocloud.io/ghcr.io/dexidp/dex
+{{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
+{{< tab title="Helm" >}}
+  <a><b>1. Prepare argocd.values.yaml</b></a> <br/>
+  {{< tabs groupid="tabs-example-language" >}}
+    {{% tab title="argocd.values.yaml" %}}
+    crds:
+      install: true
+      keep: false
+    global:
+      revisionHistoryLimit: 3
+      image:
+        repository: m.daocloud.io/quay.io/argoproj/argocd
+        imagePullPolicy: IfNotPresent
+    redis:
+      enabled: true
+      image:
+        repository: m.daocloud.io/docker.io/library/redis
+      exporter:
+        enabled: false
+        image:
+          repository: m.daocloud.io/bitnami/redis-exporter
+      metrics:
+        enabled: false
+    redis-ha:
+      enabled: false
+      image:
+        repository: m.daocloud.io/docker.io/library/redis
+      configmapTest:
+        repository: m.daocloud.io/docker.io/koalaman/shellcheck
+      haproxy:
+        enabled: false
+        image:
+          repository: m.daocloud.io/docker.io/library/haproxy
+      exporter:
+        enabled: false
+        image: m.daocloud.io/docker.io/oliver006/redis_exporter
+    dex:
+      enabled: true
+      image:
+        repository: m.daocloud.io/ghcr.io/dexidp/dex
+    {{% /tab%}}
+  {{< /tabs >}}
 
-```
+  <a><b>2. Install argoCD </b></a><br/>
 
-### 3. install argoCD 
+  {{< tabs groupid="tabs-example-language" >}}
+    {{% tab title="shell" %}}
 
-{{< tabs >}}
-{{% tab title="helm" %}}
-```shell
-helm install argo-cd argo-cd \
-    --namespace argocd \
-    --create-namespace \
-    --version 5.46.7 \
-    --repo https://ben-wangz.github.io/helm-chart-mirror/charts \
-    --values argocd.values.yaml \
-    --atomic
-```
-{{% /tab %}}
-{{% tab title="file url" %}}
-```shell
-kubectl apply -n argocd -f argocd.values.yaml
-```
-{{% /tab %}}
+    helm install argo-cd argo-cd \
+      --namespace argocd \
+      --create-namespace \
+      --version 5.46.7 \
+      --repo https://ben-wangz.github.io/helm-chart-mirror/charts \
+      --values argocd.values.yaml \
+      --atomic
 
+    {{% /tab%}}
+  {{< /tabs >}}
+
+{{< /tab >}}
+
+{{< tab title="File/URL" style="default" color="darkorchid" >}}
+  by default you can install argocd by this <a href="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml">link</a>
+  {{< tabs groupid="tabs-example-language" >}}
+  {{% tab title="shell" %}}
+  ```shell
+  kubectl create namespace argocd \
+  && kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  ```
+  {{% /tab %}}
+  {{< /tabs >}}
+  </br>
+  Or, you can use your won flle link.
+{{< /tab >}}
 {{< /tabs >}}
+
+
 
 ### 4. prepare `argocd-server-external.yaml`
 ```yaml
@@ -104,8 +121,6 @@ spec:
     app.kubernetes.io/instance: argo-cd
     app.kubernetes.io/name: argocd-server
   type: NodePort
-
-
 ```
 
 

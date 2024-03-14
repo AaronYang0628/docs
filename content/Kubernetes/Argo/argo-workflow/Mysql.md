@@ -1,7 +1,8 @@
 +++
-title = 'Install MariaDB'
+title = 'Install Mysql'
 date = 2024-03-12T15:00:59+08:00
 weight = 14
+draft = true
 +++
 
 ### Preliminary
