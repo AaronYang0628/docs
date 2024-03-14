@@ -63,7 +63,18 @@ identifier = "youtube"
 url = "https://www.youtube.com/channel/UCXFfkXf4CxEkwpMXXbwNADQ"
 weight = 13
 [[menu.shortcuts]]
-name = " <i class='fas fa-book'></i>  Relearn"
+name = " <i class='fas fa-book'></i>  Hugo Theme"
 identifier = "relearn"
 url = "https://mcshelby.github.io/hugo-theme-relearn/"
 weight = 14
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Ben.wangz"
+identifier = "ben.wangz"
+url = "https://blog.geekcity.tech/articles/"
+weight = 15
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Conti.cc"
+identifier = "CnConti"
+url = "https://blog.cnconti.cc/"
+weight = 16
+
