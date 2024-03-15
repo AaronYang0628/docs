@@ -1,6 +1,7 @@
 +++
 title = 'Cosmic Antenna'
 date = 2024-03-07T19:58:45+08:00
+weight = 4
 +++
 
 
@@ -41,9 +42,11 @@ curl -o kind.cluster.yaml -L https://gitlab.com/-/snippets/3686427/raw/main/kind
 
 vim ~/.kube/config
 
-in line XXX, change server=::12312 -> server=0.0.0.0:12312
+in line 5, change server: http://::xxxx -> server: http://0.0.0.0:xxxxx
 
 {{% /notice %}}
+
+![asdsaa](../../images/content/cosmic-antenna/kube-config.png)
 
 #### 3. [[Optional]]() pre-downloaded slow images
 ```shell
@@ -112,9 +115,16 @@ podman save --quiet -o $DOCKER_IMAGE_PATH/s3sync_$VERSION.dim localhost/s3sync:$
 ```
 
 ```shell
-# add services and endpoints authority
 kubectl -n flink edit role/flink -o yaml
 ```
+
+{{% notice style="warning" title="Modify role config" icon="stopwatch" %}}
+
+kubectl -n flink edit role/flink -o yaml
+
+add `services` and `endpoints` to the `rules.resources`
+
+{{% /notice %}}
 
 #### 8. prepare k8s resources [pv, pvc, sts]
 ```shell

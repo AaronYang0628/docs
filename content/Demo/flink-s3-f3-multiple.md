@@ -1,6 +1,7 @@
 +++
 title = 'Flink S3 F3 Multiple'
 date = 2024-03-08T09:59:53+08:00
+weight = 5
 +++
 
 Normally, Flink only can access one S3 endpoint during the runtime. But we need to process some files from multiple minio simultaneously.

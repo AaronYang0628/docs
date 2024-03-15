@@ -7,10 +7,13 @@ There are many ways to build a kubernetes cluster.
 
 ### Install Kuberctl
 ```shell
-mkdir -p $HOME/bin \
-&& export PATH="$HOME/bin:$PATH" \
-&& curl -o kubectl -L https://resource-ops.lab.zjvis.net:32443/binary/kubectl/v1.21.2/bin/linux/amd64/kubectl \
-&& chmod u+x kubectl && mv kubectl $HOME/bin
+MIRROR="files.m.daocloud.io/"
+VERSION=$(curl -L -s https://${MIRROR}dl.k8s.io/release/stable.txt)
+[ $(uname -m) = x86_64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl"
+[ $(uname -m) = aarch64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/arm64/kubectl"
+chmod u+x kubectl
+mkdir -p ${HOME}/bin
+mv -f kubectl ${HOME}/bin
 ```
 
 
@@ -19,10 +22,13 @@ mkdir -p $HOME/bin \
 {{< tabs groupid="install" >}}
 {{% tab title="kind" %}}
 ```shell
-mkdir -p $HOME/bin \
-&& export PATH="$HOME/bin:$PATH" \
-&& curl -o kind -L https://resource-ops.lab.zjvis.net:32443/binary/kind/v0.20.0/kind-linux-amd64 \
-&& chmod u+x kind && mv kind $HOME/bin \
+MIRROR="files.m.daocloud.io/"
+VERSION=v0.20.0
+[ $(uname -m) = x86_64 ] && curl -sSLo kind "https://${MIRROR}github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-amd64"
+[ $(uname -m) = aarch64 ] && curl -sSLo kind "https://${MIRROR}github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-arm64"
+chmod u+x kind
+mkdir -p ${HOME}/bin
+mv -f kind ${HOME}/bin
 ```
 {{% /tab %}}
 {{% tab title="minkube" %}}

@@ -46,7 +46,7 @@ date = 2024-03-08T11:16:18+08:00
     helm install <$resource_id> <$resource_id> \
         --namespace <$namespace> \
         --create-namespace \
-        --version 5.46.7 \
+        --version <$version> \
         --repo <$repo_url> \
         --values resource.values.yaml \
         --atomic
@@ -124,3 +124,13 @@ kubectl delete all --all -n <$namespace>
 kubectl delete all --all --all-namespaces
 ```
 {{% /expand %}}
+
+### 7. delete error pods
+```shell
+kubectl -n <$namespace> delete pods --field-selector status.phase=Failed
+```
+
+### 7. Opening a Bash Shell inside a Pod 
+```shell
+kubectl exec -it <pod-ID> -n <MI-namespace> bash  
+```

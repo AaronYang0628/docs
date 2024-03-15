@@ -1,6 +1,7 @@
 +++
 title = 'Roller Coin Assistant'
 date = 2024-03-08T10:05:42+08:00
+weight = 2
 +++
 
 Using deep learning techniques to help you to mining the cryptos, such as BTC, ETH and DOGE.
