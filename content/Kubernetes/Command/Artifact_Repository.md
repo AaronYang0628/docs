@@ -8,7 +8,7 @@ date = 2024-03-07T15:00:59+08:00
 - argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
 - minio is ready for artifact repository
     > endpoint: minio.storage:9000
-- 
+
 
 ### Steps
 #### 1. prepare bucket for s3 artifact repository

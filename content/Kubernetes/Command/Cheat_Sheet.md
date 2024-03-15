@@ -130,7 +130,7 @@ kubectl delete all --all --all-namespaces
 kubectl -n <$namespace> delete pods --field-selector status.phase=Failed
 ```
 
-### 7. Opening a Bash Shell inside a Pod 
+### 8. Opening a Bash Shell inside a Pod 
 ```shell
 kubectl exec -it <pod-ID> -n <MI-namespace> bash  
 ```

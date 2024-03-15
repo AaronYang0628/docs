@@ -1,12 +1,13 @@
 +++
-title = 'Mysql'
+title = 'MariaDB'
 date = 2024-03-07T15:00:59+08:00
+weight = 3
 +++
 
 
 
 ### 1. init server
-```sh
+```shell
 mkdir -p mariadb/data
 podman run  \
     -p 3306:3306 \
@@ -22,7 +23,7 @@ you can run an addinational **daocloud** image to accelerate your pulling, check
 
 ### 2. use web console
 
-```sh
+```shell
 podman run --rm -p 8080:80 \
     -e PMA_ARBITRARY=1 \
     -d docker.io/library/phpmyadmin:5.1.1-apache
@@ -31,6 +32,19 @@ And then you can visit [http://localhost:8080](http://localhost:8080)
 
 username: `root` 
 password: `mysql` 
+
+### 3. use internal client 
+```shell
+podman run --rm \
+    -e MYSQL_PWD=mysql \
+    -it docker.io/library/mariadb:11.2.2-jammy \
+    mariadb \
+    --host host.containers.internal \
+    --port 3306 \
+    --user root \
+    --database mysql \
+    --execute 'select version()'
+```
 
 ### useful SQL
 1. list all bin logs
