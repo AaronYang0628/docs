@@ -7,7 +7,7 @@ weight = 2
 
 
 ### 1. init server
-```sh
+```shell
 mkdir -p $(pwd)/minio/data
 podman run --rm \
     --name minio-server \
@@ -30,7 +30,7 @@ access secret: `minioadmin`
 
 ### 3. use cli api
 
-```sh
+```shell
 podman run --rm \
     --entrypoint bash \
     -it docker.io/minio/mc:latest \

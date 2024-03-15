@@ -5,9 +5,9 @@ weight = 1
 +++
 
 ### Preliminary
-- Kubernets has installed
-- Argo CD has installed
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service
+- Kubernets has installed, if not [check link](kubernetes/command/install/index.html)
+- Argo CD has installed, if not [check link](kubernetes/argo/argo-cd/argocd.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not [check link](kubernetes/command/install/index.html)
 
 ### 1. prepare `argo-workflows.yaml`
 
