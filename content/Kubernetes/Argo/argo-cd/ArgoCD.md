@@ -4,8 +4,8 @@ date = 2024-03-07T15:00:59+08:00
 +++
 
 ### Preliminary
-- Kubernets has installed
-> [Optional](): Helm binary is working
+- Kubernets has installed, if not [check link](kubernetes/command/install/index.html)
+> [[Optional]](): Helm binary is working, if not [check link](/kubernetes/helm/helm_chart/index.html)
 
 ### 1. install argoCD binary
 ```shell

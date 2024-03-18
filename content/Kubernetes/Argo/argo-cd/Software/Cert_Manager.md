@@ -6,7 +6,6 @@ date = 2024-03-07T15:00:59+08:00
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
 
 ### Steps
 #### 1. prepare `cert-manager.yaml`
