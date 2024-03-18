@@ -157,6 +157,8 @@ spec:
                   path: /?(.*)
                   hostname: clickhouse.dev.geekcity.tech
                   tls: true
+                shards: 2
+                replicaCount: 3
                 persistence:
                   enabled: false
                 auth:
