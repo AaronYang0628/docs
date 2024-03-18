@@ -81,7 +81,7 @@ spec:
     inputs:
       parameters:
       - name: argocd-server
-        value: argocd-server.argocd:443
+        value: argo-cd-argocd-server.argocd:443
       - name: insecure-option
         value: --insecure
     dag:
@@ -118,6 +118,10 @@ spec:
             value: "{{inputs.parameters.argocd-server}}"
           - name: insecure-option
             value: "{{inputs.parameters.insecure-option}}"
+      - name: init-db-tool
+        template: init-db-tool
+        dependencies:
+        - wait
   - name: apply
     resource:
       action: apply
@@ -255,9 +259,55 @@ spec:
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
         argocd app wait argocd/app-mariadb
+  - name: init-db-tool
+    resource:
+      action: apply
+      manifest: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: app-mariadb-tool
+          namespace: application
+          labels:
+            app.kubernetes.io/name: mariadb-tool
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: mariadb-tool
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/name: mariadb-tool
+            spec:
+              containers:
+                - name: mariadb-tool
+                  image:  m.daocloud.io/docker.io/bitnami/mariadb:10.5.12-debian-10-r0
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: MARIADB_ROOT_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          key: mariadb-root-password
+                          name: mariadb-credentials
+                    - name: TZ
+                      value: Asia/Shanghai
 ```
 
 #### 6. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-mariadb.yaml
+```
+
+#### 7. import data
+```shell
+MARIADB_ROOT_PASSWORD=$(kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
+POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
+&& export SQL_FILENAME="Dump20240301.sql" \
+&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
+&& kubectl -n application exec -it deployment/app-mariadb-tool -- bash -c \
+    'echo "create database ccds;" | mysql -h app-mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
+&& kubectl -n application exec -it ${POD_NAME} -- bash -c \
+    "mysql -h app-mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
+    ccds < /tmp/Dump20240301.sql"
 ```

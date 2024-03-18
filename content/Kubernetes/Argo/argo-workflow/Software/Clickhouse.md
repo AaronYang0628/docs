@@ -134,12 +134,14 @@ spec:
           source:
             repoURL: https://charts.bitnami.com/bitnami
             chart: clickhouse
-            targetRevision: 5.3.0
+            targetRevision: 4.5.3
             helm:
               releaseName: app-clickhouse
               values: |
                 image:
-                  registry: m.daocloud.io/docker.io
+                  registry: docker.io
+                  repository: bitnami/clickhouse
+                  tag: 23.12.3-debian-11-r0
                   pullPolicy: IfNotPresent
                 service:
                   type: ClusterIP
