@@ -21,7 +21,7 @@ ensure CRDs are installed first
 
 ```yaml
 ---
-apiVersion: "apps/v1"
+apiVersion: "v1"
 kind: "PersistentVolume"
 metadata:
   name: "ccds-data-pv"
@@ -43,9 +43,9 @@ spec:
         - key: "kubernetes.io/hostname"
           operator: "In"
           values:
-          - "cs-cluster-control-plane"
+            - "cs-cluster-control-plane"
 ---
-apiVersion: "apps/v1"
+apiVersion: "v1"
 kind: "PersistentVolumeClaim"
 metadata:
   name: "ccds-data-pvc"
@@ -280,5 +280,5 @@ spec:
 
 #### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-mariadb.yaml
+argo -n business-workflows submit deploy-ccds-server.yaml
 ```
