@@ -1,7 +1,7 @@
 +++
-title = 'Init CCDS Server'
+title = 'Init DFS Ephem'
 date = 2024-03-12T15:00:59+08:00
-weight = 32
+weight = 53
 +++
 
 ### Preliminary
@@ -12,58 +12,15 @@ weight = 32
 
 ### Steps
 
-#### 1. decode mariadb password
-```shell
-kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
-```
+#### 1. [[Optional]]() init config server
+asaaasa
 
-#### 2. prepare `combo-data-pvc.yaml`
-
-```yaml
----
-apiVersion: "v1"
-kind: "PersistentVolumeClaim"
-metadata:
-  name: "ccds-data-pvc"
-  namespace: "application"
-spec:
-  accessModes:
-  - "ReadWriteMany"
-  resources:
-    requests:
-      storage: "200Gi"
-  storageClassName: "nfs-external-nas"
-status:
-  accessModes:
-  - "ReadWriteMany"
-  capacity:
-    storage: "200Gi"
----
-apiVersion: "v1"
-kind: "PersistentVolumeClaim"
-metadata:
-  name: "csst-data-pvc"
-  namespace: "application"
-spec:
-  accessModes:
-  - "ReadWriteMany"
-  resources:
-    requests:
-      storage: "200Gi"
-  storageClassName: "nfs-external-nas"
-status:
-  accessModes:
-  - "ReadWriteMany"
-  capacity:
-    storage: "200Gi"
-```
-
-#### 3. prepare `deploy-ccds-server.yaml`
+#### 3. prepare `deploy-dfs-ephem.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-ccds-
+  generateName: deploy-dfs-ephem-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -119,65 +76,51 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: ccds-server
+          name: dfs-ephem
           namespace: argocd
         spec:
           syncPolicy:
             syncOptions:
-            - CreateNamespace=true
+              - CreateNamespace=true
           project: default
           source:
             repoURL: https://charts.bitnami.com/bitnami
             chart: nginx
             targetRevision: 15.10.4
             helm:
-              releaseName: ccds-server
+              releaseName: dfs-ephem
               values: |
                 image:
                   registry: cr.registry.res.cloud.wuxi-yqgcy.cn
-                  repository: mirror/ccds-server
-                  tag: w32978d29c9
+                  repository: mirror/dfs-server
+                  tag: v240306-r1
                   pullPolicy: IfNotPresent
+                command:
+                  - python
+                args:
+                  - /work/csst-py/ephem-srv/csst_ephem_srv/server.py
                 extraEnvVars:
+                  - name: ZONEINFO
+                    value: /opt/zoneinfo.zip
                   - name: TZ
                     value: Asia/Shanghai
-                  - name: FLASK_DEBUG
-                    value: "0"
-                  - name: FLASK_ENV
-                    value: "production"
-                  - name: DATABASE_URL
-                    value: "mysql://root:sUk7x2J0Li5Y2f2M@app-mariadb.application:3306/ccds?charset=utf8"
-                  - name: CSST_DFS_API_MODE
-                    value: "cluster"
-                  - name: CSST_DFS_GATEWAY
-                    value: "csst-gateway.csst:80"
-                  - name: CSST_DFS_APP_ID
-                    value: "test"
-                  - name: CSST_DFS_APP_TOKEN
-                    value: "test"
+                  - name: CONFIG_SERVER
+                    value: "cdfs-config.csst:9610"
+                  - name: PYTHONPATH
+                    value: "/work/csst-py/ephem-srv:/work/packages:/work/csst-dfs-proto-py:/work/csst-dfs-commons:/work/py-micro:/work/csst-dfs-base"
                 containerSecurityContext:
                   enabled: false
                 replicaCount: 1
                 containerPorts:
-                  http: 9000
-                extraVolumes:
-                  - name: csst-data-pvc
-                    persistentVolumeClaim:
-                      claimName: csst-data-pvc
-                  - name: ccds-data-pvc
-                    persistentVolumeClaim:
-                      claimName: ccds-data-pvc
-                extraVolumeMounts:
-                  - mountPath: /csst-data
-                    name: csst-data-pvc
-                  - mountPath: /ccds-data
-                    name: ccds-data-pvc
+                  http: 9612
                 service:
                   type: ClusterIP
                   ports:
-                    http: 9000
+                    http: 9612
                   targetPort:
-                    http: 9000
+                    http: http
+                ingress:
+                  enabled: false
           destination:
             server: https://kubernetes.default.svc
             namespace: application
@@ -235,7 +178,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/ccds-server ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/dfs-ephem ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -268,10 +211,10 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/ccds-server
+        argocd app wait argocd/dfs-ephem
 ```
 
 #### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-ccds-server.yaml
+argo -n business-workflows submit deploy-dfs-ephem.yaml
 ```

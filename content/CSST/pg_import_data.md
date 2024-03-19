@@ -5,7 +5,7 @@ weight = 2
 +++
 
 ### Preliminary
-- Postgresql has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
+- Postgresql has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/postgres/index.html)
 - Postgresql server pod named is `app-postgresql` and in namespace `application`
 
 {{% notice style="warning" %}}
