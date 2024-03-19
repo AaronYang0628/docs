@@ -172,7 +172,7 @@ spec:
                   image:
                     registry: m.daocloud.io/docker.io
                     repository: bitnami/zookeeper
-                    tag: 3.8.3-debian-11-r2
+                    tag: 3.8.3-debian-11-r8
                     pullPolicy: IfNotPresent
                   replicaCount: 3
                   persistence:
@@ -274,6 +274,15 @@ spec:
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
         argocd app wait argocd/app-clickhouse
 ```
+{{% expand title="if you wannna add persistence"%}}
+```yaml
+persistence:
+  storageClass: "alicloud-disk-topology-alltype"
+  accessModes:
+    - ReadWriteMany
+  size: 20Gi
+```
+{{% /expand %}}
 
 #### 6. subimit to argo workflow client
 ```shell

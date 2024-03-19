@@ -15,8 +15,13 @@ git --no-pager diff
 
 ### Get specific file from remote
 ```shell
-git archive --remote=git@github.com:xxxx.git main:aaa/bbb/ccc.file.name -o ddd.file.name
+git archive --remote=git@github.com:<$user>/<$repo>.git <$branch>:<$source_file_path> -o <$target_source_path>
 ```
+{{% expand title="for example"%}}
+```shell
+git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git master:paper/2003.11755.pdf -o a.pdf
+```
+{{% /expand %}}
 
 ### Clone specific branch
 ```shell

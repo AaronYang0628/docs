@@ -72,6 +72,16 @@ spec:
     namespace: database
 ```
 
+{{% expand title="if you wannna add persistence"%}}
+```yaml
+persistence:
+  storageClass: "alicloud-disk-topology-alltype"
+  accessModes:
+    - ReadWriteMany
+  size: 20Gi
+```
+{{% /expand %}}
+
 #### 2. prepare admin credentials secret
 secrect will created under `database` namespace.
 ```shell
