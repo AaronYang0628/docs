@@ -1,12 +1,12 @@
 +++
-title = 'Import CCDS MariaDB Data'
+title = 'Import CCDS Postgres Data'
 date = 2024-03-17T19:58:45+08:00
-weight = 1
+weight = 2
 +++
 
 ### Preliminary
-- MariaDB has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
-- MariaDB server pod named is `app-mariadb` and in namespace `application`
+- Postgresql has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
+- Postgresql server pod named is `app-postgresql` and in namespace `application`
 
 {{% notice style="warning" %}}
 if the **pod name** and **namespace** isn't match, you might need to modify following shell.
@@ -14,7 +14,10 @@ if the **pod name** and **namespace** isn't match, you might need to modify foll
 
 ### Download SQL file
 ```shell
-wget https://inner-gitlab.citybrain.org/chang.liu/ccds-server/-/raw/ccds-v1/deploy/ccds-db-init.sql -O ccds-mariadb-init.sql
+wget https://inner-gitlab.citybrain.org/csst/csst-py/-/raw/main/deploy/pg/init_dfs_table_data.sql -O init_dfs_table_data.sql
+```
+```shell
+wget https://inner-gitlab.citybrain.org/csst/csst-py/-/raw/main/deploy/pg/init_dfs_database_data.sql -O init_dfs_database_data.sql
 ```
 TODO the content we download is all html, fff
 
@@ -25,8 +28,8 @@ TOOL_POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariad
 && export SQL_FILENAME="ccds-mariadb-init.sql" \
 && kubectl -n application cp ${SQL_FILENAME} ${TOOL_POD_NAME}:/tmp/${SQL_FILENAME} \
 && kubectl -n application exec -it deployment/app-mariadb-tool -- bash -c \
-    'echo "create database crds;" | mysql -h app-mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
+    'echo "create database ccds;" | mysql -h app-mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
 && kubectl -n application exec -it ${TOOL_POD_NAME} -- bash -c \
     "mysql -h app-mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
-    crds < /tmp/ccds-mariadb-init.sql"
+    ccds < /tmp/ccds-mariadb-init.sql"
 ```

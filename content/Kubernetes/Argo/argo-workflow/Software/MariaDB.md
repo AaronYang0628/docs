@@ -299,7 +299,8 @@ spec:
 argo -n business-workflows submit deploy-mariadb.yaml
 ```
 
-#### 7. import data
+#### 7. [[Optional]]() import data
+import data by using sql file
 ```shell
 MARIADB_ROOT_PASSWORD=$(kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
 POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
