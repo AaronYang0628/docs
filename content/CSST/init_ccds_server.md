@@ -17,7 +17,7 @@ weight = 32
 kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```
 
-#### 2. prepare `combo-data-pvc.yaml`
+#### 2. [[Optional]]() prepare `combo-data-pvc.yaml`
 
 ```yaml
 ---
@@ -271,7 +271,12 @@ spec:
         argocd app wait argocd/ccds-server
 ```
 
-#### 6. subimit to argo workflow client
+#### 4. [[Optional]]() create pvc resource
+```shell
+kubectl -n application apply -f csst-data-pvc.yaml
+```
+
+#### 5. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-ccds-server.yaml
 ```

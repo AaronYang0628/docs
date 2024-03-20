@@ -236,7 +236,12 @@ spec:
         argocd app wait argocd/dfs-server
 ```
 
-#### 6. subimit to argo workflow client
+#### 4. [[Optional]]() create pvc resource
+```shell
+kubectl -n application apply -f csst-data-pvc.yaml
+```
+
+#### 5. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-dfs-server.yaml
 ```

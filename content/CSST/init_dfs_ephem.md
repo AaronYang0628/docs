@@ -214,7 +214,7 @@ spec:
         argocd app wait argocd/dfs-ephem
 ```
 
-#### 6. subimit to argo workflow client
+#### 3. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-dfs-ephem.yaml
 ```

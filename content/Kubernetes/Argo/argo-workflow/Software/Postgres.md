@@ -40,6 +40,12 @@ rules:
   - deployments
   verbs:
   - '*'
+- apiGroups:
+  - v1
+  resources:
+  - services
+  verbs:
+  - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -59,7 +65,7 @@ subjects:
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
-kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
+kubectl apply -f deploy-argocd-app-rbac.yaml
 ```
 
 #### 4. prepare postgresql admin credentials secret
