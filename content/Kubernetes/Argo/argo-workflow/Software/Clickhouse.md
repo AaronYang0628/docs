@@ -80,7 +80,7 @@ spec:
     inputs:
       parameters:
       - name: argocd-server
-        value: argocd-server.argocd:443
+        value: argo-cd-argocd-server.argocd:443
       - name: insecure-option
         value: --insecure
     dag:

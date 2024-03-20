@@ -107,16 +107,16 @@ spec:
                   - name: CONFIG_SERVER
                     value: "cdfs-config.csst:9610"
                   - name: PYTHONPATH
-                    value: "/work/csst-py/ephem-srv:/work/packages:/work/csst-dfs-proto-py:/work/csst-dfs-commons:/work/py-micro:/work/csst-dfs-base"
+                    value: /work/csst-py/ephem-srv:/work/csst-py/:/work/csst-py/dfs-srv:/work/packages:/work/csst-dfs-proto-py:/work/csst-dfs-commons:/work/csst-dfs-base
                 containerSecurityContext:
                   enabled: false
                 replicaCount: 1
                 containerPorts:
-                  http: 9612
+                  http: 9060
                 service:
                   type: ClusterIP
                   ports:
-                    http: 9612
+                    http: 9060
                   targetPort:
                     http: http
                 ingress:
