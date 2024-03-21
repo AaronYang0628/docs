@@ -34,6 +34,12 @@ rules:
   - applications
   verbs:
   - '*'
+- apiGroups:
+  - apps/v1
+  resources:
+  - deployments
+  verbs:
+  - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -277,4 +283,9 @@ spec:
 #### 6. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-redis.yaml
+```
+
+#### 7. decode password
+```shell
+kubectl -n application get secret redis-credentials -o jsonpath='{.data.redis-password}' | base64 -d
 ```

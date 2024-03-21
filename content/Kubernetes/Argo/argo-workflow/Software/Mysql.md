@@ -35,6 +35,12 @@ rules:
   - applications
   verbs:
   - '*'
+- apiGroups:
+  - apps/v1
+  resources:
+  - deployments
+  verbs:
+  - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
