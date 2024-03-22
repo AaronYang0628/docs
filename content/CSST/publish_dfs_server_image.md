@@ -17,7 +17,7 @@ kubectl -n business-workflows create secret generic git-credentials \
 2. create a token with `read_repository` authority
 3. copy it!
 
-![how to apply a token](../asset/git-token.pngvimssh)
+![how to apply a token](../asset/git-token.png)
 
 {{%/expand%}}
 
