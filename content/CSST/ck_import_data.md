@@ -12,22 +12,17 @@ weight = 2
 if the **pod name** and **namespace** isn't match, you might need to modify following shell.
 {{% /notice %}}
 
-### Download SQL file
-```shell
-wget https://inner-gitlab.citybrain.org/csst/csst-py/-/raw/main/deploy/pg/init_dfs_table_data.sql -O init_dfs_table_data.sql
-```
-TODO the content we download is all html, fff
+### Download Data file
 
-### Using import tool
+
+### Using client tool
 ```shell
-POSTGRES_PASSWORD=$(kubectl -n application get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d) \
-POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=postgresql-tool" -o jsonpath="{.items[0].metadata.name}") \
-&& export SQL_FILENAME="init_dfs_table_data.sql" \
-&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
-&& kubectl -n application exec -it deployment/app-postgresql-tool -- bash -c \
-     'echo "CREATE DATABASE csst;" | PGPASSWORD="$POSTGRES_PASSWORD" \
-     psql --host app-postgresql.application -U postgres -d postgres -p 5432' \
-&& kubectl -n application exec -it deployment/app-postgresql-tool -- bash -c \
-     'PGPASSWORD="$POSTGRES_PASSWORD" psql --host app-postgresql.application \
-     -U postgres -d csst -p 5432 < /tmp/init_dfs_table_data.sql'
+CK_HOST="172.27.253.50" \
+CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) \
+&& podman run --rm --entrypoint clickhouse-client -it m/daocloud.io/docker.io/clickhouse/clickhouse-server:23.11.5.29-alpine \
+     --host ${CK_HOST} \
+     --port 37625 \
+     --user admin \
+     --password ${CK_PASSWORD} \
+     --query "show version()"
 ```

@@ -28,18 +28,18 @@ kind: ClusterRole
 metadata:
   name: application-administrator
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - applications
-  verbs:
-  - '*'
-- apiGroups:
-  - apps/v1
-  resources:
-  - deployments
-  verbs:
-  - '*'
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    verbs:
+    - '*'
+  - apiGroups:
+    - apps/v1
+    resources:
+    - deployments
+    verbs:
+    - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
