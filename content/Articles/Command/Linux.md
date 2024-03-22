@@ -128,3 +128,20 @@ ssh -o "UserKnownHostsFile /dev/null" \
 ```shell
 ```
 {{%/expand%}}
+
+### set -x
+```shell
+
+```
+
+### sed (Stream Editor)
+```shell
+sed <$option> <$file_path>
+```
+{{%expand title="for example"%}}
+replace `unix` -> `linux`
+```shell
+echo "linux is great os. unix is opensource. unix is free os." | sed 's/unix/linux/'
+```
+or you can check [https://www.geeksforgeeks.org/sed-command-in-linux-unix-with-examples/](https://www.geeksforgeeks.org/sed-command-in-linux-unix-with-examples/)
+{{%/expand%}}

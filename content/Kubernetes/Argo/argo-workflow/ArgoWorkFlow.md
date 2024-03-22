@@ -102,7 +102,7 @@ kubectl -n argocd apply -f argo-workflows.yaml
 argocd app sync argocd/argo-workflows
 ```
 
-#### 6. check workflow status
+### 6. check workflow status
 ```shell
 # list all flows
 argo -n business-workflows list

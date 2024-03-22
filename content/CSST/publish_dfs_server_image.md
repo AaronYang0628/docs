@@ -6,10 +6,10 @@ weight = 1
 
 ### 1. create `git-credential`
 ```shell
-GIT_USERNAME=byang628@zhejianglab.com \
-GIT_PASSWORD=yW9Yx__usgWy11aouzBB \
+GIT_USERNAME=boyang628
+GIT_PASSWORD=yW9Yx__usgWy11aouzBB
 kubectl -n business-workflows create secret generic git-credentials \
-  --from-literal="username=${GIT_USERNAME:-wangz2019}" \
+  --from-literal="username=${GIT_USERNAME}" \
   --from-literal="password=${GIT_PASSWORD}"
 ```
 {{%expand title="how to get password"%}}
@@ -17,7 +17,7 @@ kubectl -n business-workflows create secret generic git-credentials \
 2. create a token with `read_repository` authority
 3. copy it!
 
-![how to apply a token](asset/git-token.png)
+![how to apply a token](../asset/git-token.pngvimssh)
 
 {{%/expand%}}
 

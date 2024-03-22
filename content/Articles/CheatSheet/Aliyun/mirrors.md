@@ -89,6 +89,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 {{% /expand %}}
 {{% expand title="Aliyun Mirror" %}}
 ```plaintext
+
 [base]
 name=CentOS-8.5.2111 - Base - mirrors.aliyun.com
 baseurl=http://mirrors.aliyun.com/centos-vault/8.5.2111/BaseOS/$basearch/os/
@@ -143,6 +144,15 @@ deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted
 ---
 
 ### Refresh DNS
+{{< tabs title="OS:" >}}
+{{% tab title="fedora" %}}
 ```shell
 dnf clean all && dnf makecache
 ```
+{{% /tab %}}
+{{% tab title="centos" %}}
+```shell
+yum clean all && yum makecache
+```
+{{% /tab %}}
+{{< /tabs >}}
