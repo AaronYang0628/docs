@@ -1,6 +1,7 @@
 +++
 title = 'Install Kubernetes'
 date = 2024-03-07T15:00:59+08:00
+weight = 2
 +++
 
 There are many ways to build a kubernetes cluster.
@@ -30,11 +31,26 @@ chmod u+x kind
 mkdir -p ${HOME}/bin
 mv -f kind ${HOME}/bin
 ```
+Creating a Kubernetes cluster is as simple as `kind create cluster`
+```shell
+kind create cluster --name test
+```
+and the you can visit [https://kind.sigs.k8s.io/docs/user/quick-start/](https://kind.sigs.k8s.io/docs/user/quick-start/) for mode detail.
 {{% /tab %}}
 {{% tab title="minkube" %}}
-```xml
-<Hello>World</Hello>
+```shell
+[ $(uname -m) = x86_64 ] && curl -sSLo minikube "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+[ $(uname -m) = aarch64 ] && curl -sSLo kubectl "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64"
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube /usr/local/bin/minikube
 ```
+after you download binary, you can start your cluster
+```shell
+minikube start
+```
+
+and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
+
 {{% /tab %}}
 {{% tab title="normal" %}}
 ```properties

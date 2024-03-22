@@ -34,6 +34,12 @@ rules:
   - applications
   verbs:
   - '*'
+- apiGroups:
+  - apps/v1
+  resources:
+  - deployments
+  verbs:
+  - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -53,7 +59,7 @@ subjects:
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
-kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
+kubectl apply -f deploy-argocd-app-rbac.yaml
 ```
 
 #### 4. prepare postgresql admin credentials secret
@@ -82,7 +88,7 @@ spec:
     inputs:
       parameters:
       - name: argocd-server
-        value: argocd-server.argocd:443
+        value: argo-cd-argocd-server.argocd:443
       - name: insecure-option
         value: --insecure
     dag:
@@ -119,6 +125,10 @@ spec:
             value: "{{inputs.parameters.argocd-server}}"
           - name: insecure-option
             value: "{{inputs.parameters.insecure-option}}"
+      - name: init-db-tool
+        template: init-db-tool
+        dependencies:
+        - wait
   - name: apply
     resource:
       action: apply
@@ -258,9 +268,67 @@ spec:
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
         argocd app wait argocd/app-postgresql
+  - name: init-db-tool
+    resource:
+      action: apply
+      manifest: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: app-postgresql-tool
+          namespace: application
+          labels:
+            app.kubernetes.io/name: postgresql-tool
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql-tool
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/name: postgresql-tool
+            spec:
+              containers:
+                - name: postgresql-tool
+                  image: m.daocloud.io/docker.io/bitnami/postgresql:14.4.0-debian-11-r9
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: POSTGRES_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          key: postgres-password
+                          name: postgresql-credentials
+                    - name: TZ
+                      value: Asia/Shanghai
+                  command:
+                    - tail
+                  args:
+                    - -f
+                    - /etc/hosts
 ```
 
 #### 6. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-postgresql.yaml
+```
+
+#### 7. decode password
+```shell
+kubectl -n application get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d
+```
+
+#### 8. [[Optional]]() import data
+import data by using sql file
+```shell
+POSTGRES_PASSWORD=$(kubectl -n application get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d) \
+POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=postgresql-tool" -o jsonpath="{.items[0].metadata.name}") \
+&& export SQL_FILENAME="init_dfs_table_data.sql" \
+&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
+&& kubectl -n application exec -it deployment/app-postgresql-tool -- bash -c \
+     'echo "CREATE DATABASE csst;" | PGPASSWORD="$POSTGRES_PASSWORD" \
+     psql --host app-postgresql.application -U postgres -d postgres -p 5432' \
+&& kubectl -n application exec -it deployment/app-postgresql-tool -- bash -c \
+     'PGPASSWORD="$POSTGRES_PASSWORD" psql --host app-postgresql.application \
+     -U postgres -d csst -p 5432 < /tmp/init_dfs_table_data.sql'
 ```

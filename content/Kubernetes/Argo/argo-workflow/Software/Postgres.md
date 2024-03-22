@@ -74,7 +74,7 @@ subjects:
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
-kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
+kubectl apply -f deploy-argocd-app-rbac.yaml
 ```
 
 #### 4. prepare postgresql admin credentials secret
@@ -327,7 +327,13 @@ spec:
 ```shell
 argo -n business-workflows submit deploy-postgresql.yaml
 ```
-#### 7. [[Optional]]() import data
+
+#### 7. decode password
+```shell
+kubectl -n application get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d
+```
+
+#### 8. [[Optional]]() import data
 import data by using sql file
 ```shell
 POSTGRES_PASSWORD=$(kubectl -n application get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d) \

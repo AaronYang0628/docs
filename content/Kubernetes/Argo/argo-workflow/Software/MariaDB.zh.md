@@ -1,7 +1,7 @@
 +++
-title = 'Install Redis'
+title = 'Install MariaDB'
 date = 2024-03-12T15:00:59+08:00
-weight = 15
+weight = 16
 +++
 
 ### Preliminary
@@ -59,21 +59,23 @@ subjects:
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
-kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
+kubectl apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare redis credentials secret
+#### 4. prepare mariadb credentials secret
 ```shell
-kubectl -n application create secret generic redis-credentials \
-    --from-literal=redis-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+kubectl -n application create secret generic mariadb-credentials \
+    --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+    --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 5. prepare `deploy-redis.yaml`
+#### 5. prepare `deploy-mariadb.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: deploy-argocd-app-redis-
+  generateName: deploy-argocd-app-mariadb-
 spec:
   entrypoint: entry
   artifactRepositoryRef:
@@ -85,7 +87,7 @@ spec:
     inputs:
       parameters:
       - name: argocd-server
-        value: argocd-server.argocd:443
+        value: argo-cd-argocd-server.argocd:443
       - name: insecure-option
         value: --insecure
     dag:
@@ -122,6 +124,10 @@ spec:
             value: "{{inputs.parameters.argocd-server}}"
           - name: insecure-option
             value: "{{inputs.parameters.insecure-option}}"
+      - name: init-db-tool
+        template: init-db-tool
+        dependencies:
+        - wait
   - name: apply
     resource:
       action: apply
@@ -129,7 +135,7 @@ spec:
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: app-redis
+          name: app-mariadb
           namespace: argocd
         spec:
           syncPolicy:
@@ -138,51 +144,32 @@ spec:
           project: default
           source:
             repoURL: https://charts.bitnami.com/bitnami
-            chart: redis
-            targetRevision: 18.16.0
+            chart: mariadb
+            targetRevision: 16.5.0
             helm:
-              releaseName: app-redis
+              releaseName: app-mariadb
               values: |
-                architecture: replication
+                architecture: standalone
                 auth:
-                  enabled: true
-                  sentinel: true
-                  existingSecret: redis-credentials
-                master:
-                  count: 1
-                  disableCommands:
-                    - FLUSHDB
-                    - FLUSHALL
+                  database: geekcity
+                  username: aaron.yang
+                  existingSecret: mariadb-credentials
+                primary:
                   persistence:
                     enabled: false
-                replica:
-                  replicaCount: 3
-                  disableCommands:
-                    - FLUSHDB
-                    - FLUSHALL
+                secondary:
+                  replicaCount: 1
                   persistence:
                     enabled: false
                 image:
                   registry: m.daocloud.io/docker.io
                   pullPolicy: IfNotPresent
-                sentinel:
-                  enabled: false
-                  persistence:
-                    enabled: false
-                  image:
-                    registry: m.daocloud.io/docker.io
-                    pullPolicy: IfNotPresent
-                metrics:
-                  enabled: false
-                  image:
-                    registry: m.daocloud.io/docker.io
-                    pullPolicy: IfNotPresent
                 volumePermissions:
                   enabled: false
                   image:
                     registry: m.daocloud.io/docker.io
                     pullPolicy: IfNotPresent
-                sysctl:
+                metrics:
                   enabled: false
                   image:
                     registry: m.daocloud.io/docker.io
@@ -244,7 +231,7 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app sync argocd/app-redis ${WITH_PRUNE_OPTION} --timeout 300
+        argocd app sync argocd/app-mariadb ${WITH_PRUNE_OPTION} --timeout 300
   - name: wait
     inputs:
       artifacts:
@@ -277,15 +264,62 @@ spec:
         export INSECURE_OPTION={{inputs.parameters.insecure-option}}
         export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
         argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
-        argocd app wait argocd/app-redis
+        argocd app wait argocd/app-mariadb
+  - name: init-db-tool
+    resource:
+      action: apply
+      manifest: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: app-mariadb-tool
+          namespace: application
+          labels:
+            app.kubernetes.io/name: mariadb-tool
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: mariadb-tool
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/name: mariadb-tool
+            spec:
+              containers:
+                - name: mariadb-tool
+                  image:  m.daocloud.io/docker.io/bitnami/mariadb:10.5.12-debian-10-r0
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: MARIADB_ROOT_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          key: mariadb-root-password
+                          name: mariadb-credentials
+                    - name: TZ
+                      value: Asia/Shanghai
 ```
 
 #### 6. subimit to argo workflow client
 ```shell
-argo -n business-workflows submit deploy-redis.yaml
+argo -n business-workflows submit deploy-mariadb.yaml
 ```
 
-#### 7. decode password
+#### 7. [[Optional]]() import data
+import data by using sql file
 ```shell
-kubectl -n application get secret redis-credentials -o jsonpath='{.data.redis-password}' | base64 -d
+MARIADB_ROOT_PASSWORD=$(kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
+POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
+&& export SQL_FILENAME="Dump20240301.sql" \
+&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
+&& kubectl -n application exec -it deployment/app-mariadb-tool -- bash -c \
+    'echo "create database ccds;" | mysql -h app-mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
+&& kubectl -n application exec -it ${POD_NAME} -- bash -c \
+    "mysql -h app-mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
+    ccds < /tmp/Dump20240301.sql"
+```
+
+#### 8. decode password
+```shell
+kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```

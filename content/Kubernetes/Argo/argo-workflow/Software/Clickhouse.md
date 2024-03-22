@@ -35,6 +35,12 @@ rules:
   - applications
   verbs:
   - '*'
+- apiGroups:
+  - apps/v1
+  resources:
+  - deployments
+  verbs:
+  - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -80,7 +86,7 @@ spec:
     inputs:
       parameters:
       - name: argocd-server
-        value: argocd-server.argocd:443
+        value: argo-cd-argocd-server.argocd:443
       - name: insecure-option
         value: --insecure
     dag:
@@ -289,18 +295,15 @@ persistence:
 argo -n business-workflows submit deploy-clickhouse.yaml
 ```
 
-#### 11. check workflow status
+#### 7. decode password
 ```shell
-# list all flows
-argo -n business-workflows list
+kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
 ```
 
+#### 8. test HTTP connection
+add `$MASTER_IP clickhouse.dev.geekcity.tech` in `/etc/hosts`
 ```shell
-# get specific flow status
-argo -n business-workflows get <$flow_name>
+CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) \
+&& echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.geekcity.tech/" --data-binary @-
 ```
 
-```shell
-# get specific flow log
-argo -n business-workflows logs <$flow_name>
-```

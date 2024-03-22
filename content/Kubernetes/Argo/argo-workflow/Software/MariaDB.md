@@ -74,7 +74,7 @@ subjects:
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
 ```shell
-kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
+kubectl apply -f deploy-argocd-app-rbac.yaml
 ```
 
 #### 4. prepare mariadb credentials secret
@@ -332,4 +332,9 @@ POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-too
 && kubectl -n application exec -it ${POD_NAME} -- bash -c \
     "mysql -h app-mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
     ccds < /tmp/Dump20240301.sql"
+```
+
+#### 8. decode password
+```shell
+kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```
