@@ -13,7 +13,7 @@ if the **pod name** and **namespace** isn't match, you might need to modify foll
 {{% /notice %}}
 
 ### Download Data file
-
+Currently, we mount a NFS disk to retrieve data.
 
 ### Using client tool
 ```shell
@@ -31,9 +31,6 @@ CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o 
 ```sql
 create database ephem ON CLUSTER default
 ```
-
-### Prepare other data files
-...
 
 ### Import
 ```shell
