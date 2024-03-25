@@ -44,5 +44,5 @@ podman run --rm  -v /tmp/deploy:/tmp/deploy -v /tmp/native:/share/diskdata/gaia3
      --port 37625  \
      --user admin  \
      --password ${CK_PASSWORD} \
-     --query "insert into ephem.gaia3_source_all_test FORMAT Native /share/diskdata/gaia3/100751.native" 
+     --query "insert into ephem.gaia3_source_all_test from infile /share/diskdata/gaia3/100751.native FORMAT Native" 
 ```
