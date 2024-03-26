@@ -7,7 +7,7 @@ weight = 32
 ### Preliminary
 - MariaDB has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
 - Redis has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/redis/index.html)
-- And init mariadb has finished, if not [check link](csst/mariadb_import_data//index.html)
+- And init mariadb has finished, if not [check link](../mariadb_import_data//index.html)
 
 ### Steps
 
