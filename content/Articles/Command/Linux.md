@@ -145,3 +145,22 @@ echo "linux is great os. unix is opensource. unix is free os." | sed 's/unix/lin
 ```
 or you can check [https://www.geeksforgeeks.org/sed-command-in-linux-unix-with-examples/](https://www.geeksforgeeks.org/sed-command-in-linux-unix-with-examples/)
 {{%/expand%}}
+
+
+### fdisk
+list all disk 
+```shell
+fdisk -l
+```
+
+### create CFS file system
+Use mkfs.xfs command to create xfs file system and internal log on the same disk, example is shown below:
+```shell
+mkfs.xfs <$path>
+```
+
+### modprobe
+program to add and remove modules from the Linux Kernel 
+```shell
+modprobe nfs && modprobe nfsd
+```

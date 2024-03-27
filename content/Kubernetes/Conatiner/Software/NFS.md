@@ -1,11 +1,12 @@
 +++
-title = 'NFS'
+title = 'NFS Server'
 date = 2024-03-07T15:00:59+08:00
 weight = 8
 +++
 
 
-### 1. init NFSv4 (for su)
+
+### 1. init NFSv4 
 ```shell
 echo -e "nfs\nnfsd" > /etc/modules-load.d/nfs4.conf
 modprobe nfs && modprobe nfsd
