@@ -63,13 +63,18 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare clickhouse admin credentials secret
+#### 4. create application namespace
+```shell
+kubectl get namespace application > /dev/null 2>&1 || kubectl create namespace application
+```
+
+#### 5. prepare clickhouse admin credentials secret
 ```shell
 kubectl -n application create secret generic clickhouse-admin-credentials \
     --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 5. prepare `deploy-clickhouse.yaml`
+#### 6. prepare `deploy-clickhouse.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
@@ -290,17 +295,17 @@ persistence:
 ```
 {{% /expand %}}
 
-#### 6. subimit to argo workflow client
+#### 7. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-clickhouse.yaml
 ```
 
-#### 7. decode password
+#### 8. decode password
 ```shell
 kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
 ```
 
-#### 8. test HTTP connection
+#### 9. test HTTP connection
 add `$MASTER_IP clickhouse.dev.geekcity.tech` in `/etc/hosts`
 ```shell
 CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) \

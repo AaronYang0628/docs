@@ -7,7 +7,7 @@ date = 2024-03-07T15:00:59+08:00
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
 - argoCD has installed, if not check [link](kubernetes/argo/argo-cd/argocd/index.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](kubernetes/command/install/index.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](kubernetes/argo/argo-cd/software/cert_manager/index.html)
 
 ### Steps
 #### 1. prepare `clickhouse.yaml`

@@ -25,7 +25,7 @@ mv -f argocd ${HOME}/bin
 {{< tab title="Helm" >}}
   <a><b>1. Prepare argocd.values.yaml</b></a> <br/>
   {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="argocd.values.yaml" %}}
+    {{% tab title="`argocd.values.yaml`" %}}
     crds:
       install: true
       keep: false
