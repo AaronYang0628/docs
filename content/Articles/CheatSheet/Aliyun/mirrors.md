@@ -58,6 +58,16 @@ gpgcheck=1
 gpgkey=http://mirrors.163.com/centos/RPM-GPG-KEY-CentOS-7
 ```
 {{% /expand %}}
+{{% expand title="Alinux"%}}
+```text
+[base]
+name=alinux-$releasever - Base - mirrors.aliyun.com
+failovermethod=priority
+baseurl=http://mirrors.aliyun.com/alinux/$releasever/os/$basearch/
+gpgcheck=1
+gpgkey=http://mirrors.aliyun.com/alinux/RPM-GPG-KEY-ALinux-7
+```
+{{% /expand %}}
 
 - **CentOS 8 stream** located in `/etc/yum.repos.d/`
 {{% expand title="CentOS Mirror" %}}
@@ -139,7 +149,6 @@ deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe m
 deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted
 ```
 {{% /expand %}}
-
 
 ---
 
