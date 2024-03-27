@@ -56,6 +56,21 @@ subjects:
 - kind: ServiceAccount
   name: argo-workflow
   namespace: business-workflows
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: application-administration
+  namespace: application
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: application-administrator
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow
+    namespace: business-workflows
 ```
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s

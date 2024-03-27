@@ -29,18 +29,18 @@ kind: ClusterRole
 metadata:
   name: application-administrator
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - applications
-  verbs:
-  - '*'
-- apiGroups:
-  - apps/v1
-  resources:
-  - deployments
-  verbs:
-  - '*'
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    verbs:
+    - '*'
+  - apiGroups:
+    - apps/v1
+    resources:
+    - deployments
+    verbs:
+    - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -56,6 +56,21 @@ subjects:
 - kind: ServiceAccount
   name: argo-workflow
   namespace: business-workflows
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: application-administration
+  namespace: application
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: application-administrator
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow
+    namespace: business-workflows
 ```
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
@@ -63,13 +78,18 @@ subjects:
 kubectl -n argocd apply -f deploy-argocd-app-rbac.yaml
 ```
 
-#### 4. prepare clickhouse admin credentials secret
+#### 4. create application namespace
+```shell
+kubectl get namespace application > /dev/null 2>&1 || kubectl create namespace application
+```
+
+#### 5. prepare clickhouse admin credentials secret
 ```shell
 kubectl -n application create secret generic clickhouse-admin-credentials \
     --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 5. prepare `deploy-clickhouse.yaml`
+#### 6. prepare `deploy-clickhouse.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
@@ -290,28 +310,20 @@ persistence:
 ```
 {{% /expand %}}
 
-#### 6. subimit to argo workflow client
+#### 7. subimit to argo workflow client
 ```shell
 argo -n business-workflows submit deploy-clickhouse.yaml
 ```
 
-#### 7. decode password
+#### 8. decode password
 ```shell
 kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
 ```
 
-#### 8. check workflow status
+#### 9. test HTTP connection
+add `$MASTER_IP clickhouse.dev.geekcity.tech` in `/etc/hosts`
 ```shell
-# list all flows
-argo -n business-workflows list
+CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) \
+&& echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.geekcity.tech/" --data-binary @-
 ```
 
-```shell
-# get specific flow status
-argo -n business-workflows get <$flow_name>
-```
-
-```shell
-# get specific flow log
-argo -n business-workflows logs <$flow_name>
-```

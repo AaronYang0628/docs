@@ -28,18 +28,18 @@ kind: ClusterRole
 metadata:
   name: application-administrator
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - applications
-  verbs:
-  - '*'
-- apiGroups:
-  - apps/v1
-  resources:
-  - deployments
-  verbs:
-  - '*'
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+    verbs:
+      - '*'
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - '*'
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -52,9 +52,24 @@ roleRef:
   kind: ClusterRole
   name: application-administrator
 subjects:
-- kind: ServiceAccount
-  name: argo-workflow
-  namespace: business-workflows
+  - kind: ServiceAccount
+    name: argo-workflow
+    namespace: business-workflows
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: application-administration
+  namespace: application
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: application-administrator
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow
+    namespace: business-workflows
 ```
 
 #### 3. apply `deploy-argocd-app-rbac.yaml` to k8s
