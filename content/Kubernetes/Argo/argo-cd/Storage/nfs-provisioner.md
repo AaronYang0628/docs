@@ -30,14 +30,14 @@ spec:
           server: nfs.services.test
           path: /
           mountOptions:
-          - vers=4
-          - minorversion=0
-          - rsize=1048576
-          - wsize=1048576
-          - hard
-          - timeo=600
-          - retrans=2
-          - noresvport
+            - vers=4
+            - minorversion=0
+            - rsize=1048576
+            - wsize=1048576
+            - hard
+            - timeo=600
+            - retrans=2
+            - noresvport
           volumeName: nfs-subdir-external-provisioner-nas
           reclaimPolicy: Retain
         storageClass:

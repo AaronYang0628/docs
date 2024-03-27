@@ -272,7 +272,7 @@ spec:
 
 #### 4. [[Optional]]() create pvc resource
 ```shell
-kubectl -n application apply -f csst-data-pvc.yaml
+kubectl -n application apply -f combo-data-pvc.yaml
 ```
 
 #### 5. subimit to argo workflow client
