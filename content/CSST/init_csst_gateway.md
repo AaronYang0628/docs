@@ -205,7 +205,7 @@ kubectl -n application create configmap csst-gateway-configmap --from-file=csst-
 kubectl -n application apply -f csst-data-pvc.yaml
 ```
 
-#### 6. subimit to argo workflow client
+#### 6. apply to k8s
 ```shell
 kubectl -n application apply -f deploy-csst-gateway.yaml
 ```
