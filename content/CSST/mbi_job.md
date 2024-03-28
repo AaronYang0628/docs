@@ -9,7 +9,6 @@ weight = 100
 - prepare pvc `csst-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
 - prepare pvc `ccds-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
 
-
 ### 1. prepare `csst-msc-l1-mbi-aux-pvc.yaml`
 ```yaml
 apiVersion: "v1"
@@ -31,6 +30,9 @@ status:
     storage: "200Gi"
 ```
 
+{{< tabs title="Resource Type:" groupid="mbi">}}
+{{% tab title="job" %}}
+
 ### 2. prepare `csst-msc-l1-mbi.job.yaml`
 ```yaml
 apiVersion: batch/v1
@@ -49,13 +51,13 @@ spec:
             - name: CSST_DFS_API_MODE
               value: cluster
             - name: CSST_DFS_GATEWAY
-              value: csst-gateway.application
+              value: csst-gateway.application:80
             - name: CSST_DFS_APP_ID
               value: test
             - name: CSST_DFS_APP_TOKEN
               value: test
             - name: CRDS_SERVER_URL
-              value: ccds-server-nginx.application
+              value: ccds-server-nginx.application:9000
             - name: CSST_DFS_ROOT
               value: /dfsroot:ro
             - name: CSST_CRDS_ROOT
@@ -95,22 +97,198 @@ spec:
             claimName: ccds-data-pvc
       restartPolicy: OnFailure
 ```
+{{% /tab %}}
 
+{{% tab title="deployment" %}}
+### 2. prepare `csst-msc-l1-mbi.deploy.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: csst-msc-l1-mbi
+  labels:
+    app.kubernetes.io/name: csst-msc-l1-mbi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: csst-msc-l1-mbi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: csst-msc-l1-mbi
+    spec:
+      containers:
+        - name: csst-msc-l1-mbi
+          image: docker-registry-conti.lab.zjvis.net:32443/csst/csst-msc-l1-mbi:v231227
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CSST_DFS_API_MODE
+              value: "cluster"
+            - name: CSST_DFS_GATEWAY
+              value: "csst-gateway.application:80"
+            - name: CSST_DFS_APP_ID
+              value: "test"
+            - name: CSST_DFS_APP_TOKEN
+              value: "test"
+            - name: CRDS_SERVER_URL
+              value: "crds-server.application:9000"
+            - name: CSST_DFS_ROOT
+              value: "/dfsroot"
+            - name: CSST_CRDS_ROOT
+              value: "/crdsroot"
+            - name: CSST_AUX_DIR
+              value: "/pipeline/aux"
+            - name: CSST_POS0_USER
+              value: "-"
+            - name: CSST_POS0_IP
+              value: "-"
+            - name: CSST_CICD_TEST_OUTPUT
+              value: "/pipeline/output"
+            - name: TZ
+              value: Asia/Shanghai
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - tail -f /dev/null
+          volumeMounts:
+            - mountPath: /pipeline/logs
+              name: logs
+            - mountPath: /pipeline/output
+              name: pipeline-output
+            - mountPath: /dfsroot
+              name: csst-data
+            - mountPath: /crdsroot
+              name: ccds-server-data
+            - mountPath: /pipeline/aux
+              name: pipeline-aux
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: pipeline-output
+          emptyDir: {}
+        - name: csst-data
+          persistentVolumeClaim:
+            claimName: csst-data-pvc
+        - name: ccds-server-data
+          persistentVolumeClaim:
+            claimName: ccds-server-data-pvc
+        - name: pipeline-aux
+          persistentVolumeClaim:
+            claimName: pipeline-aux-pvc
+```
+{{% /tab %}}
+
+{{% tab title="final" %}}
+### 2. prepare `csst-msc-l1-mbi.final.yaml`
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: csst-msc-l1-mbi
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: csst-msc-l1-mbi
+          env:
+            - name: CSST_DFS_API_MODE
+              value: cluster
+            - name: CSST_DFS_GATEWAY
+              value: csst-gateway.application
+            - name: CSST_DFS_APP_ID
+              value: test
+            - name: CSST_DFS_APP_TOKEN
+              value: test
+            - name: CRDS_SERVER_URL
+              value: ccds-server-nginx.application
+            - name: CSST_DFS_ROOT
+              value: /dfsroot:ro
+            - name: CSST_CRDS_ROOT
+              value: /ccdsroot:ro
+            - name: CSST_AUX_DIR
+              value: /pipeline/aux:ro
+          image: cr.registry.res.cloud.wuxi-yqgcy.cn/mirror/csst-msc-l1-mbi:v240328
+          command: ["python",  "/pipeline/src/run.py", "--obs-id=10160000001", "--device=cpu", "--n-jobs=18", "--n-jobs-gpu=9", "--clean-l0", "--clean-l1"]
+          volumeMounts:
+            - mountPath: /pipeline/input
+              name: csst-msc-l1-mbi-input
+            - mountPath: /pipeline/output
+              name: csst-msc-l1-mbi-output
+            - mountPath: /pipeline/aux
+              name: csst-msc-l1-mbi-aux-pvc
+            - mountPath: /dfsroot
+              name: csst-data-pvc
+            - mountPath: /ccdsroot
+              name: ccds-data-pvc
+      volumes:
+        - name: csst-msc-l1-mbi-input
+          emptyDir: {}
+        - name: csst-msc-l1-mbi-output
+          emptyDir: {}
+        - name: csst-msc-l1-mbi-aux-pvc
+          persistentVolumeClaim:
+            claimName: csst-msc-l1-mbi-aux-pvc
+        - name: csst-data-pvc
+          persistentVolumeClaim:
+            claimName: csst-data-pvc
+        - name: ccds-data-pvc
+          persistentVolumeClaim:
+            claimName: ccds-data-pvc
+      restartPolicy: OnFailure
+```
+{{% /tab %}}
+
+{{< /tabs >}}
 ### 3. [[Optional]]() create pvc resource
 ```shell
 kubectl -n application apply -f l1-mbi_job.pvc.yaml
 ```
 
-### 4. [[Optional]]() delete on k8s
+{{< tabs title="Resource Type: " groupid="mbi">}}
+
+{{% tab title="job" %}}
+### 4.1 [[Optional]]() delete on k8s
 ```shell
 kubectl -n application delete -f csst-msc-l1-mbi.job.yaml 
 ```
 
-### 4. [[Optional]]() apply on k8s
+### 4.2 [[Optional]]() apply on k8s
 ```shell
 kubectl -n application apply -f csst-msc-l1-mbi.job.yaml
 ```
+{{% /tab %}}
 
+{{% tab title="deployment" %}}
+### 4.1 [[Optional]]() delete on k8s
+```shell
+kubectl -n application delete -f csst-msc-l1-mbi.deploy.yaml 
+```
+
+### 4.2 [[Optional]]() apply on k8s
+```shell
+kubectl -n application apply -f csst-msc-l1-mbi.deploy.yaml
+```
+{{% /tab %}}
+
+{{% tab title="final" %}}
+### 4.1 [[Optional]]() delete on k8s
+```shell
+kubectl -n application delete -f csst-msc-l1-mbi.final.yaml 
+```
+
+### 4.2 [[Optional]]() apply on k8s
+```shell
+kubectl -n application apply -f csst-msc-l1-mbi.final.yaml
+```
+{{% /tab %}}
+
+
+{{< /tabs >}}
 ### 5. exec into pod
 ```shell
 kubectl -n application exec -it <$pod_id> -- bash
