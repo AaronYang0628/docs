@@ -8,6 +8,7 @@ weight = 32
 - MariaDB has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
 - Redis has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/redis/index.html)
 - And init mariadb has finished, if not [check link](../mariadb_import_data//index.html)
+- `nfs-external-nas` nas server has initialized as somewhere, if not [check link](kubernetes/conatiner/software/nfs/index.html)
 
 ### Steps
 
@@ -16,7 +17,7 @@ weight = 32
 kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```
 
-#### 2. [[Optional]]() prepare `combo-data-pvc.yaml`
+#### 2. prepare `combo-data-pvc.yaml`
 
 ```yaml
 ---
@@ -270,7 +271,7 @@ spec:
         argocd app wait argocd/ccds-server
 ```
 
-#### 4. [[Optional]]() create pvc resource
+#### 4. create pvc resource
 ```shell
 kubectl -n application apply -f combo-data-pvc.yaml
 ```

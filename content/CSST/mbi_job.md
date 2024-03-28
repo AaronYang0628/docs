@@ -5,25 +5,30 @@ weight = 100
 +++
 
 
-### 1. [[Optional]]() prepare `l1-mbi_job.pvc.yaml`
+### Preliminary
+1. prepare pvc `csst-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
+2. prepare pvc `ccds-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
+
+
+### 1. prepare `csst-msc-l1-mbi-aux-pvc.yaml`
 ```yaml
 apiVersion: "v1"
 kind: "PersistentVolumeClaim"
 metadata:
-  name: "mbi-l1-data-pvc"
+  name: "csst-msc-l1-mbi-aux-pvc"
   namespace: "application"
 spec:
   accessModes:
   - "ReadWriteMany"
   resources:
     requests:
-      storage: "500Gi"
+      storage: "200Gi"
   storageClassName: "nfs-external-nas"
 status:
   accessModes:
   - "ReadWriteMany"
   capacity:
-    storage: "500Gi"
+    storage: "200Gi"
 ```
 
 ### 2. prepare `csst-msc-l1-mbi.job.yaml`
@@ -35,34 +40,60 @@ metadata:
 spec:
   template:
     spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       containers:
-      - name: csst-msc-l1-mbi
-        env:
-        - name: CSST_DFS_API_MODE
-          value: cluster
-        - name: CSST_DFS_GATEWAY
-          value: 172.27.253.66:31280
-        - name: CSST_DFS_APP_ID
-          value: test
-        - name: CSST_DFS_APP_TOKEN
-          value: test
-        - name: CRDS_SERVER_URL
-          value: http://10.105.20.24:29000
-        - name: CSST_DFS_ROOT
-          value: /dfsroot:ro
-        - name: CSST_CRDS_ROOT
-          value: /crdsroot:ro
-        - name: CSST_AUX_DIR
-          value: /pipeline/aux:ro
-        image: csst/csst-msc-l1-mbi:v231227
-        command: ["python",  "/pipeline/src/run.py", "--obs-id=10160000001", "--device=cpu", "--n-jobs=18", "--n-jobs-gpu=9", "--clean-l0", "--clean-l1"]
-        volumeMounts:
-        - mountPath: "/"
-          name: "l1-job-pvc"
+        - name: csst-msc-l1-mbi
+          env:
+            - name: CSST_DFS_API_MODE
+              value: cluster
+            - name: CSST_DFS_GATEWAY
+              value: 172.27.253.66:31280
+            - name: CSST_DFS_APP_ID
+              value: test
+            - name: CSST_DFS_APP_TOKEN
+              value: test
+            - name: CRDS_SERVER_URL
+              value: http://172.21.14.157:9000
+            - name: CSST_DFS_ROOT
+              value: /dfsroot:ro
+            - name: CSST_CRDS_ROOT
+              value: /ccdsroot:ro
+            - name: CSST_AUX_DIR
+              value: /pipeline/aux:ro
+          image: cr.registry.res.cloud.wuxi-yqgcy.cn/mirror/csst-msc-l1-mbi:v240328
+          command:
+            - tail
+          args:
+            - -f
+            - /etc/hosts
+          volumeMounts:
+            - mountPath: /pipeline/input
+              name: csst-msc-l1-mbi-input
+            - mountPath: /pipeline/output
+              name: csst-msc-l1-mbi-output
+            - mountPath: /pipeline/aux
+              name: csst-msc-l1-mbi-aux-pvc
+            - mountPath: /dfsroot
+              name: csst-data-pvc
+            - mountPath: /ccdsroot
+              name: ccds-data-pvc
       volumes:
-      - name: "l1-job-pvc"
-        persistentVolumeClaim:
-          claimName: "mbi-l1-data-pvc"
+        - name: csst-msc-l1-mbi-input
+          emptyDir: {}
+        - name: csst-msc-l1-mbi-output
+          emptyDir: {}
+        - name: csst-msc-l1-mbi-aux-pvc
+          persistentVolumeClaim:
+            claimName: csst-msc-l1-mbi-aux-pvc
+        - name: csst-data-pvc
+          persistentVolumeClaim:
+            claimName: csst-data-pvc
+        - name: ccds-data-pvc
+          persistentVolumeClaim:
+            claimName: ccds-data-pvc
+      restartPolicy: OnFailure
 ```
 
 ### 3. [[Optional]]() create pvc resource
