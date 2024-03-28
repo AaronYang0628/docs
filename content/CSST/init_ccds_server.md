@@ -135,8 +135,8 @@ spec:
               values: |
                 image:
                   registry: cr.registry.res.cloud.wuxi-yqgcy.cn
-                  repository: mirror/ccds-server
-                  tag: w32978d29c9
+                  repository: csst/ccds
+                  tag: V1-argo-test
                   pullPolicy: IfNotPresent
                 extraEnvVars:
                   - name: TZ
@@ -146,7 +146,13 @@ spec:
                   - name: FLASK_ENV
                     value: "production"
                   - name: DATABASE_URL
-                    value: "mysql://root:sUk7x2J0Li5Y2f2M@app-mariadb.application:3306/ccds?charset=utf8"
+                    value: "mysql://root:IqzfDQfjkzfNhsCS@app-mariadb.application:3306/ccds?charset=utf8"
+                  - name: REDIS_HOST
+                    value: "app-redis-master.application"
+                  - name: REDIS_PWD
+                    value: "THY7BxnEIOeecarE"
+                  - name: REDIS_PORT
+                    value: "6379"
                   - name: CSST_DFS_API_MODE
                     value: "cluster"
                   - name: CSST_DFS_GATEWAY

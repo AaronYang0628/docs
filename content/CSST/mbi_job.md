@@ -6,8 +6,8 @@ weight = 100
 
 
 ### Preliminary
-1. prepare pvc `csst-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
-2. prepare pvc `ccds-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
+- prepare pvc `csst-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
+- prepare pvc `ccds-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
 
 
 ### 1. prepare `csst-msc-l1-mbi-aux-pvc.yaml`
@@ -49,13 +49,13 @@ spec:
             - name: CSST_DFS_API_MODE
               value: cluster
             - name: CSST_DFS_GATEWAY
-              value: 172.27.253.66:31280
+              value: csst-gateway.application
             - name: CSST_DFS_APP_ID
               value: test
             - name: CSST_DFS_APP_TOKEN
               value: test
             - name: CRDS_SERVER_URL
-              value: http://172.21.14.157:9000
+              value: ccds-server-nginx.application
             - name: CSST_DFS_ROOT
               value: /dfsroot:ro
             - name: CSST_CRDS_ROOT
@@ -101,7 +101,22 @@ spec:
 kubectl -n application apply -f l1-mbi_job.pvc.yaml
 ```
 
-### 3. apply to k8s
+### 4. [[Optional]]() delete on k8s
+```shell
+kubectl -n application delete -f csst-msc-l1-mbi.job.yaml 
+```
+
+### 4. [[Optional]]() apply on k8s
 ```shell
 kubectl -n application apply -f csst-msc-l1-mbi.job.yaml
+```
+
+### 5. exec into pod
+```shell
+kubectl -n application exec -it <$pod_id> -- bash
+```
+
+### 6. run command in the pod
+```shell
+python /pipeline/src/run.py --obs-id=10160000001 --device=cpu --n-jobs=18 --n-jobs-gpu=9 --clean-l0 --clean-l1
 ```
