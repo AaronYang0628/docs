@@ -24,7 +24,7 @@ kubectl -n business-workflows create secret generic git-credentials \
 ### 2. [[Optional]]() create `docker-login-credential` [FIXED]
 ```shell
 DOCKER_LOGIN_USERNAME=ascm-org-1705656754517
-DOCKER_LOGIN_PASSWORD=BbdtAEYMk3LR1yaM
+DOCKER_LOGIN_PASSWORD=4HRXwB5IoAQWUlhc
 kubectl -n business-workflows create secret generic docker-login-credentials \
   --from-literal="username=${DOCKER_LOGIN_USERNAME:-wangz2019}" \
   --from-literal="password=${DOCKER_LOGIN_PASSWORD}"
@@ -45,7 +45,7 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      storageClassName: standard
+      storageClassName: nfs-external-nas
       resources:
         requests:
           storage: 1Gi

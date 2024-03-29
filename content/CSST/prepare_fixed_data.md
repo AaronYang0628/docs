@@ -23,3 +23,7 @@ ossutil cp -r oss://csst-data/CSST-20240312/crdsdata/data /data/nfs/data/applica
 ```shell
 ossutil cp -r oss://csst-data/CSST-20240312/pipeline.tar.gz /data/nfs/data/application-csst-msc-l1-mbi-aux-pvc-pvc-e328eb62-d3ff-4908-b504-0413b4ea7e99/
 ```
+And then you need to unzip `/pipeline/aux` dir in the tar file
+```shell
+tar -xvf /data/nfs/data/application-csst-msc-l1-mbi-aux-pvc-pvc-e328eb62-d3ff-4908-b504-0413b4ea7e99/pipeline.tar.gz pipeline/aux
+```
