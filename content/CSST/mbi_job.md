@@ -56,7 +56,7 @@ spec:
               value: test
             - name: CSST_DFS_APP_TOKEN
               value: test
-            - name: CRDS_SERVER_URL
+            - name: CCDS_SERVER_URL
               value: ccds-server-nginx.application:9000
             - name: CSST_DFS_ROOT
               value: /dfsroot:ro
@@ -120,7 +120,7 @@ spec:
     spec:
       containers:
         - name: csst-msc-l1-mbi
-          image: docker-registry-conti.lab.zjvis.net:32443/csst/csst-msc-l1-mbi:v231227
+          image: cr.registry.res.cloud.wuxi-yqgcy.cn/mirror/csst-msc-l1-mbi:v240328
           imagePullPolicy: IfNotPresent
           env:
             - name: CSST_DFS_API_MODE
@@ -131,8 +131,8 @@ spec:
               value: "test"
             - name: CSST_DFS_APP_TOKEN
               value: "test"
-            - name: CRDS_SERVER_URL
-              value: "crds-server.application:9000"
+            - name: CCDS_SERVER_URL
+              value: ccds-server-nginx.application:9000
             - name: CSST_DFS_ROOT
               value: "/dfsroot"
             - name: CSST_CRDS_ROOT
@@ -153,30 +153,30 @@ spec:
             - -c
             - tail -f /dev/null
           volumeMounts:
-            - mountPath: /pipeline/logs
-              name: logs
+            - mountPath: /pipeline/input
+              name: csst-msc-l1-mbi-input
             - mountPath: /pipeline/output
-              name: pipeline-output
-            - mountPath: /dfsroot
-              name: csst-data
-            - mountPath: /crdsroot
-              name: ccds-server-data
+              name: csst-msc-l1-mbi-output
             - mountPath: /pipeline/aux
-              name: pipeline-aux
+              name: csst-msc-l1-mbi-aux-pvc
+            - mountPath: /dfsroot
+              name: csst-data-pvc
+            - mountPath: /ccdsroot
+              name: ccds-data-pvc
       volumes:
-        - name: logs
+        - name: csst-msc-l1-mbi-input
           emptyDir: {}
-        - name: pipeline-output
+        - name: csst-msc-l1-mbi-output
           emptyDir: {}
-        - name: csst-data
+        - name: csst-msc-l1-mbi-aux-pvc
+          persistentVolumeClaim:
+            claimName: csst-msc-l1-mbi-aux-pvc
+        - name: csst-data-pvc
           persistentVolumeClaim:
             claimName: csst-data-pvc
-        - name: ccds-server-data
+        - name: ccds-data-pvc
           persistentVolumeClaim:
-            claimName: ccds-server-data-pvc
-        - name: pipeline-aux
-          persistentVolumeClaim:
-            claimName: pipeline-aux-pvc
+            claimName: ccds-data-pvc
 ```
 {{% /tab %}}
 
@@ -199,13 +199,13 @@ spec:
             - name: CSST_DFS_API_MODE
               value: cluster
             - name: CSST_DFS_GATEWAY
-              value: csst-gateway.application
+              value: csst-gateway.application:80
             - name: CSST_DFS_APP_ID
               value: test
             - name: CSST_DFS_APP_TOKEN
               value: test
-            - name: CRDS_SERVER_URL
-              value: ccds-server-nginx.application
+            - name: CCDS_SERVER_URL
+              value: https://ccds-server-nginx.application:9000
             - name: CSST_DFS_ROOT
               value: /dfsroot:ro
             - name: CSST_CRDS_ROOT
