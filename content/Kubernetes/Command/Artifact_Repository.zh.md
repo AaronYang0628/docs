@@ -1,14 +1,14 @@
 +++
 title = 'Artifict Repository'
 date = 2024-03-07T15:00:59+08:00
+weight = 4
 +++
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
 - minio is ready for artifact repository
-    > endpoint: minio.storage:9000
-- 
+    > endpoint: `minio.storage:9000`
+
 
 ### Steps
 #### 1. prepare bucket for s3 artifact repository

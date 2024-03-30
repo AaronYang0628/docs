@@ -9,6 +9,8 @@ weight = 4
 - #### objects
 continuous processing antenna signal and sending 3 dimension data matrixes to different astronomical algorithm.
 ![asdsaa](../../images/content/cosmic-antenna/objects.png)
+- #### how data flows
+![asdsaa](../../images/content/cosmic-antenna/flow.png)
 
 
 ### Building From Zero

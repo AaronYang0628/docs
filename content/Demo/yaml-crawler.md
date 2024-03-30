@@ -38,9 +38,9 @@ processorChain:
             '@class': "org.example.business.hs.code.persist.DownloadPageDatabasePersist"
             downloadPageRepositoryBeanName: "downloadPageRepository"
           downloadPageTransformer:
-            '@class': "net.zjvis.lab.nebula.crawler.core.processor.download.DefaultDownloadPageTransformer"
+            '@class': "net.nebula.crawler.download.DefaultDownloadPageTransformer"
           skipExists:
-            '@class': "net.zjvis.lab.nebula.crawler.core.processor.download.SkipExistsById"
+            '@class': "net.nebula.crawler.download.SkipExistsById"
         time: 1
         unit: "SECONDS"
       retryTimes: 1

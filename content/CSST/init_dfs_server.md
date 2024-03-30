@@ -12,8 +12,139 @@ weight = 43
 
 ### Steps
 
-#### 1. [[Optional]]() init config server
-asaaasa
+#### 0. prepare `csst.yaml`
+```yaml
+global:
+  fitsFileRootDir: /opt/temp/csst/fits_file
+  fileExternalPrefix: http://csst.astrolab.cn/file
+  tempDir: /tmp
+etcd:
+  host: 0.0.0.0
+  port: 2379
+
+redisChannel0:
+  host: app-redis-master.application
+  port: 6379
+  db_id: 0
+  channel0: channel0
+  passwd:
+  level0_list: single-image-reduction:data0
+
+csst_db:
+  enabled: true
+  host: 172.27.253.66
+  port: 30173
+  user: "postgres"
+  passwd: "woQ8btfS44ei1Bbx"
+  db: "csst"
+  maxIdleConnection: 100
+  maxOpenConnection: 130
+  connMaxLifetime: 100
+
+csst_db_seq:
+  enabled: true
+  host: 172.27.253.66
+  port: 30173
+  user: "postgres"
+  passwd: "woQ8btfS44ei1Bbx"
+  db: "csst"
+  maxIdleConnection: 100
+  maxOpenConnection: 130
+  connMaxLifetime: 100
+
+csst_ck:
+  enabled: true
+  url: tcp://app-clickhouse-service-external.application:30900?compress=true
+  host: app-clickhouse-service-external
+  clusters: app-clickhouse-service-external:30900
+  port: 30900
+  db: csst
+  user: admin
+  passwd: "YEkvhrhEaeZTf7E0"
+
+gateway:
+  enabled: true
+  url: csst-gateway.application:31280
+
+ephem_ck_db:
+  enabled: true
+  url: tcp://app-clickhouse-service-external.application:30900?compress=true
+  host: app-clickhouse-service-external
+  port: 30900
+  db: ephem
+  user: admin
+  passwd: "YEkvhrhEaeZTf7E0"
+  maxIdleConnection: 100
+  maxOpenConnection: 130
+  connMaxLifetime: 100
+
+csst_doris_db:
+  enabled: true
+  host: app-mariadb
+  port: 3306
+  user: "root"
+  passwd: "IqzfDQfjkzfNhsCS"
+  db: "ccds"
+  maxIdleConnection: 100
+  maxOpenConnection: 130
+  connMaxLifetime: 100
+
+redis:
+  enabled: true
+  conn: app-redis-master.application:6379
+  dbNum: 8
+  password:
+  timeout: 3000
+  sentinel:
+    master: csstMaster
+    nodes: app-redis-master.application:6379
+
+jwt:
+  secretKey: W6VjDud2W1kMG3BicbMNlGgI4ZfcoHtMGLWr
+
+auth_srv:
+  name: net.cnlab.csst.srv.auth.
+  address:
+  port: 9030
+zap:
+  level: error
+  development: true
+  logFileDir:
+  outputPaths: []
+  maxSize: 50
+  maxBackups: 200
+  maxAge: 10
+
+dfs_srv:
+  name: net.cnlab.csst.srv.dfs-srv.
+  address:
+  port: 9100
+
+ephem_srv:
+  name: net.cnlab.csst.srv.ephem.
+  address:
+  port: 9060
+
+ephem_rest:
+  name: net.cnlab.csst.srv.ephem-rest.
+  address:
+  port: 9068
+
+user_srv:
+  name: net.cnlab.csst.srv.user.
+  address:
+  port: 9090
+
+fits_srv:
+  name: net.cnlab.csst.srv.fits.
+  address:
+  port: 9002
+```
+
+#### 1. creat csst-credentials
+```yaml
+kubectl -n business-workflows create secret generic csst-credentials --from-file=./csst.yaml
+```
 
 #### 2. [[Optional]]() prepare `csst-data-pvc.yaml`
 
@@ -122,6 +253,8 @@ spec:
                     value: /opt/zoneinfo.zip
                   - name: TZ
                     value: Asia/Shanghai
+                  - name: CONFIG_FILE_PATH
+                    value: /app/csst.yaml
                   - name: PYTHONPATH
                     value: /work/csst-py/:/work/csst-py/dfs-srv:/work/packages:/work/csst-dfs-proto-py:/work/csst-dfs-commons:/work/csst-dfs-base
                 containerSecurityContext:
@@ -132,9 +265,14 @@ spec:
                   - name: csst-data-pvc
                     persistentVolumeClaim:
                       claimName: csst-data-pvc
+                  - name: dfs-csst-config
+                    secret:
+                      secretName: csst-credentials
                 extraVolumeMounts:
                   - mountPath: /share/dfs
                     name: csst-data-pvc
+                  - mountPath: /app
+                    name: dfs-csst-config
                 service:
                   type: ClusterIP
                   ports:

@@ -77,4 +77,9 @@ name = " <i class='fas fa-book'></i>  Conti.cc"
 identifier = "CnConti"
 url = "https://blog.cnconti.cc/"
 weight = 16
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  LeetCode"
+identifier = "LeetCode"
+url = "https://leetcode.cn/u/aaronyang2333/"
+weight = 17
 

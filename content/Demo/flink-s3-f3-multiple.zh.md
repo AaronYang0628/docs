@@ -1,11 +1,12 @@
 +++
 title = 'Flink S3 F3 Multiple'
 date = 2024-03-08T09:59:53+08:00
+weight = 5
 +++
 
-Normally, Flink only can access one S3 endpoint during the runtime. But we need to process some files from multiple minio simultaneously.
+Normally, Flink only can access `one` S3 endpoint during the runtime. But we need to process some files from multiple minio simultaneously.
 
-So you modify the original `flink-s3-fs-hadoop` and enable flink to do so.
+So I modified the original [`flink-s3-fs-hadoop`](https://github.com/apache/flink/tree/master/flink-filesystems/flink-s3-fs-hadoop) and enable flink to do so.
 
 ```java
 

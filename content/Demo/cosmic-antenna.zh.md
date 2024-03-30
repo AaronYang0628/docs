@@ -1,13 +1,19 @@
 +++
 title = 'Cosmic Antenna'
 date = 2024-03-07T19:58:45+08:00
+weight = 4
 +++
 
 
-### design architecture
+### Design Architecture
+- #### objects
+continuous processing antenna signal and sending 3 dimension data matrixes to different astronomical algorithm.
+![asdsaa](../../images/content/cosmic-antenna/objects.png)
+- #### how data flows
+![asdsaa](../../images/content/cosmic-antenna/flow.png)
 
 
-### building from zero
+### Building From Zero
 
 Following these steps, you may build `comic-antenna` from nothing.
 #### 1. install podman
@@ -38,9 +44,11 @@ curl -o kind.cluster.yaml -L https://gitlab.com/-/snippets/3686427/raw/main/kind
 
 vim ~/.kube/config
 
-in line XXX, change server=::12312 -> server=0.0.0.0:12312
+in line 5, change server: http://::xxxx -> server: http://0.0.0.0:xxxxx
 
 {{% /notice %}}
+
+![asdsaa](../../images/content/cosmic-antenna/kube-config.png)
 
 #### 3. [[Optional]]() pre-downloaded slow images
 ```shell
@@ -91,9 +99,8 @@ sudo dnf install -y git \
 && git clone --branch pv_pvc_template https://github.com/AaronYang2333/cosmic-antenna-demo.git $HOME/cosmic-antenna-demo
 ```
 
-#### 7. prepare image
+#### 7. prepare application image
 ```shell
-# build application images 
 # cd into  $HOME/cosmic-antenna-demo
 sudo dnf install -y java-11-openjdk.x86_64 \
 && $HOME/cosmic-antenna-demo/gradlew :s3sync:buildImage \
@@ -110,9 +117,16 @@ podman save --quiet -o $DOCKER_IMAGE_PATH/s3sync_$VERSION.dim localhost/s3sync:$
 ```
 
 ```shell
-# add services and endpoints authority
 kubectl -n flink edit role/flink -o yaml
 ```
+
+{{% notice style="warning" title="Modify role config" icon="stopwatch" %}}
+
+kubectl -n flink edit role/flink -o yaml
+
+add `services` and `endpoints` to the `rules.resources`
+
+{{% /notice %}}
 
 #### 8. prepare k8s resources [pv, pvc, sts]
 ```shell

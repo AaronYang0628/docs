@@ -12,8 +12,10 @@ weight = 53
 
 ### Steps
 
-#### 1. [[Optional]]() init config server
-asaaasa
+#### 1. [[Optional]]() creat csst-credentials
+```yaml
+kubectl -n business-workflows create secret generic csst-credentials --from-file=./csst.yaml
+```
 
 #### 3. prepare `deploy-dfs-ephem.yaml`
 ```yaml
@@ -104,6 +106,8 @@ spec:
                     value: /opt/zoneinfo.zip
                   - name: TZ
                     value: Asia/Shanghai
+                  - name: CONFIG_FILE_PATH
+                    value: /app/csst.yaml
                   - name: CONFIG_SERVER
                     value: "cdfs-config.csst:9610"
                   - name: PYTHONPATH
@@ -121,6 +125,13 @@ spec:
                     http: http
                 ingress:
                   enabled: false
+                extraVolumes:
+                  - name: dfs-csst-config
+                    secret:
+                      secretName: csst-credentials
+                extraVolumeMounts:
+                  - mountPath: /app
+                    name: dfs-csst-config
           destination:
             server: https://kubernetes.default.svc
             namespace: application

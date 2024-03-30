@@ -1,8 +1,10 @@
 +++
 title = 'CheatSheet'
 date = 2024-03-08T11:16:18+08:00
+weight = 1
 +++
 
+## Resource
 ### 1. create resource
 {{< tabs groupid="main" style="primary" title="Resource From" icon="thumbtack" >}}
 {{< tab title = "File" >}}
@@ -46,7 +48,7 @@ date = 2024-03-08T11:16:18+08:00
     helm install <$resource_id> <$resource_id> \
         --namespace <$namespace> \
         --create-namespace \
-        --version 5.46.7 \
+        --version <$version> \
         --repo <$repo_url> \
         --values resource.values.yaml \
         --atomic
@@ -100,22 +102,17 @@ date = 2024-03-08T11:16:18+08:00
 kubectl -n <$namespace> describe <$resource_id>
 ```
 
-### 3. logging
+### 3. logging resource
 ```shell
-kubectl logs -n <$namespace> -f <$resource_id>
+kubectl -n <$namespace> logs -f <$resource_id>
 ```
 
-### 4. port forwarding
+### 4. port forwarding resource
 ```shell
-kubectl port-forward  <$resource_id> --address 0.0.0.0 8080:80 # local:pod
+kubectl -n <$namespace> port-forward  <$resource_id> --address 0.0.0.0 8080:80 # local:pod
 ```
 
-### 5. extract by json path
-```shell
-kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
-```
-
-### 6. delete all resource under specific namespace
+### 5. delete all resource under specific namespace
 ```shell
 kubectl delete all --all -n <$namespace>
 ```
@@ -125,7 +122,42 @@ kubectl delete all --all --all-namespaces
 ```
 {{% /expand %}}
 
-### 7. Opening a Bash Shell inside a Pod 
+### 6. delete error pods
 ```shell
-kubectl exec -it <pod-ID> -n <MI-namespace> bash  
+kubectl -n <$namespace> delete pods --field-selector status.phase=Failed
+```
+
+### 7. force delete
+```shell
+kubectl -n <$namespace> delete pod <$resource_id> --force --grace-period=0
+```
+
+### 8. Opening a Bash Shell inside a Pod 
+```shell
+kubectl -n <$namespace> exec -it <$resource_id> -- bash  
+```
+
+## Nodes
+### 1. add taint
+```shell
+kubectl taint nodes <$node_ip> <key:value>
+```
+{{% expand title="for example"%}}
+```shell
+kubectl taint nodes node1 dedicated:NoSchedule
+```
+{{% /expand %}}
+### 2. remove taint
+```shell
+kubectl remove taint
+```
+{{% expand title="for example"%}}
+```shell
+kubectl taint nodes node1 dedicated:NoSchedule-
+```
+{{% /expand %}}
+
+### 3. show info extract by json path
+```shell
+kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
 ```

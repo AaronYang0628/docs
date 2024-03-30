@@ -6,9 +6,8 @@ weight = 4
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
 - minio is ready for artifact repository
-    > endpoint: minio.storage:9000
+    > endpoint: `minio.storage:9000`
 
 
 ### Steps

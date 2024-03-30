@@ -50,12 +50,15 @@ lsof -i -P -n # list all connections
 ### awk (Aho, Weinberger, and Kernighan [Names])
 `awk` is a scripting language used for manipulating data and generating reports.
 ```shell
-# awk [params] 'script' var=value file(s)
-awk <$params> -f scriptfile var=value file(s)
+# awk [params] 'script' 
+awk <$params> <$string_content>
 ```
 {{%expand title="for example"%}}
+filter bigger than 3
 ```shell
+echo -e "1\n2\n3\n4\n5\n" | awk '$1>3'
 ```
+![func1](../../../images/content/article/linux/awk.png)
 {{%/expand%}}
 
 ### ss (socket statistics)
@@ -89,10 +92,6 @@ find /aaa/bbb/ccc/*.gz -mtime +3 -exec rm {} \;
 ssh -o "UserKnownHostsFile /dev/null" root@aaa.domain.com
 ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking=no" root@aaa.domain.com
 ```
-{{%expand title="for example"%}}
-```shell
-```
-{{%/expand%}}
 
 ### sync clock
 ```shell
@@ -103,10 +102,6 @@ ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking=no" root@aaa.dom
     && chronyc tracking \
     && timedatectl set-timezone 'Asia/Shanghai'
 ```
-{{%expand title="for example"%}}
-```shell
-```
-{{%/expand%}}
 
 ### set hostname
 ```shell
@@ -126,12 +121,17 @@ ssh -o "UserKnownHostsFile /dev/null" \
 ```
 {{%expand title="for example"%}}
 ```shell
+ssh -o "UserKnownHostsFile /dev/null" \
+    root@17.27.253.67 \
+    "mkdir -p /root/.ssh && chmod 700 /root/.ssh && echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC00JLKF/Cd//rJcdIVGCX3ePo89KAgEccvJe4TEHs5pI5FSxs/7/JfQKZ+by2puC3IT88bo/d7nStw9PR3BXgqFXaBCknNBpSLWBIuvfBF+bcL+jGnQYo2kPjrO+2186C5zKGuPRi9sxLI5AkamGB39L5SGqwe5bbKq2x/8OjUP25AlTd99XsNjEY2uxNVClHysExVad/ZAcl0UVzG5xmllusXCsZVz9HlPExqB6K1sfMYWvLVgSCChx6nUfgg/NZrn/kQG26X0WdtXVM2aXpbAtBioML4rWidsByDb131NqYpJF7f+x3+I5pQ66Qpc72FW1G4mUiWWiGhF9tL8V9o1AY96Rqz0AVaxAQrBEuyCWKrXbA97HeC3Xp57Luvlv9TqUd8CIJYq+QTL0hlIDrzK9rJsg34FRAvf9sh8K2w/T/gC9UnRjRXgkPUgKldq35Y6Z9wP6KY45gCXka1PU4nVqb6wicO+RHcZ5E4sreUwqfTypt5nTOgW2/p8iFhdN8= Administrator@AARON-X1-8TH' \
+    >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys"
 ```
 {{%/expand%}}
 
 ### set -x
+This will print each command to the standard error before executing it, which is useful for debugging scripts.
 ```shell
-
+set -x
 ```
 
 ### sed (Stream Editor)
