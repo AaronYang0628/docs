@@ -164,3 +164,8 @@ program to add and remove modules from the Linux Kernel
 ```shell
 modprobe nfs && modprobe nfsd
 ```
+
+### disown
+```shell
+
+```

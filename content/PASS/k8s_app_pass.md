@@ -11,7 +11,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ### Clickhouse
 ```shell
-kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
+kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
 ```
 
 ### MariaDB

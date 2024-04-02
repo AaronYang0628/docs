@@ -10,6 +10,7 @@ weight = 11
 - argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
 - minio artifact repository has been configured, if not check [link](kubernetes/command/artifact_repository/index.html)
     > endpoint: minio.storage:9000
+- This tutorial does config persistence, if you need save data permanently, you need to set a nfs, you can check [link](csst/nfs/index.html)
 
 ### Steps
 #### 1. prepare secret `argocd-login-credentials`
