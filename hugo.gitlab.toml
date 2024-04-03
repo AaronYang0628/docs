@@ -1,0 +1,85 @@
+baseURL = 'https://aaronyang2333.gitlab.io/docs/'
+languageCode = 'en-us'
+title = 'AY Docs'
+theme = 'relearn'
+[params]
+  subtitle = 'Jotting Down some notes'
+  additionalContentLanguage = ['zh']
+  externalLinkTarget = '_blank'
+  themeVariant = 'learn'
+  disableLandingPageButton = true
+  ordersectionsby = "weight"
+  mermaidZoom = true
+  [params.contact]
+    email = 'aaron19940628@gmail.com'
+    phone = '+86 176-8234-9727'
+  [params.social]
+    facebook_admin = ''
+    twitter = ''
+[outputs]
+  home = ['html', 'rss', 'print', 'search']
+  page = ['html', 'rss', 'print']
+  section = ['html', 'rss', 'print']
+[languages]
+  [languages.en]
+    languageName = 'English'
+    title = 'Ay Docs'
+    weight = 1
+
+  [languages.zh]
+    languageName = '中文'
+    title = "AY的文档"
+    weight = 2
+[outputFormats]
+  [outputFormats.print]
+    name= "print"
+    baseName = "index.print"
+    isHTML = true
+    mediaType = 'text/html'
+    permalinkable = false
+    noUgly = true
+[markup]
+  [markup.highlight]
+    lineNumbersInTable = false
+    noClasses = false
+[[menu.shortcuts]]
+name = "<i class='fab fa-fw fa-github'></i> GitHub repo"
+identifier = "github"
+url = "https://github.com/AaronYang2333"
+weight = 10
+[[menu.shortcuts]]
+name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
+identifier = "gtlab"
+url = "https://gitlab.com/AaronYang2333"
+weight = 11
+[[menu.shortcuts]]
+name = " <i class='fas fa-fw fa-video'></i>     BiliBili"
+identifier = "bilibili"
+url = "https://space.bilibili.com/475026324"
+weight = 12
+[[menu.shortcuts]]
+name = " <i class='fab fa-fw fa-youtube'></i>  Youtube"
+identifier = "youtube"
+url = "https://www.youtube.com/channel/UCXFfkXf4CxEkwpMXXbwNADQ"
+weight = 13
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Hugo Theme"
+identifier = "relearn"
+url = "https://mcshelby.github.io/hugo-theme-relearn/"
+weight = 14
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Ben.wangz"
+identifier = "ben.wangz"
+url = "https://blog.geekcity.tech/articles/"
+weight = 15
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  Conti.cc"
+identifier = "CnConti"
+url = "https://blog.cnconti.cc/"
+weight = 16
+[[menu.shortcuts]]
+name = " <i class='fas fa-book'></i>  LeetCode"
+identifier = "LeetCode"
+url = "https://leetcode.cn/u/aaronyang2333/"
+weight = 17
+
