@@ -33,7 +33,7 @@ wget
 {{% notice style="info" %}}
 and you can also modify `/home/<$user>/.ossutilconfig` file to change teh configuration.
 {{% /notice %}}
-### list fileS
+### list files
 ```shell
 ossutil ls oss://<$PATH>
 ```
