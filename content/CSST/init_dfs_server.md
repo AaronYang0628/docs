@@ -143,7 +143,7 @@ fits_srv:
 
 #### 1. creat csst-credentials
 ```yaml
-kubectl -n business-workflows create secret generic csst-credentials --from-file=./csst.yaml
+kubectl -n application create secret generic csst-credentials --from-file=./csst.yaml
 ```
 
 #### 2. [[Optional]]() prepare `csst-data-pvc.yaml`
