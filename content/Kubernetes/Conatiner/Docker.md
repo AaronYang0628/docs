@@ -24,7 +24,7 @@ sudo systemctl start docker
 ```shell
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
-udo yum install docker-ce --nobest --allowerasing -y
+sudo yum install docker-ce --nobest --allowerasing -y
 ```
 Once the installation is complete, start the Docker service
 ```shell

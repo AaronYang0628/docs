@@ -61,7 +61,7 @@ spec:
             - name: CSST_DFS_ROOT
               value: /dfsroot:ro
             - name: CSST_CRDS_ROOT
-              value: /ccdsroot:ro
+              value: /crdsroot:ro
             - name: CSST_AUX_DIR
               value: /pipeline/aux:ro
           image: cr.registry.res.cloud.wuxi-yqgcy.cn/mirror/csst-msc-l1-mbi:v240328
@@ -79,7 +79,7 @@ spec:
               name: csst-msc-l1-mbi-aux-pvc
             - mountPath: /dfsroot
               name: csst-data-pvc
-            - mountPath: /ccdsroot
+            - mountPath: /crdsroot
               name: ccds-data-pvc
       volumes:
         - name: csst-msc-l1-mbi-input
