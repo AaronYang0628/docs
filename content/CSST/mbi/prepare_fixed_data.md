@@ -1,5 +1,5 @@
 +++
-title = 'Prepare MBI L1 Fixed Data'
+title = 'Prepare L1 Fixed Data'
 date = 2024-03-27T19:58:45+08:00
 weight = 80
 +++

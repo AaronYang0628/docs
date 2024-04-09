@@ -1,7 +1,7 @@
 +++
 title = 'Import CSST Clickhouse Data'
 date = 2024-03-17T19:58:45+08:00
-weight = 2
+weight = 3
 +++
 
 ### Preliminary

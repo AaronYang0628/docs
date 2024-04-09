@@ -1,8 +1,11 @@
 +++
-title = 'Init Clickhouse NFS Server'
+title = 'Build Clickhouse NFS Server'
 date = 2024-03-07T15:00:59+08:00
-weight = 1
+weight = 2
 +++
+
+### Preliminary
+- Podman has installed, if not check [link](kubernetes/conatiner/podman/index.html)
 
 ### 1.  create new partition
 
@@ -27,12 +30,12 @@ mkfs.xfs /dev/vdb1 -f
 mount /dev/vdb1 /data
 ```
 
-### 4.  mount when restart
+### 4.  mount after [restart server]()
 ```shell
 #vim `/etc/fstab` 
 /dev/vdb1     /data  xfs   defaults   0 0
 ```
-![fstab](../asset/fstab.png)
+![fstab](../../asset/fstab.png)
 
 ### 5. init NFSv4 Server
 ```shell
@@ -125,6 +128,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: basic-components
 ```
+Your NFS server will be host on `<$ip>:12049`
 
 ### 8. apply to k8s
 ```shell

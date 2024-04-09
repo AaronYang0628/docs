@@ -121,7 +121,7 @@ gpgkey=http://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-Official
 {{% /expand %}}
 
 
-### Ubuntu 
+### Ubuntu
 - **Ubuntu 18.04** located in `/etc/apt/sources.list`
 {{% expand title="Ubuntu Mirror" %}}
 ```plaintext
@@ -131,6 +131,7 @@ deb http://archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe 
 deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted
 ```
 {{% /expand %}}
+
 - **Ubuntu 20.04** located in `/etc/apt/sources.list`
 {{% expand title="Ubuntu Mirror" %}}
 ```plaintext
@@ -147,6 +148,57 @@ deb http://archive.ubuntu.com/ubuntu/ jammy main restricted
 deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted
 deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse
 deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted
+```
+{{% /expand %}}
+
+### Debian
+- **Debian Buster** located in `/etc/apt/sources.list`
+{{% expand title="Debian Mirror" %}}
+```plaintext
+deb http://deb.debian.org/debian buster main
+deb http://security.debian.org/debian-security buster/updates main
+deb http://deb.debian.org/debian buster-updates main
+```
+{{% /expand %}}
+{{% expand title="Aliyun Mirror" %}}
+```plaintext
+deb http://mirrors.aliyun.com/debian/ buster main non-free contrib
+deb http://mirrors.aliyun.com/debian-security buster/updates main
+deb http://mirrors.aliyun.com/debian/ buster-updates main non-free contrib
+deb http://mirrors.aliyun.com/debian/ buster-backports main non-free contrib
+```
+{{% /expand %}}
+{{% expand title="Tuna Mirror" %}}
+```plaintext
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ buster main contrib non-free
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ buster-updates main contrib non-free
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ buster-backports main contrib non-free
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+```
+{{% /expand %}}
+
+- **Debian Bullseye** located in `/etc/apt/sources.list`
+{{% expand title="Debian Mirror" %}}
+```plaintext
+deb http://deb.debian.org/debian bullseye main
+deb http://security.debian.org/debian-security bullseye-security main
+deb http://deb.debian.org/debian bullseye-updates main
+```
+{{% /expand %}}
+{{% expand title="Aaliyun Mirror" %}}
+```plaintext
+deb http://mirrors.aliyun.com/debian/ bullseye main non-free contrib
+deb http://mirrors.aliyun.com/debian-security/ bullseye-security main
+deb http://mirrors.aliyun.com/debian/ bullseye-updates main non-free contrib
+deb http://mirrors.aliyun.com/debian/ bullseye-backports main non-free contrib
+```
+{{% /expand %}}
+{{% expand title="Tuna Mirror" %}}
+```plaintext
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye main contrib non-free
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye-updates main contrib non-free
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye-backports main contrib non-free
+deb http://security.debian.org/debian-security bullseye-security main contrib non-free
 ```
 {{% /expand %}}
 

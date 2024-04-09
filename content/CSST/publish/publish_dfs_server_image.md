@@ -4,6 +4,9 @@ date = 2024-03-20T19:58:45+08:00
 weight = 1
 +++
 
+### Preliminary
+- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
+
 ### 1. create `git-credential`
 ```shell
 GIT_USERNAME=boyang628
@@ -17,7 +20,7 @@ kubectl -n business-workflows create secret generic git-credentials \
 2. create a token with `read_repository` authority
 3. copy it!
 
-![how to apply a token](../asset/git-token.png)
+![how to apply a token](../../asset/git-token.png)
 
 {{%/expand%}}
 
