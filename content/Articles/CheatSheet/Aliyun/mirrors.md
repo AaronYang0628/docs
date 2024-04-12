@@ -216,4 +216,9 @@ dnf clean all && dnf makecache
 yum clean all && yum makecache
 ```
 {{% /tab %}}
+{{% tab title="ubuntu/debian" %}}
+```shell
+apt-get clean all
+```
+{{% /tab %}}
 {{< /tabs >}}
