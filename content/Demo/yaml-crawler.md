@@ -5,8 +5,8 @@ weight = 3
 +++
 
 ### Steps
-1. define which url you wanna crawl, lets say `https://www.xxx.com/aaa.apex`
-2. create a page pojo to describe what kind of web page you need to process
+1. define which web url you wanna crawl, lets say `https://www.xxx.com/aaa.apex`
+2. create a page pojo `org.example.business.hs.code.MainPage` to describe that page
 
 Then you can create a yaml file named `root-pages.yaml` and its content is 
 ```yaml

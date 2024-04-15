@@ -6,6 +6,13 @@ weight = 1
 
 Using deep learning techniques to help you to win the game.
 
+{{% badge %}}State Machine{{% /badge %}}
+{{% badge %}}Python 3.6{{% /badge %}}
+{{% badge style="primary" title="TensorFlow" %}}2{{% /badge %}}
+{{% badge style="red" icon="angle-double-up" %}}Captain{{% /badge %}}
+{{% badge style="info" %}}New{{% /badge %}}
+{{% badge color="fuchsia" icon="fa-fw fab fa-hackerrank" %}}Awesome{{% /badge %}}
+
 ### ScreenShots
 There are four main funcs in this tool.
 
