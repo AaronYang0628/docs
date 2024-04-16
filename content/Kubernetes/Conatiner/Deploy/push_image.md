@@ -63,6 +63,22 @@ you can send `-p "XXXXX"` passing the pwd directly.
 docker login --username=ascm-org-1710208820455 cr.registry.res.cloud.zhejianglab.com -p 'AmViUxcYM3regk15'
 ```
 
+{{% expand title="failed to verify certificate: x509"%}}
+```yaml
+sudo vim /etc/docker/daemon.json
+```
+And then add `insecure-registries` in that file
+```json
+{  
+   "insecure-registries":["some url"]
+}
+```
+Finally, restart docker service
+```shell
+sudo systemctl restart docker
+```
+{{% /expand %}}
+
 ### 5. docker push
 
 {{< tabs groupid="a" >}}
