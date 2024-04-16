@@ -14,7 +14,7 @@ podman rmi <$image_id>
 
 2. remove all `<none>` images
 ```shell
-podman rmi `docker images | grep  '<none>' | awk '{print $3}'`
+podman rmi `podamn images | grep  '<none>' | awk '{print $3}'`
 ```
 
 3. remove all stopped containers
@@ -34,7 +34,7 @@ podman inspect --format='{{.NetworkSettings.IPAddress}}' minio-server
 
 6. exec into container
 ```shell
-podman exec -it <$container_id> /bin/bash
+podman run -it <$container_id> /bin/bash
 ```
 
 7. run with environment
