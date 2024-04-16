@@ -202,6 +202,66 @@ deb http://security.debian.org/debian-security bullseye-security main contrib no
 ```
 {{% /expand %}}
 
+### Anolis
+- **Anolis 3** located in `/etc/yum.repos.d/`
+{{% expand title="Alinyun Mirror" %}}
+```text
+[alinux3-module]
+name=alinux3-module
+baseurl=http://mirrors.aliyun.com/alinux/3/module/$basearch/
+gpgkey=http://mirrors.aliyun.com/alinux/3/RPM-GPG-KEY-ALINUX-3
+enabled=1
+gpgcheck=1
+
+[alinux3-os]
+name=alinux3-os
+baseurl=http://mirrors.aliyun.com/alinux/3/os/$basearch/
+gpgkey=http://mirrors.aliyun.com/alinux/3/RPM-GPG-KEY-ALINUX-3
+enabled=1
+gpgcheck=1
+
+[alinux3-plus]
+name=alinux3-plus
+baseurl=http://mirrors.aliyun.com/alinux/3/plus/$basearch/
+gpgkey=http://mirrors.aliyun.com/alinux/3/RPM-GPG-KEY-ALINUX-3
+enabled=1
+gpgcheck=1
+
+[alinux3-powertools]
+name=alinux3-powertools
+baseurl=http://mirrors.aliyun.com/alinux/3/powertools/$basearch/
+gpgkey=http://mirrors.aliyun.com/alinux/3/RPM-GPG-KEY-ALINUX-3
+enabled=1
+gpgcheck=1
+
+[alinux3-updates]
+name=alinux3-updates
+baseurl=http://mirrors.aliyun.com/alinux/3/updates/$basearch/
+gpgkey=http://mirrors.aliyun.com/alinux/3/RPM-GPG-KEY-ALINUX-3
+enabled=1
+gpgcheck=1
+
+[epel]
+name=Extra Packages for Enterprise Linux 8 - $basearch
+baseurl=http://mirrors.aliyun.com/epel/8/Everything/$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=1
+gpgkey=http://mirrors.aliyun.com/epel/RPM-GPG-KEY-EPEL-8
+
+[epel-module]
+name=Extra Packages for Enterprise Linux 8 - $basearch
+baseurl=http://mirrors.aliyun.com/epel/8/Modular/$basearch
+failovermethod=priority
+enabled=0
+gpgcheck=1
+gpgkey=http://mirrors.aliyun.com/epel/RPM-GPG-KEY-EPEL-8
+```
+{{% /expand %}}
+
+- **Anolis 2** located in `/etc/yum.repos.d/`
+{{% expand title="Alinyun Mirror" %}}
+{{% /expand %}}
 ---
 
 ### Refresh DNS
