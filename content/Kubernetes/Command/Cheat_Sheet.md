@@ -132,7 +132,7 @@ kubectl -n <$namespace> delete pods --field-selector status.phase=Failed
 kubectl -n <$namespace> delete pod <$resource_id> --force --grace-period=0
 ```
 
-### 8. Opening a Bash Shell inside a Pod 
+### 8. opening a Bash Shell inside a Pod 
 ```shell
 kubectl -n <$namespace> exec -it <$resource_id> -- bash  
 ```

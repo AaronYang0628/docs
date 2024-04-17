@@ -7,7 +7,7 @@ weight = 4
 
 ### Design Architecture
 - #### objects
-continuous processing antenna signal and sending 3 dimension data matrixes to different astronomical algorithm.
+continuously processing antenna signal records and convert them into 3 dimension data matrixes, sending them to different astronomical algorithm endpoints.
 ![asdsaa](../../images/content/cosmic-antenna/objects.png)
 - #### how data flows
 ![asdsaa](../../images/content/cosmic-antenna/flow.png)
@@ -122,8 +122,9 @@ kubectl -n flink edit role/flink -o yaml
 
 {{% notice style="warning" title="Modify role config" icon="stopwatch" %}}
 
+```shell
 kubectl -n flink edit role/flink -o yaml
-
+```
 add `services` and `endpoints` to the `rules.resources`
 
 {{% /notice %}}

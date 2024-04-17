@@ -21,7 +21,7 @@ wget
 
 ### config ossutil
 ```shell
-./ossutil64 config
+./ossutil config
 ```
 | Params    | Description | Instruction | 
 | -------- | ------- | ---- | 

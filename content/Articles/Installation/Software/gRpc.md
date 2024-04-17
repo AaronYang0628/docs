@@ -96,3 +96,36 @@ make -j 4
 make install
 popd
 ```
+
+### 3. Run the example
+The example code is part of the `grpc` repo source, which you cloned as part of the steps of the previous section.
+
+##### 3.1 change the example's directory:
+```shell
+cd examples/cpp/helloworld
+```
+
+##### 3.2 build the example project by using `cmake`
+> make sure you still can `echo $MY_INSTALL_DIR`, and return a valid result
+```shell
+mkdir -p cmake/build
+pushd cmake/build
+cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ../..
+make -j 4
+```
+
+#### 3.3 run the server
+```shell
+./greeter_server
+```
+
+
+#### 3.4 from a different terminal, run the client and see the client output:
+```shell
+./greeter_client
+```
+
+> and the result should be like this:
+```text
+Greeter received: Hello world
+```

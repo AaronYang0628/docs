@@ -5,6 +5,7 @@ weight = 3
 +++
 
 ### Preliminary
-- Ninja
-- gRpc [link](https://grpc.io/docs/languages/cpp/quickstart/)
+- cmake is alrady installed, and version should higher tha `3.21`, if not check [link](/articles/installation/software/cmake/index.html)
+- Ninja-build is already installed, if not check [link](/articles/installation/software/ninja/index.html)
+- gRpc is already installed, if not check [link](/articles/installation/software/grpc/index.html)
 

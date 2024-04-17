@@ -1,5 +1,5 @@
 +++
-title = 'Ninja'
+title = 'Cmake'
 date = 2024-04-07T15:00:59+08:00
 +++
 
@@ -28,24 +28,8 @@ sudo dnf install \
 {{% /tab %}}
 {{< /tabs >}}
 
-{{% expand title="Cannot find ninja in repo"%}}
-1. you can download source code and build by yourself
-```shell
-wget https://github.com/ninja-build/ninja/archive/refs/tags/v1.11.1.tar.gz
-```
 
-```shell
-tar -xvf ninja-1.11.1.tar.gz 
-```
-
-```shell
-# cd ninja-1.11.1
-cmake -Bbuild-cmake
-cmake --build build-cmake
-```
-{{%/expand%}}
-
-### Ninja 
+### Update Version 
 
 
 asd
