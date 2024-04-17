@@ -3,9 +3,14 @@ title = 'Policy'
 date = 2024-03-14T15:00:59+08:00
 +++
 
-### S3
-{{< tabs title="Schema:" >}}
-{{% tab title="s3" %}}
+### User Based Policy
+you can change `<$bucket>` to control the permission
+
+
+{{< tabs title="App:" >}}
+{{% tab title="minio" %}}
+- `${aws:username}` is a build-in variable, indicating the logined user name.
+
 ```json
 {
     "Version": "2012-10-17",
@@ -28,14 +33,14 @@ date = 2024-03-14T15:00:59+08:00
             ],
             "Effect": "Allow",
             "Resource": [
-                "arn:aws:s3:::csst"
+                "arn:aws:s3:::<$bucket>"
             ],
             "Condition": {
                 "StringEquals": {
                     "s3:prefix": [
                         "",
-                        "user-data/",
-                        "user-data/${aws:username}"
+                        "<$path>/",
+                        "<$path>/${aws:username}"
                     ],
                     "s3:delimiter": [
                         "/"
@@ -50,12 +55,12 @@ date = 2024-03-14T15:00:59+08:00
             ],
             "Effect": "Allow",
             "Resource": [
-                "arn:aws:s3:::csst"
+                "arn:aws:s3:::<$bucket>"
             ],
             "Condition": {
                 "StringLike": {
                     "s3:prefix": [
-                        "user-data/${aws:username}/*"
+                        "<$path>/${aws:username}/*"
                     ]
                 }
             }
@@ -67,7 +72,7 @@ date = 2024-03-14T15:00:59+08:00
                 "s3:*"
             ],
             "Resource": [
-                "arn:aws:s3:::csst/user-data/${aws:username}/*"
+                "arn:aws:s3:::<$bucket>/<$path>/${aws:username}/*"
             ]
         }
     ]
@@ -75,6 +80,46 @@ date = 2024-03-14T15:00:59+08:00
 ```
 {{% /tab %}}
 {{% tab title="oss" %}}
+- `<$uid>` is Aliyun UID
+
+```json
+{
+    "Version": "1",
+    "Statement": [{
+        "Effect": "Allow",
+        "Action": [
+            "oss:*"
+        ],
+        "Principal": [
+            "<$uid>"
+        ],
+        "Resource": [
+            "acs:oss:*:<$oss_id>:<$bucket>/<$path>/*"
+        ]
+    }, {
+        "Effect": "Allow",
+        "Action": [
+            "oss:ListObjects",
+            "oss:GetObject"
+        ],
+        "Principal": [
+             "<$uid>"
+        ],
+        "Resource": [
+            "acs:oss:*:<$oss_id>:<$bucket>"
+        ],
+        "Condition": {
+            "StringLike": {
+            "oss:Prefix": [
+                    "<$path>/*"
+                ]
+            }
+        }
+    }]
+}
+```
+
+###### Example:
 ```json
 {
 	"Version": "1",
@@ -103,7 +148,7 @@ date = 2024-03-14T15:00:59+08:00
 		],
 		"Condition": {
 			"StringLike": {
-        		"oss:Prefix": [
+				"oss:Prefix": [
 					"test/*"
 				]
 			}
@@ -111,6 +156,7 @@ date = 2024-03-14T15:00:59+08:00
 	}]
 }
 ```
+
 {{% /tab %}}
 {{< /tabs >}}
 
