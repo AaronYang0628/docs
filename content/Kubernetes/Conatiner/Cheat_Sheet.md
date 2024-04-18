@@ -80,7 +80,14 @@ docker exec -it <$container_id> /bin/bash
 docker run -d --replace -p 18123:8123 -p 19000:9000 --name clickhouse-server -e ALLOW_EMPTY_PASSWORD=yes --ulimit nofile=262144:262144 quay.m.daocloud.io/kryptonite/clickhouse-docker-rootless:20.9.3.45 
 ```
 `--ulimit nofile=262144:262144`: sssss
+
+8. docker cp
+
+9. docker -v
+
 {{% /tab %}}
+
+
 
 {{< /tabs >}}
 

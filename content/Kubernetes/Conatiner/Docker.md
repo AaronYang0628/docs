@@ -51,7 +51,15 @@ visit [https://www.docker.com/products/docker-desktop ](https://www.docker.com/p
 {{< /tabs >}}
 
 
-### Test
-```shell
-docker info
+### Info
+- Docker Image saved in `/var/lib/docker`
+
+### Mirror
+You can modify `/etc/docker/daemon.json`
+```json
+{
+  "registry-mirrors": ["<$mirror_url>"]
+}
 ```
+
+- `https://docker.mirrors.ustc.edu.cn`
