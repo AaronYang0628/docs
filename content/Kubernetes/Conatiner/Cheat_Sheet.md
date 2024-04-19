@@ -39,9 +39,15 @@ podman run -it <$container_id> /bin/bash
 
 7. run with environment
 ```shell
-podman run -d --replace -p 18123:8123 -p 19000:9000 --name clickhouse-server -e ALLOW_EMPTY_PASSWORD=yes --ulimit nofile=262144:262144 quay.m.daocloud.io/kryptonite/clickhouse-docker-rootless:20.9.3.45 
+podman run -d --replace 
+    -p 18123:8123 -p 19000:9000 \
+    --name clickhouse-server \
+    -e ALLOW_EMPTY_PASSWORD=yes \
+    --ulimit nofile=262144:262144 \
+    quay.m.daocloud.io/kryptonite/clickhouse-docker-rootless:20.9.3.45 
 ```
-`--ulimit nofile=262144:262144`: sssss
+`--ulimit nofile=262144:262144`: 262144 is the maximum users process or for showing maximum user process limit for the logged-in user
+> `ulimit` is admin access required Linux shell command which is used to see, set, or limit the resource usage of the current user. It is used to return the number of open file descriptors for each process. It is also used to set restrictions on the resources used by a process.
 {{% /tab %}}
 
 {{% tab title="docker" %}}
@@ -81,9 +87,28 @@ docker run -d --replace -p 18123:8123 -p 19000:9000 --name clickhouse-server -e 
 ```
 `--ulimit nofile=262144:262144`: sssss
 
-8. docker cp
+8. copy file
 
-9. docker -v
+    Copy a local file into container
+    ```shell
+    docker cp ./some_file CONTAINER:/work
+    ```
+    or  copy files from container to local path
+    ```shell
+    docker cp CONTAINER:/var/logs/ /tmp/app_logs
+    ```
+9. load a volume
+```shell
+docker run --rm \
+    --entrypoint bash \
+    -v $PWD/data:/app:ro \
+    -it docker.io/minio/mc:latest \
+    -c "mc --insecure alias set minio https://oss-cn-hangzhou-zjy-d01-a.ops.cloud.zhejianglab.com/ g83B2sji1CbAfjQO 2h8NisFRELiwOn41iXc6sgufED1n1A \
+        && mc --insecure ls minio/csst-prod/ \
+        && mc --insecure mb --ignore-existing minio/csst-prod/crp-test \
+        && mc --insecure cp /app/modify.pdf minio/csst-prod/crp-test/ \
+        && mc --insecure ls --recursive minio/csst-prod/"
+```
 
 {{% /tab %}}
 

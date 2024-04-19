@@ -11,7 +11,7 @@ weight = 1
   {{< tabs groupid="tabs-resource" >}}
   {{% tab title="bash" %}}
   ```bash
-    kubectl create -n <$namespace> -f <$file_url>
+    kubectl -n <$namespace> apply -f <$file_url>
   ```
   {{% /tab %}}
   {{< /tabs >}}
@@ -160,4 +160,17 @@ kubectl taint nodes node1 dedicated:NoSchedule-
 ### 3. show info extract by json path
 ```shell
 kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
+```
+
+## Deploy
+
+### 1. rollout
+show rollout history
+```shell
+kubectl -n <$namespace> rollout history deploy/<$deploy_resource_id>
+```
+
+undo rollout
+```shell
+kubectl -n <$namespace> rollout undo deploy <$deploy_resource_id>  --to-revision=1
 ```

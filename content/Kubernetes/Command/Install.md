@@ -53,8 +53,12 @@ and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://miniku
 
 {{% /tab %}}
 {{% tab title="normal" %}}
-```properties
-Hello = World
+```shell
+yum -y install kubelet kubeadm kubectl
 ```
+```shell
+kubeadm init --kubernets-version=xxxxx
+```
+This might need to write a new article.[TODO]
 {{% /tab %}}
 {{< /tabs >}}
