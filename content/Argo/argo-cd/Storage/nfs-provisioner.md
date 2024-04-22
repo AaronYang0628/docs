@@ -46,7 +46,7 @@ spec:
           name: nfs-external-nas
   destination:
     server: https://kubernetes.default.svc
-    namespace: basic-components
+    namespace: storage
 ```
 
 

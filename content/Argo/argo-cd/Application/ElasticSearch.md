@@ -6,24 +6,18 @@ weight = 7
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](kubernetes/argo/argo-cd/argocd/index.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](kubernetes/argo/argo-cd/software/cert_manager/index.html)
+- argoCD has installed, if not check [link](/argo/argo-cd/argocd/index.html)
+- ingres has installed on argoCD, if not check [link](/argo/argo-cd/application/ingress/index.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](/argo/argo-cd/application/cert_manager/index.html)
 
 ### Steps
-#### 1. prepare mariadb credentials secret
-```shell
-kubectl -n application create secret generic mariadb-credentials \
-    --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
-```
 
-#### 5. prepare `deploy-mariadb.yaml`
+#### 1. prepare `elastic-search.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mariadb
+  name: elastic-search
 spec:
   syncPolicy:
     syncOptions:
@@ -31,37 +25,68 @@ spec:
   project: default
   source:
     repoURL: https://charts.bitnami.com/bitnami
-    chart: mariadb
-    targetRevision: 16.3.2
+    chart: elasticsearch
+    targetRevision: 19.21.2
     helm:
-      releaseName: mariadb
+      releaseName: elastic-search
       values: |
-        architecture: standalone
-        auth:
-          database: test-mariadb
-          username: aaron.yang
-          existingSecret: mariadb-credentials
-        primary:
-          extraFlags: "--character-set-server=utf8mb4 --collation-server=utf8mb4_bin"
-          persistence:
-            enabled: false
-        secondary:
-          replicaCount: 1
-          persistence:
-            enabled: false
+        global:
+          kibanaEnabled: false
+        clusterName: elastic
         image:
           registry: m.daocloud.io/docker.io
           pullPolicy: IfNotPresent
-        volumePermissions:
+        security:
           enabled: false
-          image:
-            registry: m.daocloud.io/docker.io
-            pullPolicy: IfNotPresent
+        service:
+          type: ClusterIP
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: self-signed-ca-issuer
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+          hostname: elastic-search.dev.geekcity.tech
+          ingressClassName: nginx
+          path: /?(.*)
+          tls: true
+        master:
+          masterOnly: true
+          replicaCount: 2
+          persistence:
+            enabled: false
+        data:
+          replicaCount: 2
+          persistence:
+            enabled: false
+        coordinating:
+          replicaCount: 2
+        ingest:
+          enabled: true
+          replicaCount: 2
+          service:
+            enabled: false
+            type: ClusterIP
+          ingress:
+            enabled: false
         metrics:
           enabled: false
           image:
             registry: m.daocloud.io/docker.io
             pullPolicy: IfNotPresent
+        volumePermissions:
+          enabled: false
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+        sysctlImage:
+          enabled: true
+          registry: m.daocloud.io/docker.io
+          pullPolicy: IfNotPresent
+        kibana:
+          elasticsearch:
+            hosts:
+              - '{{ include "elasticsearch.service.name" . }}'
+            port: '{{ include "elasticsearch.service.ports.restAPI" . }}'
   destination:
     server: https://kubernetes.default.svc
     namespace: application
@@ -70,30 +95,24 @@ spec:
 
 #### 3. apply to k8s
 ```shell
-kubectl -n argocd apply -f deploy-mariadb.yaml
+kubectl -n argocd apply -f elastic-search.yaml
 ```
 
 #### 4. sync by argocd
 ```shell
-argocd app sync argocd/mariadb
+argocd app sync argocd/elastic-search
 ```
 
+#### [[Optional]]() Test REST API call
+> add `$K8S_MASTER_IP elastic-search.dev.geekcity.tech` to `/etc/hosts`
 
-#### 7. [[Optional]]() import data
-import data by using sql file
 ```shell
-MARIADB_ROOT_PASSWORD=$(kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
-POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
-&& export SQL_FILENAME="Dump20240301.sql" \
-&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
-&& kubectl -n application exec -it deployment/app-mariadb-tool -- bash -c \
-    'echo "create database ccds;" | mysql -h mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
-&& kubectl -n application exec -it ${POD_NAME} -- bash -c \
-    "mysql -h mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
-    ccds < /tmp/Dump20240301.sql"
+curl -k "http://elastic-search.dev.geekcity.tech:32443/?pretty"
 ```
 
-#### 8. decode password
+#### [[Optional]]() Add Single Document
 ```shell
-kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
+curl -k -H "Content-Type: application/json" \
+    -X POST "http://elastic-search.dev.geekcity.tech:32443/books/_doc?pretty" \
+    -d '{"name": "Snow Crash", "author": "Neal Stephenson", "release_date": "1992-06-01", "page_count": 470}'
 ```
