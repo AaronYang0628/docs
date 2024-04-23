@@ -54,6 +54,8 @@ spec:
             default.replication.factor=3
             offsets.topic.replication.factor=3
             transaction.state.log.replication.factor=3
+            sasl.mechanism.inter.broker.protocol=SCRAM-SHA-256
+            sasl.enabled.mechanisms=SCRAM-SHA-256
         externalAccess:
           enabled: false
           autoDiscovery:
