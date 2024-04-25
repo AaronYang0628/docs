@@ -5,7 +5,7 @@ weight = 3
 +++
 
 ### Preliminary
-- Clickhouse has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/clickhouse/index.html)
+- Clickhouse has installed though argo-workflow, if not check [link](argo/argo-workflow/database/clickhouse/index.html)
 - Clickhouse server pod named is `app-clickhouse` and in namespace `application`
 
 {{% notice style="warning" %}}

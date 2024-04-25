@@ -5,7 +5,7 @@ weight = 1
 +++
 
 ### Preliminary
-- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
+- argo workflows binary has installed, if not check [link](argo/argo-workflow/argoworkflow/index.html)
 
 ### 1. create `git-credential`
 ```shell

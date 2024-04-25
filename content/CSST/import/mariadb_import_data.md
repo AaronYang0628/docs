@@ -5,7 +5,7 @@ weight = 1
 +++
 
 ### Preliminary
-- MariaDB has installed though argo-workflow, if not check [link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
+- MariaDB has installed though argo-workflow, if not check [link](argo/argo-workflow/database/mariadb/index.html)
 - MariaDB server pod named is `app-mariadb` and in namespace `application`
 
 {{% notice style="warning" %}}
