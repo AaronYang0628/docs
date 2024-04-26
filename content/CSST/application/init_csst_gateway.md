@@ -5,8 +5,8 @@ weight = 64
 +++
 
 ### Preliminary
-- DFS server has installed though argo-workflow, if not [check link](csst/init_dfs_server/index.html)
-- DFS ephem has installed though argo-workflow, if not [check link](csst/init_dfs_ephem/index.html)
+- DFS server has installed though argo-workflow, if not [check link](csst/application/init_dfs_server/index.html)
+- DFS ephem has installed though argo-workflow, if not [check link](csst/application/init_dfs_ephem/index.html)
 
 {{% notice style="warning" %}}
 if the **dfs server**, **dfs ephem** and **namespace** isn't match, you might need to modify following shell.

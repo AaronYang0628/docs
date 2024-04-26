@@ -7,7 +7,7 @@ weight = 2
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](kubernetes/argo/argo-cd/argocd/index.html)
+- argoCD has installed, if not check [link](argo/argo-cd/argocd/index.html)
 
 ### Steps
 #### 1. prepare `ingress-nginx.yaml`

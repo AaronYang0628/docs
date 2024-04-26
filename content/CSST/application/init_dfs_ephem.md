@@ -5,10 +5,10 @@ weight = 53
 +++
 
 ### Preliminary
-- MariaDB has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/mariadb/index.html)
-- Postgresql has installed though argo-workflow, if not [check link](kubernetes/argo/argo-workflow/software/postgres/index.html)
-- And init mariadb has finished, if not [check link](csst/mariadb_import_data//index.html)
-- And init postgresql has finished, if not [check link](csst/pg_import_data//index.html)
+- MariaDB has installed though argo-workflow, if not [check link](argo/argo-workflow/database/mariadb/index.html)
+- Postgresql has installed though argo-workflow, if not [check link](argo/argo-workflow/database/postgres/index.html)
+- And init mariadb has finished, if not [check link](csst/import/mariadb_import_data//index.html)
+- And init postgresql has finished, if not [check link](csst/import/pg_import_data//index.html)
 
 ### Steps
 

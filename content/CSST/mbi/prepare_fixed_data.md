@@ -6,9 +6,9 @@ weight = 80
 
 ### Preliminary
 - `ossutil` has been installed.
-- PVC `csst-data-pvc` has initialized, if not [check link](csst/init_ccds_server/index.html)
-- PVC `ccds-data-pvc` has initialized, if not [check link](csst/init_ccds_server/index.html)
-- PVC `csst-msc-l1-mbi-aux-pvc` has initialized, if not [check link](csst/mbi_job/index.html)
+- PVC `csst-data-pvc` has initialized, if not [check link](csst/application/init_ccds_server/index.html)
+- PVC `ccds-data-pvc` has initialized, if not [check link](csst/application/init_ccds_server/index.html)
+- PVC `csst-msc-l1-mbi-aux-pvc` has initialized, if not [check link](csst/mbi/mbi_job/index.html)
 
 ### copy data from OSS
 

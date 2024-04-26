@@ -7,9 +7,10 @@ weight = 11
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argo workflows binary has installed, if not check [link](kubernetes/argo/argo-workflow/argoworkflow/index.html)
+- argo workflows binary has installed, if not check [link](argo/argo-workflow/argoworkflow/index.html)
 - minio artifact repository has been configured, if not check [link](kubernetes/command/artifact_repository/index.html)
     > endpoint: minio.storage:9000
+- This tutorial doesn't config persistence, if you need save data permanently, you need to set a nfs, you can task this [link](kubernetes/conatiner/software/nfs/index.html) as an example.
 
 ### Steps
 #### 1. prepare secret `argocd-login-credentials`
@@ -327,3 +328,35 @@ CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o 
 && echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.geekcity.tech/" --data-binary @-
 ```
 
+#### 10. [[Optional]]() create external interface
+prepare `app-clickhouse-external.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/instance: app-clickhouse
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: clickhouse
+    app.kubernetes.io/version: 23.12.2
+    argocd.argoproj.io/instance: app-clickhouse
+    helm.sh/chart: clickhouse-4.5.3
+  name: app-clickhouse-service-external
+spec:
+  ports:
+  - name: tcp
+    port: 9000
+    protocol: TCP
+    targetPort: tcp
+    nodePort: 30900
+  selector:
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/instance: app-clickhouse
+    app.kubernetes.io/name: clickhouse
+  type: NodePort
+```
+
+```shell
+kubectl -n application apply -f app-clickhouse-external.yaml
+```

@@ -1,13 +1,13 @@
 +++
-title = '安装Argo WorkFlow'
+title = 'Install Argo WorkFlow'
 date = 2024-03-07T15:00:59+08:00
 weight = 1
 +++
 
 ### Preliminary
-- Kubernets has installed
-- Argo CD has installed
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service
+- Kubernets has installed, if not [check link](kubernetes/command/install/index.html)
+- Argo CD has installed, if not [check link](argo/argo-cd/argocd.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not [check link](argo/argo-cd/application/cert_manager/index.html)
 
 ### 1. prepare `argo-workflows.yaml`
 
@@ -81,7 +81,7 @@ curl -sSLo argo-linux-amd64.gz "https://${MIRROR}github.com/argoproj/argo-workfl
 gunzip argo-linux-amd64.gz
 chmod u+x argo-linux-amd64
 mkdir -p ${HOME}/bin
-mv -f argo-linux-amd64 ${HOME}/bin/argo-wf
+mv -f argo-linux-amd64 ${HOME}/bin/argo
 rm -f argo-linux-amd64.gz
 
 ```
@@ -100,4 +100,20 @@ kubectl -n argocd apply -f argo-workflows.yaml
 ### 5. sync by argocd
 ```shell
 argocd app sync argocd/argo-workflows
+```
+
+### 6. check workflow status
+```shell
+# list all flows
+argo -n business-workflows list
+```
+
+```shell
+# get specific flow status
+argo -n business-workflows get <$flow_name>
+```
+
+```shell
+# get specific flow log
+argo -n business-workflows logs <$flow_name>
 ```

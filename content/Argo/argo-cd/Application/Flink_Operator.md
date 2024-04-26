@@ -7,8 +7,8 @@ weight = 10
 
 ### Preliminary
 - Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](kubernetes/argo/argo-cd/argocd/index.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](kubernetes/argo/argo-cd/software/cert_manager/index.html)
+- argoCD has installed, if not check [link](argo/argo-cd/argocd/index.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](argo/argo-cd/application/cert_manager/index.html)
 
 ### Steps
 #### 1. prepare `flink-operator.yaml`

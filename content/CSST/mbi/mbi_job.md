@@ -6,8 +6,8 @@ weight = 100
 
 
 ### Preliminary
-- prepare pvc `csst-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
-- prepare pvc `ccds-data-pvc`, if not then check [link](csst/init_ccds_server/index.html)
+- prepare pvc `csst-data-pvc`, if not then check [link](csst/application/init_ccds_server/index.html)
+- prepare pvc `ccds-data-pvc`, if not then check [link](csst/application/init_ccds_server/index.html)
 
 ### 1. prepare `csst-msc-l1-mbi-aux-pvc.yaml`
 ```yaml
