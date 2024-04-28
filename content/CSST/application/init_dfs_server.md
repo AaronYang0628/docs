@@ -1,5 +1,5 @@
 +++
-title = 'Init DFS Server'
+title = 'Deploy DFS Server'
 date = 2024-03-12T15:00:59+08:00
 weight = 43
 +++

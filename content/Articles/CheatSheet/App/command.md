@@ -12,8 +12,13 @@ ssh-keygen -t rsa -b 4096 -C "aaron19940628@gmail.com"
 ```shell
 sudo ln -sf <$install_path>/bin/* /usr/local/bin
 ```
+### append dir into $PATH
+```shell
+export PATH="/root/bin:$PATH"
+```
 
 #### copy public key to ECS
 ```shell
 ssh-copy-id -i ~/.ssh/id_rsa.pub root@10.200.60.53
 ```
+
