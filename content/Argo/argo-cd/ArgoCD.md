@@ -100,29 +100,66 @@ mv -f argocd ${HOME}/bin
 
 
 ### 4. prepare `argocd-server-external.yaml`
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app.kubernetes.io/component: server
-    app.kubernetes.io/instance: argo-cd
-    app.kubernetes.io/name: argocd-server-external
-    app.kubernetes.io/part-of: argocd
-    app.kubernetes.io/version: v2.8.4
-  name: argocd-server-external
-spec:
-  ports:
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 8080
-    nodePort: 30443
-  selector:
-    app.kubernetes.io/instance: argo-cd
-    app.kubernetes.io/name: argocd-server
-  type: NodePort
-```
+{{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
+  {{< tab title="Helm" >}}
+    {{< tabs groupid="tabs-example-language" >}}
+      {{% tab title="yaml" %}}
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server-external
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.8.4
+    name: argocd-server-external
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30443
+    selector:
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server
+    type: NodePort
+  ```
+      {{% /tab%}}
+    {{< /tabs >}}
+  {{< /tab >}}
+
+  {{< tab title="File/URL" style="default" color="darkorchid" >}}
+      {{< tabs groupid="tabs-example-language" >}}
+      {{% tab title="yaml" %}}
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server-external
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.8.4
+    name: argocd-server-external
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30443
+    selector:
+      app.kubernetes.io/name: argocd-server
+    type: NodePort
+  ```
+      {{% /tab%}}
+    {{< /tabs >}}
+  {{< /tab >}}
+{{< /tabs >}}
 
 
 ### 5. create external service

@@ -12,13 +12,14 @@ weight = 6
 ### Steps
 #### 1. prepare mariadb credentials secret
 ```shell
-kubectl -n application create secret generic mariadb-credentials \
+kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+kubectl -n database create secret generic mariadb-credentials \
     --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
     --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
     --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ```
 
-#### 5. prepare `deploy-mariadb.yaml`
+#### 2. prepare `deploy-mariadb.yaml`
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -64,7 +65,7 @@ spec:
             pullPolicy: IfNotPresent
   destination:
     server: https://kubernetes.default.svc
-    namespace: application
+    namespace: database
 ```
 
 
@@ -79,21 +80,21 @@ argocd app sync argocd/mariadb
 ```
 
 
-#### 7. [[Optional]]() import data
+#### 5. [[Optional]]() import data
 import data by using sql file
 ```shell
-MARIADB_ROOT_PASSWORD=$(kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
-POD_NAME=$(kubectl get pod -n application -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
+MARIADB_ROOT_PASSWORD=$(kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
+POD_NAME=$(kubectl get pod -n database -l "app.kubernetes.io/name=mariadb-tool" -o jsonpath="{.items[0].metadata.name}") \
 && export SQL_FILENAME="Dump20240301.sql" \
-&& kubectl -n application cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
-&& kubectl -n application exec -it deployment/app-mariadb-tool -- bash -c \
-    'echo "create database ccds;" | mysql -h mariadb.application -uroot -p$MARIADB_ROOT_PASSWORD' \
-&& kubectl -n application exec -it ${POD_NAME} -- bash -c \
-    "mysql -h mariadb.application -uroot -p\${MARIADB_ROOT_PASSWORD} \
+&& kubectl -n database cp ${SQL_FILENAME} ${POD_NAME}:/tmp/${SQL_FILENAME} \
+&& kubectl -n database exec -it deployment/app-mariadb-tool -- bash -c \
+    'echo "create database ccds;" | mysql -h mariadb.database -uroot -p$MARIADB_ROOT_PASSWORD' \
+&& kubectl -n database exec -it ${POD_NAME} -- bash -c \
+    "mysql -h mariadb.database -uroot -p\${MARIADB_ROOT_PASSWORD} \
     ccds < /tmp/Dump20240301.sql"
 ```
 
-#### 8. decode password
+#### 7. decode password
 ```shell
-kubectl -n application get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
+kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```

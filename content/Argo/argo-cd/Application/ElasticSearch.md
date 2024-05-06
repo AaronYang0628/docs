@@ -13,6 +13,89 @@ weight = 7
 ### Steps
 
 #### 1. prepare `elastic-search.yaml`
+{{< tabs >}}
+  {{% tab title="minimal" %}}
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elastic-search
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: elasticsearch
+    targetRevision: 19.21.2
+    helm:
+      releaseName: elastic-search
+      values: |
+        global:
+          kibanaEnabled: false
+        clusterName: elastic
+        image:
+          registry: m.daocloud.io/docker.io
+          pullPolicy: IfNotPresent
+        security:
+          enabled: false
+        service:
+          type: ClusterIP
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: self-signed-ca-issuer
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+          hostname: elastic-search.dev.geekcity.tech
+          ingressClassName: nginx
+          path: /?(.*)
+          tls: true
+        master:
+          masterOnly: false
+          replicaCount: 1
+          persistence:
+            enabled: false
+        data:
+          replicaCount: 0
+          persistence:
+            enabled: false
+        coordinating:
+          replicaCount: 0
+        ingest:
+          enabled: true
+          replicaCount: 0
+          service:
+            enabled: false
+            type: ClusterIP
+          ingress:
+            enabled: false
+        metrics:
+          enabled: false
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+        volumePermissions:
+          enabled: false
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+        sysctlImage:
+          enabled: true
+          registry: m.daocloud.io/docker.io
+          pullPolicy: IfNotPresent
+        kibana:
+          elasticsearch:
+            hosts:
+              - '{{ include "elasticsearch.service.name" . }}'
+            port: '{{ include "elasticsearch.service.ports.restAPI" . }}'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: application
+```
+  {{% /tab  %}}
+
+  {{% tab title="normal" %}}
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -91,6 +174,10 @@ spec:
     server: https://kubernetes.default.svc
     namespace: application
 ```
+  {{% /tab  %}}
+{{< /tabs >}}
+
+
 
 
 #### 3. apply to k8s

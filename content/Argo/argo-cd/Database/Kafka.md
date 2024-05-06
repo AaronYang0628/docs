@@ -12,6 +12,8 @@ weight = 20
 ### Steps
 
 #### 1. prepare `kafka.yaml`
+{{< tabs groupid="kafka">}}
+  {{% tab title="kraft-minimal" %}}
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -43,7 +45,7 @@ spec:
             offsets.topic.replication.factor=3
             transaction.state.log.replication.factor=3
         broker:
-          replicaCount: 3
+          replicaCount: 1
           minId: 0
           persistence:
             enabled: false
@@ -106,6 +108,109 @@ spec:
     server: https://kubernetes.default.svc
     namespace: database
 ```
+  {{% /tab  %}}
+
+  {{% tab title="zookeeper-minimal-plaintext"%}}
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: kafka
+    targetRevision: 28.0.3
+    helm:
+      releaseName: kafka
+      values: |
+        image:
+          registry: m.daocloud.io/docker.io
+        listeners:
+          client:
+            protocol: PLAINTEXT
+          interbroker:
+            protocol: PLAINTEXT
+        controller:
+          replicaCount: 0
+          persistence:
+            enabled: false
+          logPersistence:
+            enabled: false
+          extraConfig: |
+            message.max.bytes=5242880
+            default.replication.factor=1
+            offsets.topic.replication.factor=1
+            transaction.state.log.replication.factor=1
+        broker:
+          replicaCount: 1
+          minId: 0
+          persistence:
+            enabled: false
+          logPersistence:
+            enabled: false
+          extraConfig: |
+            message.max.bytes=5242880
+            default.replication.factor=1
+            offsets.topic.replication.factor=1
+            transaction.state.log.replication.factor=1
+        externalAccess:
+          enabled: false
+          autoDiscovery:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+        volumePermissions:
+          enabled: false
+          image:
+            registry: m.daocloud.io/docker.io
+        metrics:
+          kafka:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+          jmx:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+        provisioning:
+          enabled: false
+        kraft:
+          enabled: false
+        zookeeper:
+          enabled: true
+          image:
+            registry: m.daocloud.io/docker.io
+          replicaCount: 1
+          auth:
+            client:
+              enabled: false
+            quorum:
+              enabled: false
+          persistence:
+            enabled: false
+          volumePermissions:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+            metrics:
+              enabled: false
+          tls:
+            client:
+              enabled: false
+            quorum:
+              enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: database
+```
+  {{% /tab %}}
+{{< /tabs >}}
+
 
 #### 2. apply to k8s
 ```shell
@@ -120,12 +225,23 @@ argocd app sync argocd/kafka
 ### Set up client tool
 
 #### 1. create client-properties
+{{< tabs groupid="kafka">}}
+  {{% tab title="sasl-plaintext" %}}
 ```shell
 kubectl -n database \
     create secret generic client-properties \
     --from-literal=client.properties="$(printf "security.protocol=SASL_PLAINTEXT\nsasl.mechanism=SCRAM-SHA-256\nsasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"user1\" password=\"$(kubectl get secret kafka-user-passwords --namespace database -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)\";\n")"
-
 ```
+  {{% /tab %}}
+
+    {{% tab title="plaintext" %}}
+```shell
+kubectl -n database \
+    create secret generic client-properties \
+    --from-literal=client.properties="security.protocol=PLAINTEXT"
+```
+  {{% /tab %}}
+{{< /tabs >}}
 
 #### 2. prepare `kafka-client-tools.yaml`
 ```yaml

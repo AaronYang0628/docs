@@ -39,16 +39,27 @@ and the you can visit [https://kind.sigs.k8s.io/docs/user/quick-start/](https://
 {{% /tab %}}
 {{% tab title="minkube" %}}
 ```shell
-[ $(uname -m) = x86_64 ] && curl -sSLo minikube "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
-[ $(uname -m) = aarch64 ] && curl -sSLo kubectl "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64"
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube /usr/local/bin/minikube
+MIRROR="files.m.daocloud.io/"
+[ $(uname -m) = x86_64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+[ $(uname -m) = aarch64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64"
+chmod u+x minikube
+mkdir -p ${HOME}/bin
+mv -f minikube ${HOME}/bin
 ```
+[[Optional]]() disable aegis service and reboot system for aliyun
+```shell
+sudo systemctl disable aegis && sudo reboot
+```
+
 after you download binary, you can start your cluster
 ```shell
 minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
 ```
 
+add alias for convinence
+```shell
+alias kubectl="minikube kubectl --"
+```
 and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
 
 {{% /tab %}}
