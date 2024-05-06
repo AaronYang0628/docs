@@ -46,7 +46,7 @@ sudo install minikube /usr/local/bin/minikube
 ```
 after you download binary, you can start your cluster
 ```shell
-minikube start
+minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
 ```
 
 and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
