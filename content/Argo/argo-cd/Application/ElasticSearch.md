@@ -56,6 +56,14 @@ spec:
           replicaCount: 1
           persistence:
             enabled: false
+          resources:
+            requests:
+              cpu: 2
+              memory: 1024Mi
+            limits:
+              cpu: 4
+              memory: 2048Mi
+          heapSize: 2g
         data:
           replicaCount: 0
           persistence:
@@ -89,6 +97,7 @@ spec:
             hosts:
               - '{{ include "elasticsearch.service.name" . }}'
             port: '{{ include "elasticsearch.service.ports.restAPI" . }}'
+        esJavaOpts: "-Xmx2g -Xms2g"
   destination:
     server: https://kubernetes.default.svc
     namespace: application

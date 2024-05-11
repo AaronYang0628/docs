@@ -48,6 +48,21 @@ podman run -d --replace
 ```
 `--ulimit nofile=262144:262144`: 262144 is the maximum users process or for showing maximum user process limit for the logged-in user
 > `ulimit` is admin access required Linux shell command which is used to see, set, or limit the resource usage of the current user. It is used to return the number of open file descriptors for each process. It is also used to set restrictions on the resources used by a process.
+
+8. login registry
+```shell
+podman login --tls-verify=false --username=ascm-org-1710208820455 cr.registry.res.cloud.zhejianglab.com -p 'xxxx'
+```
+
+9. tag image
+```shell
+podman tag 76fdac66291c cr.registry.res.cloud.zhejianglab.com/ay-dev/datahub-s3-fits:1.0.0
+```
+
+10. push image
+```shell
+podman push cr.registry.res.cloud.zhejianglab.com/ay-dev/datahub-s3-fits:1.0.0
+```
 {{% /tab %}}
 
 {{% tab title="docker" %}}
