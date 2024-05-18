@@ -23,14 +23,7 @@ you can check article [Install Podman](kubernetes/conatiner/podman/index.html)
 
 #### 2. install kind and kubectl
 
-```shell
-mkdir -p $HOME/bin \
-&& export PATH="$HOME/bin:$PATH" \
-&& curl -o kind -L https://resource-ops.lab.zjvis.net:32443/binary/kind/v0.20.0/kind-linux-amd64 \
-&& chmod u+x kind && mv kind $HOME/bin \
-&& curl -o kubectl -L https://resource-ops.lab.zjvis.net:32443/binary/kubectl/v1.21.2/bin/linux/amd64/kubectl \
-&& chmod u+x kubectl && mv kubectl $HOME/bin
-```
+you can check article [install kubectl](/kubernetes/command/install/index.html)
 
 ```shell
 # create a cluster using podman
@@ -69,7 +62,7 @@ do
 done
 ```
 #### 4. install argocd
-you can check article [Install ArgoCD](kubernetes/argo/argo-cd/argocd/index.html)
+you can check article [Install ArgoCD](/argo/argo-cd/argocd/index.html)
     
 #### 5. install essential app on argocd
 

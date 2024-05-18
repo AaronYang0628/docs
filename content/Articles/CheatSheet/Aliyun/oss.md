@@ -26,9 +26,9 @@ wget
 | Params    | Description | Instruction | 
 | -------- | ------- | ---- | 
 | endpoint  | the Endpoint of the region where the Bucket is located    |   |
-| accessKeyID | AccessKey     |   |
-| accessKeySecret    | accessKeySecret    |    |
-| stsToken  |  could be empty  |  |
+| accessKeyID | OSS AccessKey     |  get from user info panel |
+| accessKeySecret    | OSS AccessKeySecret    |  get from user info panel |
+| stsToken  |  token for sts service  | could be empty |
 
 {{% notice style="info" %}}
 and you can also modify `/home/<$user>/.ossutilconfig` file to change teh configuration.
