@@ -14,9 +14,11 @@ __希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
 ### <span>&#128170;</span>擅长技能
 
 
-__1. 熟练掌握<span><img src="assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>,<span><img src="assets/icons/podman.jpg" height="15" width="16">Podman</span>,<span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calicite</span>等框架和中间件的使用，能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理__
+__1. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，熟练掌握<span><img src="assets/icons/podman.jpg" height="15" width="16">Podman</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio,<span><img src="assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>等框架和中间件的使用__
 
 __2. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
+
+__3. 熟悉CICD流程，能够使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
 
 __3. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
 
@@ -31,7 +33,7 @@ _高级工程专员_<br><br>
 主要负责
 - 完成项目: 
     - [__宇宙触角__](https://nebula-inner.lab.zjvis.net/): 接受处理多个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
-    - [__CSST__](http://www.bao.ac.cn/csst/): 中国空间站工程巡天望远镜，提供数据存储和数据处理支持。
+    - [__CSST__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层海量数据存储和TB级数据处理支持。
     - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件，并完成join/union。
 
 - 熟练掌握以下工具: 
