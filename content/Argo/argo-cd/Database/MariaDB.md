@@ -94,7 +94,20 @@ POD_NAME=$(kubectl get pod -n database -l "app.kubernetes.io/name=mariadb-tool" 
     ccds < /tmp/Dump20240301.sql"
 ```
 
-#### 7. decode password
+#### 6. decode password
 ```shell
 kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
+```
+
+#### 7. exec into pod
+```shell
+kubectl -n database exec -it xxxx bash
+```
+
+```shell
+mariadb -h 127.0.0.1 -u root -p$MARIADB_ROOT_PASSWORD
+```
+And then you can check connection by 
+```sql
+show status like  'Threads%';
 ```

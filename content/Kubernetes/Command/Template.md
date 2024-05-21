@@ -5,6 +5,12 @@ weight = 5
 +++
 
 
+### 0. create namespace
+```shell
+kubectl get namespaces common-secrets > /dev/null 2>&1 || kubectl create namespace common-secrets
+```
+
+
 ### 0. create [StorageClass]() (sc)
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -174,6 +180,111 @@ spec:
     app.kubernetes.io/instance: clickhouse
     app.kubernetes.io/name: clickhouse
   type: NodePort
+```
+
+### 6. create Job(job)
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: datahub-s3-fits-scan-job-example
+spec:
+  template:
+    metadata:
+      name: s3-fits-scan-job
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: fits-scan-job
+        image: cr.registry.res.cloud.zhejianglab.com/ay-dev/datahub-s3-fits:1.0.0
+        env:
+        - name: SOURCE-READ-PATH
+          value: s3://csst-prod/CSST_L0/MSC/SCI/60310/10100000000/MS/*.*
+        - name: PIPELINE-NAME
+          value: ingest_oss_fits_files
+        - name: REST-SINK-URL
+          value: http://datahub-gms.application:8080
+        - name : AWS-ENDPOINT-URL
+          valueFrom:
+            secretKeyRef:
+              name: job-template-config-secret
+              key: oss_endpoint
+        - name: AWS-KEY
+          valueFrom:
+            secretKeyRef:
+              name: job-template-config-secret
+              key: oss_access_key
+        - name: AWS-SECRET
+          valueFrom:
+            secretKeyRef:
+              name: job-template-config-secret
+              key: oss_access_secret
+        - name: DATAHUB-ACCESS-TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: job-template-config-secret
+              key: datahub_access_token
+        volumeMounts:
+          - mountPath: /app/ingest.yaml
+            name: job-template-file-secret
+      volumes:
+        - name: job-template-file-secret
+          secret:
+            secretName: job-template-file-secret
+            items:
+              - key: job.template.file.secret.yaml
+                path: ingest.yaml
+        - name:  job-template-config-secret
+          secret:
+            secretName: job-template-config-secret
+            items:
+              - key: oss_endpoint
+                path: oss_endpoint
+              - key: oss_access_key
+                path: oss_access_key
+              - key: oss_access_secret
+                path: oss_access_secret
+              - key: datahub_access_token
+                path: datahub_access_token
+```
+
+### create Secret(secret)
+- create from literal
+```shell
+kubectl -n application create secret generic job-template-config-secret \
+    --from-literal="oss_endpoint=http://oss-cn-hangzhou-zjy-d01-a.ops.cloud.zhejianglab.com/" \
+    --from-literal="oss_access_key=${OSS_ACCESS_KEY}" \
+    --from-literal="oss_access_secret=${OSS_ACCESS_SECRET}" \
+    --from-literal="datahub_access_token=${DATAHUB_ACCESS_TOKEN}" \
+     -o yaml --dry-run=client \
+    | kubectl -n application apply -f -
+```
+
+- create from file
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: job-template-file-secret
+data:
+  ingest.yaml: |
+    source:
+      type: fits_source.S3Source
+      config:
+        path_specs:
+        - include: ${SOURCE-READ-PATH}
+        aws_config:
+          aws_endpoint_url: ${AWS-ENDPOINT-URL}
+          aws_access_key_id: ${AWS-KEY}
+          aws_secret_access_key: ${AWS-SECRET}
+        stateful_ingestion:
+          enabled: true
+    pipeline_name: ${PIPELINE-NAME:ingest_oss_fits}
+    sink:
+      type: datahub-rest
+      config:
+        server: ${REST-SINK-URL:http://datahub-gms.application:8080}
+        token: ${DATAHUB-ACCESS-TOKEN}
 ```
 
 ### 6. create Job(job)

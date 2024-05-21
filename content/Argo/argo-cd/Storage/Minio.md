@@ -93,3 +93,18 @@ access secret could get from
 ```shell
 kubectl -n storage get secret minio-secret -o jsonpath='{.data.rootPassword}' | base64 -d
 ```
+
+#### 6. using mc
+```shell
+K8S_MASTER_IP=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+ACCESS_SECRET=$(kubectl -n storage get secret minio-credentials -o jsonpath='{.data.rootPassword}' | base64 -d)
+podman run --rm \
+    --entrypoint bash \
+    --add-host=minio-api.astronomy.zhejianglab.com:${K8S_MASTER_IP} \
+    -it docker.io/minio/mc:latest \
+    -c "mc alias set minio http://minio-api.astronomy.zhejianglab.com:32080 admin ${ACCESS_SECRET} \
+        && mc ls minio \
+        && mc mb --ignore-existing minio/test \
+        && mc cp /etc/hosts minio/test/etc/hosts \
+        && mc ls --recursive minio"
+```

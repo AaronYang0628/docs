@@ -11,7 +11,7 @@ weight = 1
   {{< tabs groupid="tabs-resource" >}}
   {{% tab title="bash" %}}
   ```bash
-    kubectl -n <$namespace> apply -f <$file_url>
+    kubectl create -n <$namespace> -f <$file_url>
   ```
   {{% /tab %}}
   {{< /tabs >}}
@@ -136,6 +136,14 @@ kubectl -n <$namespace> delete pod <$resource_id> --force --grace-period=0
 ```shell
 kubectl -n <$namespace> exec -it <$resource_id> -- bash  
 ```
+
+### 9. copy secret to another namespace
+```shell
+kubectl -n <$namespaceA> get secret <$secret_name> -o json \
+    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+    | kubectl -n <$namespaceB> apply -f -
+```
+
 
 ## Nodes
 ### 1. add taint

@@ -17,7 +17,7 @@ spec:
     taskmanager.numberOfTaskSlots: "8"
     fs.oss.endpoint: http://ay-test.oss-cn-jswx-xuelang-d01-a.ops.cloud.wuxi-yqgcy.cn/
     fs.oss.accessKeyId: 4gqOVOfQqCsCUwaC
-    fs.oss.accessKeySecret: V34xikA0fwqpYsKGLYxpAwKLDmVRSm
+    fs.oss.accessKeySecret: xxx
   ingress:
     template: "flink.k8s.io/{{namespace}}/{{name}}(/|$)(.*)"
     className: "nginx"
