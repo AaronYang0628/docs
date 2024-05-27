@@ -32,8 +32,8 @@ _高级工程专员_<br><br>
 
 主要负责
 - 完成项目: 
-    - [__宇宙触角__](https://nebula-inner.lab.zjvis.net/): 接受处理多个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
-    - [__CSST__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层海量数据存储和TB级数据处理支持。
+    - [__宇宙触角__](https://nebula-inner.lab.zjvis.net/): 接受处理百余个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
+    - [__CSST科研工作台__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层TB级数据存储索引服务和实时计算处理支持。
     - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件，并完成join/union。
 
 - 熟练掌握以下工具: 
