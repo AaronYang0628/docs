@@ -18,6 +18,9 @@ sudo systemctl disable aegis && sudo reboot
 ```shell
 minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
 ```
+{{% expand title="If you wanna use podman ..." %}}
+minikube start --driver=podman ...
+{{% /expand %}}
 
 #### [[Optional]]() restart minikube
 ```shell
