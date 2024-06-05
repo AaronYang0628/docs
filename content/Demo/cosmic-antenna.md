@@ -147,6 +147,9 @@ cp $HOME/cosmic-antenna-demo/fpga-mock/client.template.yaml /tmp \
 > http://job-template-example.flink.lab.zjvis.net
 
 
+### Repo
+you can get code from [github](https://github.com/ben-wangz/cosmic-antenna-demo)
+
 ---
 # Reference
 1. https://github.com/ben-wangz/blog/tree/main/docs/content/6.kubernetes/7.installation/ha-cluster

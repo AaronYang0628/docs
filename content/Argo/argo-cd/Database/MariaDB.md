@@ -94,12 +94,12 @@ POD_NAME=$(kubectl get pod -n database -l "app.kubernetes.io/name=mariadb-tool" 
     ccds < /tmp/Dump20240301.sql"
 ```
 
-#### 6. decode password
+#### 6. [[Optional]]() decode password
 ```shell
 kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```
 
-#### 7. exec into pod
+#### 7. [[Optional]]() execute sql in pod
 ```shell
 kubectl -n database exec -it xxxx bash
 ```
