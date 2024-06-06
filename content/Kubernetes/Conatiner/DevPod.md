@@ -146,7 +146,7 @@ when you in pod, and using **kubectl** you should change `clusters.cluster.serve
 
 
 
-#### download [argocd binary]()
+#### download [Argocd binary]()
 ```shell
 MIRROR="files.m.daocloud.io/"
 VERSION=v2.9.3
@@ -166,3 +166,31 @@ kubectl -n devpod exec -it <$resource_id> -c devpod -- bin/bash
 ```text
 10.102.1.52 gitee.zhejianglab.com
 ```
+
+#### shutdown ssh tunnel
+{{< tabs groupid="ssh">}}
+{{% tab title="windows" %}}
+```shell
+# check if port 8443 is already open
+netstat -aon|findstr "8443"
+
+# find PID
+ps | grep ssh
+
+# kill the process
+taskkill /PID <$PID> /T /F
+```
+{{% /tab %}}
+{{% tab title="linux" %}}
+```shell
+# check if port 8443 is already open
+netstat -aon|findstr "8443"
+
+# find PID
+ps | grep ssh
+
+# kill the process
+kill -9 <$PID>
+```
+{{% /tab %}}
+{{< /tabs >}}
