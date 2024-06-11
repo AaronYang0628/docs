@@ -30,6 +30,8 @@ spec:
     helm:
       releaseName: clickhouse
       values: |
+        serviceAccount:
+          name: clickhouse
         image:
           registry: m.daocloud.io/docker.io
           pullPolicy: IfNotPresent
@@ -45,7 +47,9 @@ spec:
             pullPolicy: IfNotPresent
           replicaCount: 3
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: nfs-external
+            size: 8Gi
           volumePermissions:
             enabled: false
             image:
@@ -68,6 +72,62 @@ spec:
           username: admin
           existingSecret: clickhouse-admin-credentials
           existingSecretKey: password
+        metrics:
+          enabled: true
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+          serviceMonitor:
+            enabled: true
+            namespace: monitor
+            jobLabel: clickhouse
+            selector:
+              app.kubernetes.io/name: clickhouse
+              app.kubernetes.io/instance: clickhouse
+            labels:
+              release: prometheus-stack
+        extraDeploy:
+          - |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: clickhouse-tool
+              namespace: database
+              labels:
+                app.kubernetes.io/name: clickhouse-tool
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: clickhouse-tool
+              template:
+                metadata:
+                  labels:
+                    app.kubernetes.io/name: clickhouse-tool
+                spec:
+                  containers:
+                    - name: clickhouse-tool
+                      image: m.daocloud.io/docker.io/clickhouse/clickhouse-server:23.11.5.29-alpine
+                      imagePullPolicy: IfNotPresent
+                      env:
+                        - name: CLICKHOUSE_USER
+                          value: admin
+                        - name: CLICKHOUSE_PASSWORD
+                          valueFrom:
+                            secretKeyRef:
+                              key: password
+                              name: clickhouse-admin-credentials
+                        - name: CLICKHOUSE_HOST
+                          value: csst-clickhouse.csst
+                        - name: CLICKHOUSE_PORT
+                          value: "9000"
+                        - name: TZ
+                          value: Asia/Shanghai
+                      command:
+                        - tail
+                      args:
+                        - -f
+                        - /etc/hosts
   destination:
     server: https://kubernetes.default.svc
     namespace: database

@@ -284,6 +284,6 @@ kubectl -n monitor get secret prometheus-stack-credentials -o jsonpath='{.data.g
 
 > add `$K8S_MASTER_IP prometheus.astronomy.zhejianglab.com` to **/etc/hosts**
 
-prometheus-srver: [http://prometheus.astronomy.zhejianglab.com:32080/](http://prometheus.astronomy.zhejianglab.com:32080/)
+prometheus-srver: [https://prometheus.astronomy.zhejianglab.com:32443/](https://prometheus.astronomy.zhejianglab.com:32443/)
 
-grafana-console: [http://grafana.astronomy.zhejianglab.com:32080/](http://grafana.astronomy.zhejianglab.com:32080/)
+grafana-console: [https://grafana.astronomy.zhejianglab.com:32443/](https://grafana.astronomy.zhejianglab.com:32443/)
