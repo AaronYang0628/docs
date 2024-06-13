@@ -294,6 +294,12 @@ spec:
   {{% /tab %}}
 {{< /tabs >}}
 
+{{% expand title="if you wannna start one more gms"%}}
+add this under `global`, if you wanna start one more gms
+```shell
+  datahub_standalone_consumers_enabled: true
+```
+{{% /expand %}}
 
 #### 3. apply to k8s
 ```shell

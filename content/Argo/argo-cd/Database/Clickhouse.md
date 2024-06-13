@@ -68,6 +68,13 @@ spec:
           tls: true
         persistence:
           enabled: false
+        resources:
+          requests:
+            cpu: 2
+            memory: 512Mi
+          limits:
+            cpu: 3
+            memory: 1024Mi
         auth:
           username: admin
           existingSecret: clickhouse-admin-credentials
