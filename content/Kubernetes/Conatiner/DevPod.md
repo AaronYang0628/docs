@@ -66,15 +66,6 @@ the data you paste after each key should be `base64`
 cat <$file_path> | base64
 ```
 
-then we should forward minikube port [in your own pc]()
-```shell
-#where you host minikube
-MACHINE_IP_ADDRESS=10.200.60.102
-USER=ayay
-MINIKUBE_IP_ADDRESS=$(ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS '$HOME/bin/minikube ip')
-ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINIKUBE_IP_ADDRESS:8443" -N -f
-```
-
 then, modified config file should be look like this:
 ```yaml
 apiVersion: v1
@@ -108,6 +99,16 @@ users:
     client-certificate: xxxxxxxxxxxx
     client-key: xxxxxxxxxxxxxxxx
 
+
+```
+
+then we should forward minikube port [in your own pc]()
+```shell
+#where you host minikube
+MACHINE_IP_ADDRESS=10.200.60.102
+USER=ayay
+MINIKUBE_IP_ADDRESS=$(ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS '$HOME/bin/minikube ip')
+ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINIKUBE_IP_ADDRESS:8443" -N -f
 ```
 
 {{% /tab %}}
