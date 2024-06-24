@@ -9,7 +9,7 @@ weight = 5
 
 ### decode password
 ```shell
-
+kubectl -n datahub get secret datahub-user-secret -o jsonpath='{.data.user\.props}' | base64 -d
 ```
 
 ### delete specific urn
