@@ -106,10 +106,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
-  labels:
-    app: "job-template-example"
-  name: "job-template-example"
+  name: "job-template-example-ingress"
 spec:
   ingressClassName: "nginx"
   rules:
@@ -121,8 +118,13 @@ spec:
             name: "job-template-example-rest"
             port:
               number: 8081
-        path: "/?(.*)"
+        path: "/"
         pathType: "ImplementationSpecific"
+  tls:
+  - hosts:
+    - job-template-example.flink.lab.zjvis.net
+    secretName: job-template-example.flink.lab.zjvis.net-tls
+
 ```
 
 ### 4. create statefulSet (sts)
