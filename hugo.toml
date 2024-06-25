@@ -25,7 +25,6 @@ theme = 'relearn'
     languageName = 'English'
     title = 'Ay Docs'
     weight = 1
-
   [languages.zh]
     languageName = '中文'
     title = "AY的文档"
@@ -69,7 +68,7 @@ url = "https://blog.cnconti.cc/"
 weight = 16
 [[menu.shortcuts]]
 name = " <i class='fas fa-book'></i>  LeetCode"
-identifier = "LeetCode"
-url = "https://leetcode.cn/u/ayayay23333/"
+identifier = "LeetCode Solution"
+url = "https://aaronyang2333.gitlab.io/leetcode-solution/"
 weight = 17
 
