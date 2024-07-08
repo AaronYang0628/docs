@@ -7,6 +7,7 @@ weight = 1
 Using deep learning techniques to help you to win the game.
 
 {{% badge %}}State Machine{{% /badge %}}
+{{% badge %}}Event Bus{{% /badge %}}
 {{% badge %}}Python 3.6{{% /badge %}}
 {{% badge style="primary" title="TensorFlow" %}}2{{% /badge %}}
 {{% badge style="red" icon="angle-double-up" %}}Captain{{% /badge %}}
@@ -25,7 +26,7 @@ There are four main funcs in this tool.
  more choices to counter your enemies. <br>
 ![func2](../../images/content/lol/2.gif)
 
-3. The third func will scanes the mini-map, and when someone is heading to you,<br>
+3. The third func will scans the mini-map, and when someone is heading to you,<br>
  a notification window will pop up.<br>
 ![func3](../../images/content/lol/3.gif)
 
