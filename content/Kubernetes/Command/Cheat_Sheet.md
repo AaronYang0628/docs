@@ -4,6 +4,12 @@ date = 2024-03-08T11:16:18+08:00
 weight = 1
 +++
 
+## Context
+### 1. use different config
+```shell
+kubectl --kubeconfig /root/.kube/config_ack get pod
+```
+
 ## Resource
 ### 1. create resource
 {{< tabs groupid="main" style="primary" title="Resource From" icon="thumbtack" >}}
@@ -144,6 +150,17 @@ kubectl -n <$namespaceA> get secret <$secret_name> -o json \
     | kubectl -n <$namespaceB> apply -f -
 ```
 
+### 10. copy secret to another name
+```shell
+kubectl -n <$namespace> get secret <$old_secret_name> -o json | \
+jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid","ownerReferences","annotations","labels"]) | .metadata.name = "<$new_secret_name>"' | \
+kubectl apply -n <$namespace> -f -
+```
+
+### 11. delete all completed job
+```shell
+kubectl delete jobs -n <$namespace> --field-selector status.successful=1 
+```
 
 ## Nodes
 ### 1. add taint

@@ -27,3 +27,9 @@ git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git
 ```shell
 git clone --single-branch --branch v2.4.0 https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner.git
 ```
+
+### save credential
+login first and then execute this
+```shell
+git config --global credential.helper store
+```
