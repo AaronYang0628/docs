@@ -28,8 +28,23 @@ git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git
 git clone --single-branch --branch v2.4.0 https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner.git
 ```
 
-### save credential
+### Save credential
 login first and then execute this
 ```shell
 git config --global credential.helper store
 ```
+
+### Delete Branch
+
+* Deleting a remote branch
+    ```shell
+    git push origin --delete <branch>  # Git version 1.7.0 or newer
+    git push origin -d <branch>        # Shorter version (Git 1.7.0 or newer)
+    git push origin :<branch>          # Git versions older than 1.7.0
+    ```
+- Deleting a local branch
+    ```shell
+    git branch --delete <branch>
+    git branch -d <branch> # Shorter version
+    git branch -D <branch> # Force-delete un-merged branches
+    ```
