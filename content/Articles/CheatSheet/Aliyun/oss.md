@@ -4,6 +4,8 @@ date = 2024-03-24T15:00:59+08:00
 weight = 3
 +++
 
+Ali version of `Minio`(https://min.io/)
+
 ### download ossutil
 first, you need to download `ossutil` first
 {{< tabs title="OS:" >}}

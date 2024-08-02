@@ -3,6 +3,8 @@ title = 'Helm Chart'
 date = 2024-03-07T15:00:59+08:00
 +++
 
+You can get basic helm chart from [ArtifactHub](https://artifacthub.io/)
+
 ### 1. install binary
 ```shell
 MIRROR="files.m.daocloud.io/"
@@ -27,27 +29,18 @@ chmod u+x ${HOME}/bin/helm
 ```
 
 ### 2. helm load local image
+- Add repository
+    ```shell
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    ```
+- Install chart
+    ```shell
+    helm install my-clickhouse bitnami/clickhouse --version 6.2.16
+    ```
 
-
-{{< tabs >}}
-{{% tab title="fedora" %}}
-```shell
-sudo dnf -y install podman
-```
-{{% /tab %}}
-{{% tab title="centos" %}}
-```R
-sudo yum install -y podman
-```
-{{% /tab %}}
-{{% tab title="ubuntu" %}}
-```Bash
-sudo apt-get -y install podman
-```
-{{% /tab %}}
-{{< /tabs >}}
-
-### 3. helm template 
+### 3. chart template 
+A `chart` is a collection of files that describe a related set of Kubernetes resources. 
+You can change editable value to customize your software.
 ```yaml
 helm:
     releaseName: clickhouse

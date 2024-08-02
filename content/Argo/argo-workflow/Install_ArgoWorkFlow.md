@@ -117,3 +117,8 @@ argo -n business-workflows get <$flow_name>
 # get specific flow log
 argo -n business-workflows logs <$flow_name>
 ```
+
+```shell
+# get specific flow log continuously
+argo -n business-workflows logs <$flow_name> --watch
+```

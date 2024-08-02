@@ -173,20 +173,19 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ```
 
 ### 7. login argocd
-extract ip
-```shell
-local_ip=`ifconfig -a|grep inet|grep -v inet6|awk '{print $2}'|tr -d "addr:"|grep -v 192.*|grep -v 172.*|grep -v 127.*`
-```
+
 {{< tabs >}}
 {{% tab title="argocd-cli" %}}
 ```shell
-argocd login --insecure --username admin $local_ip:30443
+ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+MASTER_IP=$(kubectl get nodes --selector=node-role.kubernetes.io/control-plane -o jsonpath='{$.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+argocd login --insecure --username admin $MASTER_IP:30443 --password $ARGOCD_PASS
 ```
 {{% /tab  %}}
 
 {{% tab title="web browser" %}}
 ```text
-open https://<$ip:localhost>:30443
+open https://<$local_ip:localhost>:30443
 ```
 {{% /tab  %}}
 {{< /tabs >}}

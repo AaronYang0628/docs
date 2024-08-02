@@ -6,11 +6,23 @@ weight = 1
 
 ### Init global config
 ```shell
+git config --list
 git config --global user.name "AaronYang"
 git config --global user.email aaron19940628@gmail.com
 git config --global pager.branch false
 git config --global pull.ff only
 git --no-pager diff
+```
+
+### change user and email (locally)
+```shell
+git config user.name ""
+git config user.email ""
+```
+
+### list all remote repo
+```shell
+git remote --list
 ```
 
 ### Get specific file from remote

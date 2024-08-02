@@ -177,6 +177,49 @@ modprobe nfs && modprobe nfsd
 ```
 
 ### disown
+`disown` command in Linux is used to remove jobs from the job table.
 ```shell
-
+disown [options] jobID1 jobID2 ... jobIDN
 ```
+{{%expand title="for example"%}}
+for example, there is a job running in the background
+```shell
+ping google.com > /dev/null &
+```
+
+using `jobs -` to list all running jobs
+```shell
+jobs -l
+```
+
+using `disown -a` remove all jobs from the job tables
+```shell
+disown -a
+```
+
+using `disown %2` to remove the #2 job
+```shell
+disown %2
+```
+
+{{%/expand%}}
+
+### generate SSH key
+```shell
+ssh-keygen -t rsa -b 4096 -C "aaron19940628@gmail.com"
+```
+
+### add some binary into $PATH
+```shell
+sudo ln -sf <$install_path>/bin/* /usr/local/bin
+```
+## append dir into $PATH
+```shell
+export PATH="/root/bin:$PATH"
+```
+
+### copy public key to ECS
+```shell
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@10.200.60.53
+```
+

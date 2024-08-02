@@ -4,8 +4,6 @@ date = 2024-03-08T10:04:18+08:00
 weight = 3
 +++
 
-### Repo
-you can get code from [github](), [gitlab]()
 
 ### Steps
 1. define which web url you wanna crawl, lets say `https://www.xxx.com/aaa.apex`
@@ -60,3 +58,7 @@ information you need, and this framework will help you process `DownloadPage` an
 
 
 4. Vola, run your crawler then.
+   
+   
+### Repo
+you can get code from [github](), [gitlab](https://gitlab.com/AaronYang2333/yaml-crawler)

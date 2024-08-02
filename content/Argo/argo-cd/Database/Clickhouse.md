@@ -201,17 +201,12 @@ kubectl -n database apply -f clickhouse-interface.yaml
 
 #### 7. [[OPTIONAL]]() extract clickhouse admin credentials 
 ```shell
-PASSWORD=$(kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d)
-```
-
-{{% expand title="get plain password"%}}
-```shell
 kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
 ```
-{{% /expand %}}
 
 #### 8. [[OPTIONAL]]() invoke http api
 > add `$K8S_MASTER_IP clickhouse.dev.geekcity.tech` to **/etc/hosts**
 ```shell
-echo 'SELECT version()' | curl -k "https://admin:${PASSWORD}@clickhouse.dev.geekcity.tech:32443/" --data-binary @-
+CK_PASS=$(kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d)
+echo 'SELECT version()' | curl -k "https://admin:${CK_PASS}@clickhouse.dev.geekcity.tech:32443/" --data-binary @-
 ```
