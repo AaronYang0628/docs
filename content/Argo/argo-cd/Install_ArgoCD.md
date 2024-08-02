@@ -173,11 +173,14 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ```
 
 ### 7. login argocd
-
+extract ip
+```shell
+local_ip=`ifconfig -a|grep inet|grep -v inet6|awk '{print $2}'|tr -d "addr:"|grep -v 192.*|grep -v 172.*|grep -v 127.*`
+```
 {{< tabs >}}
 {{% tab title="argocd-cli" %}}
 ```shell
-argocd login --insecure --username admin localhost:30443
+argocd login --insecure --username admin $local_ip:30443
 ```
 {{% /tab  %}}
 

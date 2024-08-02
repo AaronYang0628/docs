@@ -14,5 +14,10 @@ read_repo: `yW9Yx__usgWy11aouzBB`
 ---
 ### ZJDC
 
+docker user: `ascm-org-1710208820455`
+
+docker pass: `zjlab@2024`
+
+read_repo: `cr.registry.res.cloud.zhejianglab.com`
 
 ---

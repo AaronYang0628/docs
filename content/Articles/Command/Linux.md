@@ -6,11 +6,11 @@ weight = 2
 
 ### useradd
 ```shell
-sudo useradd <$bob> -m -r -p <$password>
+sudo useradd <$name> -m -r -s /bin/bash -p <$password>
 ```
 {{%expand title="add as soduer"%}}
 ```shell
-echo 'bob ALL=(ALL)   ALL' >> /etc/sudoers
+echo '<$name> ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 ```
 {{%/expand%}}
 
