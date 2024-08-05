@@ -182,10 +182,15 @@ metadata:
   name: clickhouse-interface
 spec:
   ports:
-  - name: tcp-clickhouse
-    port: 9005
+  - name: jdbc-port
+    port: 8123
     protocol: TCP
-    targetPort: tcp-clickhouse
+    targetPort: jdbc-port
+    nodePort: 31567
+  - name: native-port
+    port: 9000
+    protocol: TCP
+    targetPort: native-port
     nodePort: 32005
   selector:
     app.kubernetes.io/component: clickhouse
