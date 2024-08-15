@@ -73,4 +73,17 @@ weight = 10
     && mv data_part_aa data_part_1 
     && mv data_part_ab data_part_2
         {{% /expand %}}
+
 - `salloc`
+    is used to allocate resources for a job in real time. Typically this is used to allocate resources and spawn a shell. The shell is then used to execute srun commands to launch parallel tasks.
+
+    * [Example]()
+      1. allocate resources (more like create an virtual machine)
+      ```shell
+      salloc -N2 bash
+      ```
+      This command will create a job which allocate 2 nodes and spawn a bash shell on each node. and you can execute srun commands in that environment. After your computing task is finsihs, remember to shutdown your job.
+      ```shell
+      scancel <$job_id>
+      ```
+      when you exit the job, the resources will be released.
