@@ -82,7 +82,7 @@ weight = 10
       ```shell
       salloc -N2 bash
       ```
-      This command will create a job which allocate 2 nodes and spawn a bash shell on each node. and you can execute srun commands in that environment. After your computing task is finsihs, remember to shutdown your job.
+      This command will create a job which allocates 2 nodes and spawn a bash shell on each node. and you can execute srun commands in that environment. After your computing task is finsihs, remember to shutdown your job.
       ```shell
       scancel <$job_id>
       ```
