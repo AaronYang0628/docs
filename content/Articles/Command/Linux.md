@@ -75,10 +75,15 @@ echo -e "1\n2\n3\n4\n5\n" | awk '$1>3'
 ### ss (socket statistics)
 view detailed information about your system's network connections, including TCP/IP, UDP, and Unix domain sockets
 ```shell
-# awk [params] 'script' var=value file(s)
-awk <$params> -f scriptfile var=value file(s)
+ss [options]
 ```
 {{%expand title="for example"%}}
+|Options|                     Description                   |
+|-------|---------------------------------------------------|
+|  -t   | Display TCP sockets                               |
+|  -l   | Display listening sockets                         |
+|  -n   | Show numerical addresses instead of resolving     |
+|  -a   | Display all sockets (listening and non-listening) |
 ```shell
 #show all listening TCP connection
 ss -tln
@@ -93,10 +98,6 @@ ss -tan
 ```shell
 find /aaa/bbb/ccc/*.gz -mtime +3 -exec rm {} \;
 ```
-{{%expand title="for example"%}}
-```shell
-```
-{{%/expand%}}
 
 ### ssh without affect $HOME/.ssh/known_hosts
 ```shell
@@ -118,10 +119,6 @@ ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking=no" root@aaa.dom
 ```shell
 hostnamectl set-hostname develop
 ```
-{{%expand title="for example"%}}
-```shell
-```
-{{%/expand%}}
 
 ### add remote key
 ```shell
@@ -141,6 +138,12 @@ ssh -o "UserKnownHostsFile /dev/null" \
 
 ### set -x
 This will print each command to the standard error before executing it, which is useful for debugging scripts.
+```shell
+set -x
+```
+
+### set -e
+Exit immediately if a command exits with a non-zero status.
 ```shell
 set -x
 ```
@@ -209,11 +212,11 @@ disown %2
 ssh-keygen -t rsa -b 4096 -C "aaron19940628@gmail.com"
 ```
 
-### add some binary into $PATH
+### create soft link
 ```shell
 sudo ln -sf <$install_path>/bin/* /usr/local/bin
 ```
-## append dir into $PATH
+### append dir into $PATH
 ```shell
 export PATH="/root/bin:$PATH"
 ```
