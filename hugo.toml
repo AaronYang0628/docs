@@ -44,7 +44,7 @@ theme = 'relearn'
 [[menu.shortcuts]]
 name = "<i class='fab fa-fw fa-github'></i> GitHub repo"
 identifier = "github"
-url = "https://github.com/AaronYang2333"
+url = "https://github.com/AaronYang0628"
 weight = 10
 [[menu.shortcuts]]
 name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
