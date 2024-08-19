@@ -4,11 +4,33 @@ date = 2024-08-07T15:00:59+08:00
 weight = 2
 +++
 
-`(All)` means all nodes should install this component.
+`(All)` means all type nodes should install this component.
 
-`(Mgr)` means only the MGR node should install this component.
+`(Mgr)` means only the `manager` node should install this component.
+
+`(Auth)` means only the `Auth` node should install this component.
+
+`(Cmp)` means only the `Compute` node should install this component.
+
+> Typically, there are three nodes are required to run Slurm. 1 `Manage(Mgr)`, 1 `Auth` and N `Compute(Cmp)`. but you can choose to install all service in single node. [check](https://www.amaxchina.com/Support/TechDocument/Detail/548)
 
 ### Prequisites
+1. change hostname `(All)` 
+    ```shell 
+    hostnamectl set-hostname (manager|auth|computeXX)
+    ```
+2. modify `/etc/hosts` `(All)`
+    ```shell
+    echo "192.aa.bb.cc (manager|auth|computeXX)" >> /etc/hosts
+    ```
+3. disable firewall, selinux, dnsmasq, swap `(All)`. more detail [here](../Articles/CheatSheet/Linux/service/index.html)
+4. [NFS Server](../Articles/Installation/Software/NFS/index.html) `(Mgr)`. NFS is used as the default file system for the Slurm accounting database. 
+5. [NFS Client] `(All)`. all node should mount the NFS share
+{{% expand title="Install NFS Client" %}}
+```shell
+mount <$nfs_server>:/data /data -o proto=tcp -o nolock
+```
+{{%/expand%}}
 1. [Munge](https://dun.github.io/munge/) `(All)`. The auth/munge plugin will be built if the MUNGE authentication development library is installed. MUNGE is used as the default authentication mechanism.
 {{% expand title="Install Munge" %}}
 All node need to have the `munge` user and group.
@@ -49,11 +71,12 @@ install mariadb
 ```shell
 yum -y install mariadb-server
 systemctl start mariadb && systemctl enable mariadb
+ROOT_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) 
+mysql -e "CREATE USER root IDENTIFIED BY '${ROOT_PASS}'"
 ```
 login mysql
-```shell
-mysql
-set password=PASSWORD('xxxxxxxxxxxxxx');
+```sql
+mysql -u root -p${ROOT_PASS}
 create database slurm_acct_db;
 create user slurm;
 grant all on slurm_acct_db.* TO 'slurm'@'localhost' identified by '123456' with grant option;
@@ -65,36 +88,92 @@ quit
 asdadadasasda
 {{% /expand %}}
 
-### Install Slurm
-{{< tabs title="Install Slurm from " >}}
-    {{% tab title="binary" %}}
-Build RPM package
-1. create `slurm` user
+### Install Slurm 
+
+1. create `slurm` user `(All)`
     ```shell
     groupadd -g 1109 slurm
     useradd -m -c "slurm manager" -d /var/lib/slurm -u 1109 -g slurm -s /bin/bash slurm
     ```
-2. install depeendencies
+
+{{< tabs title="Install Slurm from " >}}
+{{% tab title="binary" %}}
+Build RPM package
+
+2. install depeendencies `(Mgr)`
     ```shell
     yum -y install gcc gcc-c++ readline-devel perl-ExtUtils-MakeMaker pam-devel rpm-build mysql-devel python3
     ```
-3. build rpm package
+3. build rpm package `(Mgr)`
     ```shell
     wget https://download.schedmd.com/slurm/slurm-24.05.2.tar.bz2 -O slurm-24.05.2.tar.bz2
     rpmbuild -ta --nodeps slurm-24.05.2.tar.bz2
     ```
    The rpm files will be installed under the `$(HOME)/rpmbuild` directory of the user building them.
-4. asdadasd
-    {{% /tab %}}
-{{% tab title="repo" %}}
-```bash
-echo "Hello World!"
-```
+4. send rpm to rest nodes  `(Mgr)`
+    ```shell
+    ssh root@<$rest_node> "mkdir -p /root/rpmbuild/RPMS/"
+    scp -p $(HOME)/rpmbuild/RPMS/x86_64 root@<$rest_node>:/root/rpmbuild/RPMS/x86_64
+    ```
+5. install rpm  `(Mgr)`
+    ```shell
+    ssh root@<$rest_node> "yum localinstall /root/rpmbuild/RPMS/x86_64/slurm-*"
+    ```
+6. modify configuration file `(Mgr)`
+    ```shell
+    cp /etc/slurm/cgroup.conf.example /etc/slurm/cgroup.conf
+    cp /etc/slurm/slurm.conf.example /etc/slurm/slurm.conf
+    cp /etc/slurm/slurmdbd.conf.example /etc/slurm/slurmdbd.conf
+    chmod 600 /etc/slurm/slurmdbd.conf
+    chown slurm: /etc/slurm/slurmdbd.conf
+    ```
+    `cgroup.conf` doesnt need to change.<br/>
+
+    edit `/etc/slurm/slurm.conf`, you can use this [link](./config_file/slurm.md/) as a reference <br/>
+
+    edit `/etc/slurm/slurmdbd.conf`, you can use this [link](./config_file/slurmdbd.md) as a reference <br/>
 {{% /tab %}}
-{{% tab title="c" %}}
-```c
-printf"Hello World!");
-```
+{{% tab title="repo" %}}
+Install yum repo directly
+
+2. install slurm `(All)`
+    ```shell
+    yum -y slurm-wlm slurmdbd
+    ```
+3. modify configuration file `(All)`
+    ```shell
+    vim /etc/slurm-llnl/slurm.conf
+    ```
+    ```shell
+    vim /etc/slurm-llnl/slurmdbd.conf
+    ```
+    `cgroup.conf` doesnt need to change.<br/>
+
+    edit `/etc/slurm/slurm.conf`, you can use this [link](./config_file/slurm.md/) as a reference <br/>
+
+    edit `/etc/slurm/slurmdbd.conf`, you can use this [link](./config_file/slurmdbd.md) as a reference <br/>
 {{% /tab %}}
 {{< /tabs >}}
 
+
+2. send configuration  `(Mgr)`
+   ```shell
+    scp -r /etc/slurm/*.conf  root@<$rest_node>:/etc/slurm/
+    ssh rootroot@<$rest_node> "mkdir /var/spool/slurmd && chown slurm: /var/spool/slurmd"
+    ssh rootroot@<$rest_node> "mkdir /var/log/slurm && chown slurm: /var/log/slurm"
+    ssh rootroot@<$rest_node> "mkdir /var/spool/slurmctld && chown slurm: /var/spool/slurmctld"
+   ```
+3. start service `(Mgr)`
+    ```shell
+    ssh rootroot@<$rest_node> "systemctl start slurmdbd && systemctl enable slurmdbd"
+    ssh rootroot@<$rest_node> "systemctl start slurmctld && systemctl enable slurmctld"
+    ```
+4. start service `(All)`
+    ```shell
+    ssh rootroot@<$rest_node> "systemctl start slurmd && systemctl enable slurmd"
+    ```
+
+### Reference:
+1. [https://slurm.schedmd.com/documentation.html](https://slurm.schedmd.com/documentation.html)
+2. [https://wiki.fysik.dtu.dk/Niflheim_system/Slurm_installation/](https://wiki.fysik.dtu.dk/Niflheim_system/Slurm_installation/)
+3. [https://github.com/Artlands/Install-Slurm](https://github.com/Artlands/Install-Slurm)

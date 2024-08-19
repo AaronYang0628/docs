@@ -1,5 +1,5 @@
 +++
-title = 'gRpc'
+title = 'Binary'
 date = 2024-04-07T15:00:59+08:00
 +++
 
