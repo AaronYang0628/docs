@@ -173,6 +173,29 @@ Install yum repo directly
     ssh rootroot@<$rest_node> "systemctl start slurmd && systemctl enable slurmd"
     ```
 
+### Test
+1. show cluster status
+```shell
+scontrol show config
+```
+```shell
+sinfo
+scontrol show partition
+scontrol show node
+```
+
+2. submit job
+```shell
+srun -N2 hostname
+scontrol show jobs
+```
+3. check job status
+```shell
+squeue -a
+```
+
+
+
 ### Reference:
 1. [https://slurm.schedmd.com/documentation.html](https://slurm.schedmd.com/documentation.html)
 2. [https://wiki.fysik.dtu.dk/Niflheim_system/Slurm_installation/](https://wiki.fysik.dtu.dk/Niflheim_system/Slurm_installation/)
