@@ -134,6 +134,11 @@ kubectl -n argocd apply -f redis.yaml
 argocd app sync argocd/redis
 ```
 
+#### 5. decode password
+```shell
+kubectl -n storage get secret redis-credentials -o jsonpath='{.data.redis-password}' | base64 -d
+```
+
 ## tests
 
 * ```shell
