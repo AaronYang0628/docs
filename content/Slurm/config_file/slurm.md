@@ -89,9 +89,9 @@ TaskPlugin=task/affinity
 ################################################
 #                    NODES                     #
 ################################################
-NodeName=manage NodeAddr=192.168.29.106  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
-NodeName=auth NodeAddr=192.168.29.101  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
-NodeName=compute[1-2] NodeAddr=192.168.29.10[2-3]  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
+NodeName=manage NodeAddr=192.168.56.115  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
+NodeName=auth NodeAddr=192.168.56.116  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
+NodeName=compute[1-2] NodeAddr=192.168.56.11[7-8]  CPUs=2 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=200 Procs=1 State=UNKNOWN
 
 ################################################
 #                  PARTITIONS                  #

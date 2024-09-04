@@ -14,15 +14,16 @@ __希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
 ### <span>&#128170;</span>擅长技能
 
 
-__1. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，熟练掌握<span><img src="assets/icons/podman.jpg" height="15" width="16">Podman</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio,<span><img src="assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>等框架和中间件的使用__
 
-__2. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
+__1. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
 
-__3. 熟悉CICD流程，能够使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
+__2. 熟悉CICD流程，能够使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
 
-__3. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
+__3. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，熟练掌握<span><img src="assets/icons/podman.jpg" height="15" width="16">Podman</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio,<span><img src="assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>等框架和中间件的使用__
 
-__4. 能够使用<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
+__4. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
+
+__5. 能够使用<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
 
 ### <span>&#128084;</span>工作经验
 

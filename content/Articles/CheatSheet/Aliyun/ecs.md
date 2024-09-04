@@ -39,3 +39,10 @@ main 部分添加 `"dns=none"`
 ```shell
 systemctl restart NetworkManager
 ```
+
+### Modify `ifcfg-ethX`
+```shell
+vim /etc/sysconfig/network-scripts/ifcfg-ens33
+```
+set `ONBOOT=yes`
+
