@@ -174,7 +174,36 @@ there are many ways to install NFS server
 - using `apt install -y nfs-kernel-server`, check https://www.linuxtechi.com/how-to-install-nfs-server-on-debian/
 - or you can directly mount other shared storage.
 
+create shared folder
+```PowerShell
+mkdir /data
+chmod 755 /data
+```
 
+**modify `vim /etc/exports`**
+```bash
+/data *(rw,sync,insecure,no_subtree_check,no_root_squash)
+```
+
+**start nfs server**
+
+```Bash
+systemctl start rpcbind 
+systemctl start nfs-server 
+
+systemctl enable rpcbind 
+systemctl enable nfs-server
+```
+
+**check nfs server**
+
+```PowerShell
+showmount -e localhost
+
+# Output
+Export list for localhost:
+/data *
+```
 
 
 > 2. Install munge service 
@@ -185,6 +214,9 @@ useradd -m -c "Munge Uid 'N' Gid Emporium" -d /var/lib/munge -u 1108 -g munge -s
 ```
 
 - Install `rng-tools-debian` `(Manager Nodes)`
+```shell
+apt-get install -y rng-tools-debian
+```
 ```shell
 # modify service script
 vim /usr/lib/systemd/system/rngd.service
@@ -265,7 +297,7 @@ useradd -m -c "Slurm manager" -d /var/lib/slurm -u 1109 -g slurm -s /bin/bash sl
 ### Install Slurm `(All Nodes)`
 - Install basic Debian package build requirements:
 ```shell
-apt-get install build-essential fakeroot devscripts equivs
+apt-get install -y build-essential fakeroot devscripts equivs
 ```
 - Unpack the distributed tarball:
 ```shell
@@ -274,7 +306,7 @@ tar -xaf slurm*tar.bz2
 ```
 - cd to the directory containing the Slurm source:
 ```shell
-cd slurm-24.05.2 && ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var
+cd slurm-24.05.2 &&   mkdir -p /etc/slurm && ./configure 
 ```
 - compile slurm
 ```shell
@@ -286,6 +318,25 @@ make install
   ```shell
   cp /root/slurm-24.05.2/etc/slurm.conf.example /etc/slurm/slurm.conf
   vim /etc/slurm/slurm.conf
+  ```
+  focus on these options:
+  ```text
+  SlurmctldHost=manage
+
+  AccountingStorageEnforce=associations,limits,qos
+  AccountingStorageHost=manage
+  AccountingStoragePass=/var/run/munge/munge.socket.2
+  AccountingStoragePort=6819  
+  AccountingStorageType=accounting_storage/slurmdbd  
+
+  JobCompHost=localhost
+  JobCompLoc=slurm_acct_db
+  JobCompPass=123456
+  JobCompPort=3306
+  JobCompType=jobcomp/mysql
+  JobCompUser=slurm
+  JobContainerType=job_container/none
+  JobAcctGatherType=jobacct_gather/linux
   ```
 
   - modify `/etc/slurm/slurmdbd.conf` Refer to [slurmdbd.conf](./config_file/slurmdbd.md)
@@ -358,7 +409,7 @@ systemctl enable slurmd
     Group=slurm
     RuntimeDirectory=slurmdbd
     RuntimeDirectoryMode=0755
-    ExecStart=/usr/sbin/slurmdbd -D -s $SLURMDBD_OPTIONS
+    ExecStart=/usr/local/sbin/slurmdbd -D -s $SLURMDBD_OPTIONS
     ExecReload=/bin/kill -HUP $MAINPID
     LimitNOFILE=65536
 
@@ -392,7 +443,7 @@ systemctl enable slurmd
     Group=slurm
     RuntimeDirectory=slurmctld
     RuntimeDirectoryMode=0755
-    ExecStart=/usr/sbin/slurmctld --systemd $SLURMCTLD_OPTIONS
+    ExecStart=/usr/local/sbin/slurmctld --systemd $SLURMCTLD_OPTIONS
     ExecReload=/bin/kill -HUP $MAINPID
     LimitNOFILE=65536
 
@@ -424,7 +475,7 @@ systemctl enable slurmd
     EnvironmentFile=-/etc/default/slurmd
     RuntimeDirectory=slurm
     RuntimeDirectoryMode=0755
-    ExecStart=/usr/sbin/slurmd --systemd $SLURMD_OPTIONS
+    ExecStart=/usr/local/sbin/slurmd --systemd $SLURMD_OPTIONS
     ExecReload=/bin/kill -HUP $MAINPID
     KillMode=process
     LimitNOFILE=131072
