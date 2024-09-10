@@ -1,15 +1,16 @@
 +++
-title = 'Binary'
+title = 'K8s Related'
 date = 2024-04-07T15:00:59+08:00
 +++
 
-
-## yq
+## minikube
 ```shell
-YQ_VERSION=v4.40.5
-YQ_BINARY=yq_linux_amd64
-wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}.tar.gz -O - |\
-  tar xz && mv ${YQ_BINARY} /usr/bin/yq
+MIRROR="files.m.daocloud.io/"
+[ $(uname -m) = x86_64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+[ $(uname -m) = aarch64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64"
+chmod u+x minikube
+mkdir -p ${HOME}/bin
+mv -f minikube ${HOME}/bin
 ```
 
 ## kubectl

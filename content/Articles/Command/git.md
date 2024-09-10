@@ -1,5 +1,5 @@
 +++
-title = 'Git'
+title = 'Git CMD'
 date = 2024-03-07T19:58:45+08:00
 weight = 1
 +++
@@ -60,3 +60,7 @@ git config --global credential.helper store
     git branch -d <branch> # Shorter version
     git branch -D <branch> # Force-delete un-merged branches
     ```
+### Prune remote branches
+```shell
+git remote prune origin
+```

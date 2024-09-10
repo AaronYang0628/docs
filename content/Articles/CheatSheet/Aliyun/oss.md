@@ -16,7 +16,7 @@ curl https://gosspublic.alicdn.com/ossutil/install.sh  | sudo bash
 {{% /tab %}}
 {{% tab title="windows" %}}
 ```shell
-wget 
+curl -o ossutil-v1.7.19-windows-386.zip https://gosspublic.alicdn.com/ossutil/1.7.19/ossutil-v1.7.19-windows-386.zip
 ```
 {{% /tab %}}
 {{< /tabs >}}
@@ -25,15 +25,15 @@ wget
 ```shell
 ./ossutil config
 ```
-| Params    | Description | Instruction | 
-| -------- | ------- | ---- | 
-| endpoint  | the Endpoint of the region where the Bucket is located    |   |
-| accessKeyID | OSS AccessKey     |  get from user info panel |
-| accessKeySecret    | OSS AccessKeySecret    |  get from user info panel |
-| stsToken  |  token for sts service  | could be empty |
+| Params          | Description                                            | Instruction              | 
+| --------------- | ------------------------------------------------------ | ------------------------ | 
+| endpoint        | the Endpoint of the region where the Bucket is located |                          |
+| accessKeyID     | OSS AccessKey                                          | get from user info panel |
+| accessKeySecret | OSS AccessKeySecret                                    | get from user info panel |
+| stsToken        |  token for sts service                                 | could be empty           |
 
 {{% notice style="info" %}}
-and you can also modify `/home/<$user>/.ossutilconfig` file to change teh configuration.
+and you can also modify `/home/<$user>/.ossutilconfig` file directly to change the configuration.
 {{% /notice %}}
 ### list files
 ```shell
@@ -47,7 +47,7 @@ ossutil ls oss://csst-data/CSST-20240312/dfs/
 
 
 ### download file/dir
-you can use `cp` to download, upload file
+you can use `cp` to download or upload file
 ```shell
 ossutil cp -r oss://<$PATH> <$PTHER_PATH>
 ```

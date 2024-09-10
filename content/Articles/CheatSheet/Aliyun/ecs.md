@@ -1,5 +1,5 @@
 +++
-title = 'ECS'
+title = 'ECS DNS'
 date = 2024-03-14T15:00:59+08:00
 +++
 
@@ -31,16 +31,28 @@ nameserver 223.6.6.6
 
 
 ### Restart DNS
+{{< tabs title="OS:" >}}
+{{% tab title="Centos/Anolis" %}}
 ```shell
 vim /etc/NetworkManager/NetworkManager.conf
 ```
+{{% /tab %}}
+{{% tab title="Debian" %}}
+```shell
+vim /etc/NetworkManager/NetworkManager.conf
+```
+{{% /tab %}}
+{{< /tabs >}}
 
-main 部分添加 `"dns=none"`
+
+add `"dns=none"` under `'[main]'` part
 ```shell
 systemctl restart NetworkManager
 ```
 
-### Modify `ifcfg-ethX`
+
+### Modify `ifcfg-ethX` [Optional]
+if you cannot get ipv4 address, you can try to modify `ifcfg-ethX`
 ```shell
 vim /etc/sysconfig/network-scripts/ifcfg-ens33
 ```

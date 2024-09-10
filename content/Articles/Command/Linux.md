@@ -120,7 +120,7 @@ ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking=no" root@aaa.dom
 hostnamectl set-hostname develop
 ```
 
-### add remote key
+### add remote key to other server
 ```shell
 ssh -o "UserKnownHostsFile /dev/null" \
     root@aaa.bbb.ccc \
@@ -216,7 +216,7 @@ ssh-keygen -t rsa -b 4096 -C "aaron19940628@gmail.com"
 ```shell
 sudo ln -sf <$install_path>/bin/* /usr/local/bin
 ```
-### append dir into $PATH
+### append dir into $PATH (temporary)
 ```shell
 export PATH="/root/bin:$PATH"
 ```
