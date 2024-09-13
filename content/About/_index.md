@@ -60,8 +60,8 @@ _Java Web 后台开发工程师_<br><br>
 
 主要负责公司大数据产品以及研究课题项目的服务器接口API开发，>熟悉前后端分离开发协作模式, <br> 精通Springboot快速开发框架和SwaggerAPI文档接口应用。对主流关系型数据库Oracle以及常用格式JSON、XML有相关了解。
 - 完成项目: 
-    - [__上海司法行政数据服务网__](): 一个司法主题的数据服务网站，该站的主要功能是整合司法局、监狱局、法院、公证处、<br>调解办等职能机构数据资源，构建信息数据可视化平台，帮助市民处理相关司法程序更便捷。
-    - [__Enloop-iEx信息交换平台__](): 银江内部的一个信息交换平台，交换平台可以将各地分散的信息系统的数据整合汇聚，并使用自研工具生成接口API；<br>将收集到的接口内的数据进行清洗和脱敏，以rest服务的方式提供给需要的用户群体。
+    - [__上海司法行政数据服务网__](https://credit.sfj.sh.gov.cn/): 一个司法主题的数据服务网站，该站的主要功能是整合司法局、监狱局、法院、公证处、<br>调解办等职能机构数据资源，构建信息数据可视化平台，帮助市民处理相关司法程序更便捷。
+    - [__Enloop-iEx信息交换平台__](): 企业内部的一个信息交换平台，交换平台可以将各地分散的信息系统的数据整合汇聚，并使用自研工具生成接口API；<br>将收集到的接口内的数据进行清洗和脱敏，以rest服务的方式提供给需要的用户群体。
     - [__杭州市卡口流量分析研判平台__](): 省级课题项目，该程序可以分析道路交通中摄像机图像数据，对市内外交通流量进行<br>分析和预测，为交管部门提供可视化信息，并可以实现对套牌车，冒牌车的定位等功能。
 - 熟练掌握以下工具: 
     - <span><img src="assets/icons/springboot.png" height="15" width="16">SpringBoot 1.5</span>, <span><img src="https://img.icons8.com/color/14/000000/hadoop-distributed-file-system.png"  height="15" width="16">Hadoop2</span>, <span><img src="assets/icons/mybatis.png" height="15" width="16">Mybatis 3</span>, <span><img src="assets/icons/oracle.png" height="15" width="16">Oracle</span>, <span><img src = "assets/icons/swagger.png" height="15" width="15"> Swagger</span>
@@ -74,12 +74,12 @@ _Java Web 后台开发工程师_<br><br>
 - <u>应用数据科学-硕士学位</u> [已获得]
 - GPA: 3.70 [[PDF](assets/apds_4.pdf)]
 - 已通过课程: 
-    - [机器学习](https://github.com/AaronYang2333/DSCI_552/blob/master/README.md), [数据挖掘](https://github.com/AaronYang2333/DSCI_553/blob/master/README.md), [机器学习应用（游戏方向）](https://github.com/AaronYang2333/LOL_Overlay_Assistant_Tool/blob/master/README.md), [自然语言处理](https://github.com/AaronYang2333/CSCI_544/blob/master/README.md), [知识图谱](https://github.com/AaronYang2333/DSCI_558/blob/master/README.md) <br>
+    - [机器学习](https://gitee.com/aaron2333/DSCI_552/blob/master/README.md), [数据挖掘](https://gitee.com/aaron2333/DSCI_553/blob/master/README.md), [机器学习应用（游戏方向）](../Demo/LOL-overlay-assistant.md), [自然语言处理](https://gitee.com/aaron2333/CSCI_544/blob/master/README.md), [知识图谱](https://gitee.com/aaron2333/DSCI_558/blob/master/README.md) <br>
 
 - 完成项目:
-    - [基于深度学习的LOL游戏助手](https://github.com/AaronYang2333/LOL_Overlay_Assistant_Tool/blob/master/README.md): 基于图像识别，和目标检测技术开发的MOBA游戏辅助客户端应用程序
+    - [基于深度学习的LOL游戏助手](../Demo/LOL-overlay-assistant.md): 基于图像识别，和目标检测技术开发的MOBA游戏辅助客户端应用程序
         - 使用: <span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2</span>, <span><img src="assets/icons/pyqt.png"> PyQT5</span>, <span><img src="https://img.icons8.com/color/18/000000/python.png"/> Python3</span>, <span><img src="https://img.icons8.com/metro/18/000000/general-ocr.png"/> OCR</span>
-    - [混合推荐系统](https://github.com/AaronYang2333/DSCI_553/tree/master/project): 一个使用 switching 和 cascade 策略的推荐系统，可以实现向<img src="https://img.icons8.com/color/18/000000/yelp.png"/> Yelp（国外版大众点评）潜在用户群体推荐餐厅的功能.
+    - [混合推荐系统](https://gitee.com/aaron2333/DSCI_553/blob/master/project/README.md): 一个使用 switching 和 cascade 策略的推荐系统，可以实现向<img src="https://img.icons8.com/color/18/000000/yelp.png"/> Yelp（国外版大众点评）潜在用户群体推荐餐厅的功能.
         - 使用: <span><img src="assets/icons/spark.png" height="18" width="30"> Spark2</span>, <span><img src="https://img.icons8.com/ios/18/000000/pivot-table.png"/> 协同过滤</span>, <span><img src="https://img.icons8.com/windows/18/000000/change-user-male--v1.png"/> 用户画像</span>, <span><img src="assets/icons/xgboost.png" height="18" width="30"> XGboost</span>
     - [Collegiate Explorer](https://chit-chaat.github.io/Collegiate_Explorer_APP/): 一个应用知识图谱技术的课程项目，亮点在于熔合分散在5个美国网站中的大学信息，实现相关信息一站式浏览。<br> 同时集成了NLP的情感分析和NER实体识别 .
         - 使用: <span><img src="assets/icons/spark.png" height="18" width="30"> Spark</span>, <span><img src="assets/icons/neo4j.png" height="18" width="40"/> Neo4J</span>, <span><img src="assets/icons/vue.png" height="15" width="15"/> Vue</span>, <span><img src="assets/icons/django.png" height="15" width="30"> Django</span>
