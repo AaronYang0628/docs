@@ -15,15 +15,15 @@ __希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
 
 
 
-__1. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建和运行__
+__1. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建,运行和优化__
 
-__2. 熟悉CICD流程，能够使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
+__2. 熟悉CICD流程，能够编写Helm Chart使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
 
-__3. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，熟练掌握<span><img src="assets/icons/podman.jpg" height="15" width="16">Podman</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio,<span><img src="assets/icons/clickhouse.png" height="15" width="16"> Clickhouse</span>等框架和中间件的使用__
+__3. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，了解<span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio等框架和中间件的使用__
 
 __4. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
 
-__5. 能够使用<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
+__5. 使用过<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
 
 ### <span>&#128084;</span>工作经验
 
@@ -31,14 +31,16 @@ __5. 能够使用<span><img src="assets/icons/tensorflow.png" height="18" width=
 
 _高级工程专员_<br><br>
 
-主要负责
+主要负责天文中心数据存储和计算调度能力的基础设施保障；完成包括资源上云，开发改造平台及中间件，提高软件易用性。
 - 完成项目: 
-    - [__宇宙触角__](https://nebula-inner.lab.zjvis.net/): 接受处理百余个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
     - [__CSST科研工作台__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层TB级数据存储索引服务和实时计算处理支持。
-    - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件，并完成join/union。
+    - [__相场望远镜（宇宙触角）__](../Demo/cosmic-antenna.md): 新一代宇宙射频探测装置，完成软件DEMO部分，接受处理224个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
+    - [Arcyl Datahub](https://datahubproject.io/): 使用此开源元数据管理+数据血缘平台管理800+TB天文数据，并向开源社区贡献包括grafana-dashboard，自定义数据扫描扩展等相关代码内容
+    - [SchedMD Slurm](https://slurm.schedmd.com/): 维护改造开源超算集群，累计向开源社区及北大超算[SCOW](https://github.com/PKUHPC/SCOW)项目贡献包括helm chart及虚拟机安装文档优化等内容
+    - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件完成join/union。
 
 - 熟练掌握以下工具: 
-    - <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>, <span><img src="assets/icons/clickhouse.png" height="15" width="16">Clickhouse</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>
+    - <span><img src="assets/icons/java.png" height="17" width="17">Java</span>, <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>, <span><img src="assets/icons/helm.png" height="15" width="16">Helm</span>, <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>
 <br>
 
 [__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
