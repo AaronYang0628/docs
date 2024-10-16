@@ -42,4 +42,4 @@ Checkout in {{% button href="https://www.bilibili.com/video/BV1EU4y1H7Eo/" icon=
 Checkout in {{% button href="https://www.youtube.com/watch?v=0LgMaCDIAsk" icon="fas fa-video" %}}Youtube{{% /button %}}
 
 ### Repo
-you can get code from [github](https://github.com/ben-wangz/cosmic-antenna-demo), [gitlab]()
+you can get code from [github](https://gitee.com/aaron2333/RollerCoin_Assistant_Tool), [gitee](https://gitee.com/aaron2333/RollerCoin_Assistant_Tool)

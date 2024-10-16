@@ -41,4 +41,4 @@ weight = 1
 在 {{% button href="https://www.youtube.com/watch?v=d0Ds144wQmI&t=6s" icon="fas fa-video" %}}Youtube{{% /button %}} 上观看
 
 ### Repo
-可以通过 [github](https://github.com/AaronYang2333/LOL_Overlay_Assistant_Tool) 或者 [gitlab]() 获得原始代码。
+可以通过 [github](https://gitee.com/aaron2333/LOL_Overlay_Assistant_Tool) 或者 [gitlab](https://gitee.com/aaron2333/LOL_Overlay_Assistant_Tool) 获得原始代码。

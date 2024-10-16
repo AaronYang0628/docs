@@ -37,7 +37,7 @@ git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git
 
 ### Clone specific branch
 ```shell
-git clone --single-branch --branch v2.4.0 https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner.git
+git clone -b slurm-23.02 --single-branch --depth=1 https://github.com/SchedMD/slurm.git
 ```
 
 ### Save credential

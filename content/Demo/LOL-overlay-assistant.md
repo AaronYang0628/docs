@@ -46,4 +46,4 @@ Checkout in {{% button href="https://www.bilibili.com/video/BV1fK4y1r769" icon="
 Checkout in {{% button href="https://www.youtube.com/watch?v=d0Ds144wQmI&t=6s" icon="fas fa-video" %}}Youtube{{% /button %}}
 
 ### Repo
-you can get code from [github](https://github.com/ben-wangz/cosmic-antenna-demo), [gitlab]()
+you can get code from [github](https://gitee.com/aaron2333/LOL_Overlay_Assistant_Tool), [gitee](https://gitee.com/aaron2333/LOL_Overlay_Assistant_Tool)
