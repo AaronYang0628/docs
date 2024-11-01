@@ -13,9 +13,6 @@ theme = 'relearn'
   [params.contact]
     email = 'aaron19940628@gmail.com'
     phone = '+86 176-8234-9727'
-  [params.social]
-    facebook_admin = ''
-    twitter = ''
 [outputs]
   home = ['html', 'rss', 'print', 'search']
   page = ['html', 'rss', 'print']
