@@ -203,7 +203,7 @@ argocd app sync argocd/elastic-search
 > add `$K8S_MASTER_IP elastic-search.dev.geekcity.tech` to `/etc/hosts`
 
 ```shell
-curl -k "http://elastic-search.dev.geekcity.tech:32443/?pretty"
+curl -k "https://elastic-search.dev.geekcity.tech:32443/?pretty"
 ```
 
 #### [[Optional]]() Add Single Document
