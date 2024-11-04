@@ -1,7 +1,8 @@
 baseURL = 'https://aaronyang2333.gitlab.io/docs/'
 languageCode = 'en-us'
+defaultContentLanguage = "en"
 title = 'AY Docs'
-theme = 'relearn'
+theme = 'hugo-theme-relearn'
 [params]
   subtitle = 'Jotting Down some notes'
   additionalContentLanguage = ['zh']
@@ -38,6 +39,9 @@ theme = 'relearn'
   [markup.highlight]
     lineNumbersInTable = false
     noClasses = false
+[module]
+  [[module.imports]]
+    path = 'hugo-theme-relearn'
 [[menu.shortcuts]]
 name = "<i class='fab fa-fw fa-github'></i> GitHub repo"
 identifier = "github"
