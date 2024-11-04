@@ -39,6 +39,11 @@ git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git
 ```shell
 git clone -b slurm-23.02 --single-branch --depth=1 https://github.com/SchedMD/slurm.git
 ```
+### Update submodule
+> git submodule add --depth 1 https://github.com/xxx/xxxx a/b/c
+```shell
+git submodule update --init --recursive
+```
 
 ### Save credential
 login first and then execute this
