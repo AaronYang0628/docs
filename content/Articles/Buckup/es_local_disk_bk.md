@@ -1,12 +1,12 @@
 +++
 title = 'ES [Local Disk]'
 date = 2024-10-07T19:58:45+08:00
-weight = 6
+weight = 1
 +++
 
 ### Preliminary
 - ElasticSearch has installed, if not check [link](/argo/argo-cd/application/ElasticSearch/index.html)
-- The `elasticsearch.yml` has configed `path.repo`, which should be set the same value of `settings.location`
+- The `elasticsearch.yml` has configed `path.repo`, which should be set the same value of `settings.location` (this will be handled by helm chart, dont worry)
 
   {{% expand title="ES argocd-app yaml" %}}
   ```yaml
@@ -101,7 +101,7 @@ weight = 6
   ```
   {{% /expand %}}
 
-  diff of file :
+  diff from oirginal file :
   {{< highlight type="yaml" wrap="true" hl_lines="3" >}}
   extraConfig:
       path:
