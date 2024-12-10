@@ -22,8 +22,13 @@ git config user.email ""
 
 ### list all remote repo
 ```shell
-git remote --list
+git remote -v
 ```
+{{% expand title="modify remote repo"%}}
+```shell
+git remote set-url origin git@github.com:<$user>/<$repo>.git
+```
+{{% /expand %}}
 
 ### Get specific file from remote
 ```shell

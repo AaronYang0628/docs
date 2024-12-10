@@ -38,9 +38,9 @@ spec:
       releaseName: minio
       values: |
         image:
-          repository: m.daocloud.io/quay.io/minio/minio
+          repository: m.zjvis.net/quay.io/minio/minio
         mcImage:
-          repository: m.daocloud.io/quay.io/minio/mc
+          repository: m.zjvis.net/quay.io/minio/mc
         mode: standalone
         persistence:
           enabled: false
@@ -51,7 +51,7 @@ spec:
             nginx.ingress.kubernetes.io/rewrite-target: /$1
           path: /?(.*)
           hosts:
-            - minio-api.dev.geekcity.tech
+            - minio-api.dev.tech
         consoleIngress:
           enabled: true
           ingressClassName: nginx
@@ -59,7 +59,7 @@ spec:
             nginx.ingress.kubernetes.io/rewrite-target: /$1
           path: /?(.*)
           hosts:
-            - minio-console.dev.geekcity.tech
+            - minio-console.dev.tech
         replicas: 1
         resources:
           requests:
@@ -85,9 +85,9 @@ argocd app sync argocd/minio
 ```
 
 #### 5. visit web console
-`minio-console.dev.geekcity.tech` should be resolved to nginx-ingress
-for example, add `$K8S_MASTER_IP minio-console.dev.geekcity.tech` to `/etc/hosts`
-address: http://minio-console.dev.geekcity.tech:32080/login
+`minio-console.dev.tech` should be resolved to nginx-ingress
+for example, add `$K8S_MASTER_IP minio-console.dev.tech` to `/etc/hosts`
+address: http://minio-console.dev.tech:32080/login
 access key: admin
 access secret could get from
 ```shell
@@ -102,7 +102,7 @@ podman run --rm \
     --entrypoint bash \
     --add-host=minio-api.astronomy.zhejianglab.com:${K8S_MASTER_IP} \
     -it docker.io/minio/mc:latest \
-    -c "mc alias set minio http://minio-api.astronomy.zhejianglab.com:32080 admin ${ACCESS_SECRET} \
+    -c "mc alias set minio http://minio-api.dev.tech:32080 admin ${ACCESS_SECRET} \
         && mc ls minio \
         && mc mb --ignore-existing minio/test \
         && mc cp /etc/hosts minio/test/etc/hosts \
