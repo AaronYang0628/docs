@@ -55,7 +55,7 @@ you need to rename `clusters.cluster.certificate-authority`, `clusters.cluster.s
 
 ```text
 clusters.cluster.certificate-authority -> clusters.cluster.certificate-authority-data
-clusters.cluster.server -> clusters.cluster.server-data
+clusters.cluster.server -> ip set to `localhost`
 users.user.client-certificate -> users.user.client-certificate-data
 users.user.client-key -> users.user.client-key-data
 ```
@@ -96,8 +96,8 @@ preferences: {}
 users:
 - name: minikube
   user:
-    client-certificate: xxxxxxxxxxxx
-    client-key: xxxxxxxxxxxxxxxx
+    client-certificate-data: xxxxxxxxxxxx
+    client-key-data: xxxxxxxxxxxxxxxx
 
 
 ```
