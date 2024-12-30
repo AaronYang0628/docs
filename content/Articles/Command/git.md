@@ -74,3 +74,8 @@ git config --global credential.helper store
 ```shell
 git remote prune origin
 ```
+
+### Update remote repo
+```shell
+git remote set-url origin http://xxxxx.git
+```
