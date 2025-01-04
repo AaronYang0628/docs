@@ -8,9 +8,15 @@ weight = 1000
 ```mermaid
 mindmap
   root((系统架构师))
-    Origins
-      Long history
+    计算机系统
+      操作系统
       ::icon(fa fa-book)
+        存储管理
+          1.段式存储
+          2.页式存储
+          3.段页式存储
+        文件管理
+          dasda
       Popularisation
         British popular psychology author Tony Buzan
     Research
