@@ -20,6 +20,9 @@ minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-r
 ```
 {{% expand title="If you wanna use podman ..." %}}
 minikube start --driver=podman ...
+```shell
+minikube start --driver=podman --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
+```
 {{% /expand %}}
 
 #### [[Optional]]() restart minikube
