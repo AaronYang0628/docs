@@ -52,17 +52,17 @@ int main(int argc, char *argv[]) {
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mpi_test        # 作业名称
-#SBATCH --nodes=2                  # 请求节点数
-#SBATCH --ntasks-per-node=1        # 每个节点上的任务数
-#SBATCH --time=00:10:00            # 最大运行时间
-#SBATCH --output=mpi_test_output_%j.log  # 输出日志文件
+#SBATCH --job-name=mpi_test                 # 作业名称
+#SBATCH --nodes=2                           # 请求节点数
+#SBATCH --ntasks-per-node=1                 # 每个节点上的任务数
+#SBATCH --time=00:10:00                     # 最大运行时间
+#SBATCH --output=mpi_test_output_%j.log     # 输出日志文件
 
 # 加载MPI模块（如果使用模块化环境）
 module load openmpi
 
 # 运行MPI程序
-mpirun -np 2 ./hello_mpi
+mpirun --allow-run-as-root -np 2 ./hello_mpi
 ```
 ### 4. 编译MPI程序
 在运行作业之前，你需要编译MPI程序。在集群上使用mpicc来编译该程序。假设你将程序保存在 `hello_mpi.c` 文件中，使用以下命令进行编译：
