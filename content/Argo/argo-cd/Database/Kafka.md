@@ -32,7 +32,7 @@ spec:
       releaseName: kafka
       values: |
         image:
-          registry: m.daocloud.io/docker.io
+          registry: m.lab.zverse.space/docker.io
         controller:
           replicaCount: 0
           persistence:
@@ -63,20 +63,20 @@ spec:
           autoDiscovery:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
         volumePermissions:
           enabled: false
           image:
-            registry: m.daocloud.io/docker.io
+            registry: m.lab.zverse.space/docker.io
         metrics:
           kafka:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
           jmx:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
         provisioning:
           enabled: false
         kraft:
@@ -84,7 +84,7 @@ spec:
         zookeeper:
           enabled: true
           image:
-            registry: m.daocloud.io/docker.io
+            registry: m.lab.zverse.space/docker.io
           replicaCount: 1
           auth:
             client:
@@ -96,7 +96,7 @@ spec:
           volumePermissions:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
             metrics:
               enabled: false
           tls:
@@ -129,7 +129,7 @@ spec:
       releaseName: kafka
       values: |
         image:
-          registry: m.daocloud.io/docker.io
+          registry: m.lab.zverse.space/docker.io
         listeners:
           client:
             protocol: PLAINTEXT
@@ -163,20 +163,20 @@ spec:
           autoDiscovery:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
         volumePermissions:
           enabled: false
           image:
-            registry: m.daocloud.io/docker.io
+            registry: m.lab.zverse.space/docker.io
         metrics:
           kafka:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
           jmx:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
         provisioning:
           enabled: false
         kraft:
@@ -184,7 +184,7 @@ spec:
         zookeeper:
           enabled: true
           image:
-            registry: m.daocloud.io/docker.io
+            registry: m.lab.zverse.space/docker.io
           replicaCount: 1
           auth:
             client:
@@ -196,7 +196,7 @@ spec:
           volumePermissions:
             enabled: false
             image:
-              registry: m.daocloud.io/docker.io
+              registry: m.lab.zverse.space/docker.io
             metrics:
               enabled: false
           tls:
