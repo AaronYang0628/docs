@@ -39,6 +39,17 @@ theme = 'hugo-theme-relearn'
   [markup.highlight]
     lineNumbersInTable = false
     noClasses = false
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      typographer = true
+      delte = true
+      table = true
+      taskList = true
+      linkify = true
+      insert = true
+      mark = true
+      subscript = true
+      superscript = true
 [module]
   [[module.imports]]
     path = 'hugo-theme-relearn'
