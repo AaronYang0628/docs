@@ -1,5 +1,5 @@
 +++
-title = 'Test MPI Jobs'
+title = 'Test Open MPI Jobs'
 date = 2024-08-07T15:00:59+08:00
 weight = 10
 +++
