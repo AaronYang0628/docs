@@ -11,6 +11,7 @@ weight = 10
 确保你的集群节点已经安装了MPI库，常见的MPI实现包括：
 
 - OpenMPI
+- Intel MPI
 - MPICH
 可以通过以下命令检查集群是否安装了MPI：
 
@@ -19,7 +20,12 @@ mpicc --version  # 检查MPI编译器
 mpirun --version # 检查MPI运行时环境
 ```
 
-### 2. 编译MPI程序
+### 2. 测试MPI性能
+```shell
+mpirun -n 2 IMB-MPI1 pingpong
+```
+
+### 3. 编译MPI程序
 你可以用mpicc（C语言）或mpic++（C++语言）来编译MPI程序。例如：
 
 以下是一个简单的MPI "Hello, World!" 示例程序，假设文件名为 `hello_mpi.c`, 还有一个进行矩阵计算的示例程序，文件名为`dot_product.c`，任意挑选一个即可：
@@ -138,33 +144,55 @@ int main(int argc, char *argv[]) {
 {{% tab title="`hello_mpi.c`" %}}
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mpi_test                 # 作业名称
-#SBATCH --nodes=2                           # 请求节点数
-#SBATCH --ntasks-per-node=1                 # 每个节点上的任务数
-#SBATCH --time=00:10:00                     # 最大运行时间
-#SBATCH --output=mpi_test_output_%j.log     # 输出日志文件
+#SBATCH --job-name=mpi_job       # Job name
+#SBATCH --nodes=2                # Number of nodes to use
+#SBATCH --ntasks-per-node=1      # Number of tasks per node
+#SBATCH --time=00:10:00          # Time limit
+#SBATCH --output=mpi_test_output_%j.log     # Standard output file
+#SBATCH --error=mpi_test_output_%j.err     # Standard error file
 
-# 加载MPI模块（如果使用模块化环境）
-module load openmpi
+# Manually set Intel OneAPI MPI and Compiler environment
+export I_MPI_PMI=pmi2
+export I_MPI_PMI_LIBRARY=/usr/lib/x86_64-linux-gnu/slurm/mpi_pmi2.so
+export I_MPI_ROOT=/opt/intel/oneapi/mpi/2021.14
+export INTEL_COMPILER_ROOT=/opt/intel/oneapi/compiler/2025.0
+export PATH=$I_MPI_ROOT/bin:$INTEL_COMPILER_ROOT/bin:$PATH
+export LD_LIBRARY_PATH=$I_MPI_ROOT/lib:$INTEL_COMPILER_ROOT/lib:$LD_LIBRARY_PATH
+export MANPATH=$I_MPI_ROOT/man:$INTEL_COMPILER_ROOT/man:$MANPATH
 
-# 运行MPI程序
-mpirun --allow-run-as-root -np 2 ./hello_mpi
+# Compile the MPI program
+icx-cc -I$I_MPI_ROOT/include  hello_mpi.c -o hello_mpi -L$I_MPI_ROOT/lib -lmpi
+
+# Run the MPI job
+
+mpirun -np 2 ./hello_mpi
 ```
 {{% /tab %}}
 {{% tab title="`dot_product.c`" %}}
 ```bash
 #!/bin/bash
-#SBATCH --job-name=mpi_test                 # 作业名称
-#SBATCH --nodes=2                           # 请求节点数
-#SBATCH --ntasks-per-node=1                 # 每个节点上的任务数
-#SBATCH --time=00:10:00                     # 最大运行时间
-#SBATCH --output=mpi_test_output_%j.log     # 输出日志文件
+#SBATCH --job-name=mpi_job       # Job name
+#SBATCH --nodes=2                # Number of nodes to use
+#SBATCH --ntasks-per-node=1      # Number of tasks per node
+#SBATCH --time=00:10:00          # Time limit
+#SBATCH --output=mpi_test_output_%j.log     # Standard output file
+#SBATCH --error=mpi_test_output_%j.err     # Standard error file
 
-# 加载MPI模块（如果使用模块化环境）
-module load openmpi
+# Manually set Intel OneAPI MPI and Compiler environment
+export I_MPI_PMI=pmi2
+export I_MPI_PMI_LIBRARY=/usr/lib/x86_64-linux-gnu/slurm/mpi_pmi2.so
+export I_MPI_ROOT=/opt/intel/oneapi/mpi/2021.14
+export INTEL_COMPILER_ROOT=/opt/intel/oneapi/compiler/2025.0
+export PATH=$I_MPI_ROOT/bin:$INTEL_COMPILER_ROOT/bin:$PATH
+export LD_LIBRARY_PATH=$I_MPI_ROOT/lib:$INTEL_COMPILER_ROOT/lib:$LD_LIBRARY_PATH
+export MANPATH=$I_MPI_ROOT/man:$INTEL_COMPILER_ROOT/man:$MANPATH
 
-# 运行MPI程序
-mpirun --allow-run-as-root -np 2 ./dot_product
+# Compile the MPI program
+icx-cc -I$I_MPI_ROOT/include  dot_product.c -o dot_product -L$I_MPI_ROOT/lib -lmpi
+
+# Run the MPI job
+
+mpirun -np 2 ./dot_product
 ```
 {{% /tab %}}
 {{< /tabs >}}
