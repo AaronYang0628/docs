@@ -30,3 +30,5 @@ mindmap
     数学与经济管理
     知识产权与标准化
 ```
+
+{{%children depth="999" description="false" showhidden="true" %}}
