@@ -11,6 +11,7 @@ weight = 10
 确保你的集群节点已经安装了MPI库，常见的MPI实现包括：
 
 - OpenMPI
+- Intel MPI
 - MPICH
 可以通过以下命令检查集群是否安装了MPI：
 
