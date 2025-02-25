@@ -28,7 +28,6 @@ mindmap
 ### 系统可靠性分析
 ![mvc](../../../images/content/ruankao/reliability.png)
 
-
 ### 软件可靠性设计技术
 ![mvc](../../../images/content/ruankao/reliability_tech.png)
 
