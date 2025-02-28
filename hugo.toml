@@ -10,7 +10,7 @@ theme = 'hugo-theme-relearn'
   themeVariant = 'learn'
   disableLandingPageButton = true
   ordersectionsby = "weight"
-  mermaidZoom = true
+  mermaidZoom = false
   [params.contact]
     email = 'aaron19940628@gmail.com'
     phone = '+86 176-8234-9727'
