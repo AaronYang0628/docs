@@ -1,7 +1,7 @@
 +++
-title = 'Minikube'
-date = 2024-03-07T15:00:59+08:00
-weight = 1
+title = 'KubeAdm'
+date = 2025-02-07T15:00:59+08:00
+weight = 2
 +++
 
 ### Preliminary

@@ -38,3 +38,12 @@ rm -rf ./${FILE_NAME}
 rm -rf ./${ARCH_IN_FILE_NAME}
 chmod u+x ${HOME}/bin/helm
 ```
+
+## builah
+
+```shell
+apt install -y git make golang-go build-essential libgpgme-dev btrfs-progs libbtrfs-dev libdevmapper-dev libostree-dev libseccomp-dev libselinux1-dev pkg-config
+git clone https://github.com/containers/buildah.git
+cd buildah
+make & make install
+```

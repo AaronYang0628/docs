@@ -4,6 +4,12 @@ date = 2024-03-07T15:00:59+08:00
 weight = 1
 +++
 
+### Prerequisites
+- go version v1.23.0+
+- docker version 17.03+.
+- kubectl version v1.11.3+.
+- Access to a Kubernetes v1.11.3+ cluster.
+
 ### Installation
 ```shell
 # download kubebuilder and install locally.
@@ -94,12 +100,12 @@ func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 ```
 
-The struct `GuestbookSpec` we modified before, will 
 And you can use `make run` to test your controller.
 ```shell
 make run
 ```
 and use following command to send a request
+> make sure you install crds -> 'make install' before you exec this following command 
 ```shell
 kubectl apply -k config/samples/
 ```
