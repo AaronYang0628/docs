@@ -18,7 +18,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
     * 准入控制器（**Admission Controller**）：拦截 Kubernetes API Server 的请求，根据定义的约束对请求进行评估，如果请求违反了任何约束，则拒绝该请求。
 
 - 约束管理
-    * 自定义策略：用户可以使用 [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/#what-is-rego) 语言编写自定义的约束模板，实现各种复杂的策略逻辑。
+    * 自定义约束：用户可以使用 [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/#what-is-rego) 语言编写自定义的约束模板，实现各种复杂的策略逻辑。
         > 例如，可以定义策略要求所有的命名空间 NameSpace 必须设置特定的标签，或者限制某些命名空间只能使用特定的镜像。
         > {{% expand title="查看已存在的约束模板和实例" %}}
         ```shell
@@ -60,7 +60,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
         EOF
         ```
         {{% /expand %}}
-    * 策略复用：约束模板可以被多个约束实例复用，提高了策略的可维护性和复用性。
+    * 约束复用：约束模板可以被多个约束实例复用，提高了策略的可维护性和复用性。
         > 例如，可以创建一个通用的标签约束模板，然后在不同的命名空间 NameSpace 中创建不同的约束实例，要求不同的标签。
         {{% expand title="一个约束实例的yaml" %}}
         要求所有的命名空间 NameSpace 必须存在标签“gatekeeper”
