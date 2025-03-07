@@ -15,7 +15,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
 - 核心组件
     * 约束模板（**Constraint Templates**）：定义策略的规则逻辑，使用 [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/#what-is-rego) 语言编写。它是策略的抽象模板，可以被多个约束实例(**Constraint Instance**)复用。
     * 约束实例（**Constraints Instance**）：基于约束模板创建的具体策略实例，指定了具体的参数和匹配规则，用于定义哪些资源需要应用该策略。
-    * 准入控制器（**Admission Controller**）：拦截 Kubernetes API Server 的请求，根据定义的约束对请求进行评估，如果请求违反了任何约束，则拒绝该请求。
+    * 准入控制器（**Admission Controller**）(无需修改)：拦截 Kubernetes API Server 的请求，根据定义的约束对请求进行评估，如果请求违反了任何约束，则拒绝该请求。
 {{% expand title="核心Pod角色" %}}
 ![mvc](../../../../images/content/gatekeeper/all_pods.png)
 - **gatekeeper-audit**
@@ -92,8 +92,11 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
         ```
 
         {{% /expand %}}
+    
+    * **约束更新**：当约束模板或约束发生更新时，Gatekeeper 会自动重新评估所有相关的资源，确保策略的实时生效。
 
 2. 资源控制
+    * **准入拦截**：当有资源创建或更新请求时，Gatekeeper 会实时拦截请求，并根据策略进行评估。如果请求违反了策略，会立即拒绝请求，并返回详细的错误信息，帮助用户快速定位问题。
     * **资源创建和更新限制**：Gatekeeper 可以阻止不符合策略的资源创建和更新请求。
         > 例如，如果定义了一个策略要求所有的 Deployment 必须设置资源限制（requests 和 limits），那么当用户尝试创建或更新一个没有设置资源限制的 Deployment 时，请求将被拒绝。
 
@@ -104,7 +107,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
         > 例如，可以只对特定命名空间中的 Pod 应用策略，或者只对特定 API 组和版本的资源应用策略。
 
         > 可以通过syncSet (同步配置)来指定过滤和忽略那些资源
-        {{% expand title="扫描全部pod,忽略kube开头的命名空间" %}}
+        {{% expand title="扫描全部ns,pod,忽略kube开头的命名空间" %}}
 
         ```yaml
         apiVersion: config.gatekeeper.sh/v1alpha1
@@ -138,9 +141,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
     * **审计导出**：审计日志可以导出并接入下游。
         > 详细信息可以查看[https://open-policy-agent.github.io/gatekeeper/website/docs/pubsub/](https://open-policy-agent.github.io/gatekeeper/website/docs/pubsub/)
 
-4. 实时监控和反馈
-    * **准入拦截**：当有资源创建或更新请求时，Gatekeeper 会实时拦截请求，并根据策略进行评估。如果请求违反了策略，会立即拒绝请求，并返回详细的错误信息，帮助用户快速定位问题。
-    * **约束更新**：当约束模板或约束发生更新时，Gatekeeper 会自动重新评估所有相关的资源，确保策略的实时生效。
+
 
 ### Installation
 
