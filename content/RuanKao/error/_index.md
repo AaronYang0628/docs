@@ -31,3 +31,7 @@ gantt
     开发奖金、外包费用等可看作是酌量性变动成本；约束性变动成本通常表现为系统建设的直接物耗成本，以直接材料成本最为典型。
 
 4. 松弛时间 = 活动的最早开始时间 - 最晚开始时间 (还需要在关键路径上)
+
+5. 在MVC模式中，视图部分描述的是**将应用问题域中包含的抽象领域知识呈现给用户的方式**
+
+6. Software architecture reconstruction is an interpretive, interactive, and iterative process including many activities. **Information extration** involves analyzing a system's existing design and implementation artifacts to construct a model of it. The result is used in the following activities to construnct a view of the system. The database construction activity converts the **elements and relations** contained in the view into a standard format for storage in a database. The **view fusion** activity involves defining and manipulating the information stored in database to reconcile, argument, and establish connections between the elements. Reconstruction consists of two primary activities: **visualization and interaction** and **pattern definition and recognition**. The former provides a mechanism for the user to manipulate architectural elements, and the latter provides facilities for architecture reconstruction.
