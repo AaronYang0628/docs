@@ -10,6 +10,43 @@ weight = 5
 kubectl get namespaces common-secrets > /dev/null 2>&1 || kubectl create namespace common-secrets
 ```
 
+### 0. sleeping deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rucio
+  name: rucio-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rucio
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rucio
+    spec:
+      containers:
+      - command:
+        - sleep
+        - inf
+        image: registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-client:release-35.6.0
+        imagePullPolicy: Always
+        name: rucio-container
+        resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+```
 
 ### 0. create [StorageClass]() (sc)
 ```yaml
