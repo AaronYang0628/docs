@@ -26,7 +26,7 @@ mindmap
 1. 结构化需求分析
 ![mvc](../../../images/content/ruankao/software_analysis_st.png)
 
-2. 面相对象分析
+2. 面向对象分析
 ![mvc](../../../images/content/ruankao/software_analysis_ooa.png)
 
 ### 需求定义
