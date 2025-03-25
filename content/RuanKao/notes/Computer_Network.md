@@ -58,6 +58,9 @@ SBA: Service-Based Architecture 服务化架构
   ![mvc](../../../images/content/ruankao/physical_network.png)
 - 层次化网络设计
   ![mvc](../../../images/content/ruankao/layered_network.png)
+  > 某企业通过一台路由器上联总部,下联4个分支机构,设计人员分配给下级机构一个连续的地址空间,采用一个子网或者超网段表示。这样做的主要作用是**层次化路由选择**。
+  
+  > 层次化路由的含义是指对网络拓扑结构和配置的了解是局部的,一台路由器不需要知道所有的路由信息,只需要了解其管辖的路由信息,层次化路由选择需要配合层次化的地址编码。而子网或超网就属于层次化地址编码行为。
 
 ### TCP/IP协议
 - TCP/IP协议

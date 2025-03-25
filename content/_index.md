@@ -6,11 +6,11 @@ date = 2024-03-07T15:00:59+08:00
 
 
 ```mermaid
-gitGraph TB:
+gitGraph:
   commit id:"Graduate From High School" tag:"Linfen, China"
   commit id:"Got Driver Licence" tag:"2013.08"
   branch TYUT
-  commit id:"Enrollment TYUT"  tag:"Taiyuan, China"
+  commit id:"Enrollment TYUT 🥰"  tag:"Taiyuan, China"
   commit id:"Develop Game App" tag:"“Hello Hell”" type: HIGHLIGHT
   commit id:"Plan:3+1" tag:"2016.09"
   branch Briup.Ltd
