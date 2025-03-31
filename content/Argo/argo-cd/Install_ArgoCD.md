@@ -73,7 +73,7 @@ mv -f argocd ${HOME}/bin
       --namespace argocd \
       --create-namespace \
       --version 5.46.7 \
-      --repo https://ben-wangz.github.io/helm-chart-mirror/charts \
+      --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
       --values argocd.values.yaml \
       --atomic
 
