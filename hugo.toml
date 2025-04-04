@@ -12,6 +12,7 @@ theme = 'hugo-theme-relearn'
   ordersectionsby = "weight"
   mermaidZoom = false
   ignoreLogs = ['warning-goldmark-raw-html']
+  math = true
   [params.contact]
     email = 'aaron19940628@gmail.com'
     phone = '+86 176-8234-9727'
@@ -62,6 +63,11 @@ theme = 'hugo-theme-relearn'
       trace = false
       verbose = false
       workingFolderCurrent = false
+    [markup.goldmark.extensions.passthrough]
+      enable = true
+      [markup.goldmark.extensions.passthrough.delimiters]
+        block = [['\[', '\]'], ['$$', '$$']]
+        inline = [['\(', '\)']]
 [module]
   [[module.imports]]
     path = 'hugo-theme-relearn'
