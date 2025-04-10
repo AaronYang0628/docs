@@ -9,14 +9,15 @@ Using deep learning techniques to help you to mining the cryptos, such as BTC, E
 ### ScreenShots
 There are two main funcs in this tool.
 
-1. Help you to crack the game, go {{% button href="https://www.youtube.com/watch?v=0LgMaCDIAsk" icon="fas fa-video" %}}Watch Video{{% /button %}} <br>
+1. Help you to crack the game
 
-[![RollerCoin Game Cracker](../../../images/content/roller-coin/video.jpg)](https://www.youtube.com/watch?v=0LgMaCDIAsk "RollerCoin Game Cracker")
-  - only support 'Coin-Flip' Game for now.
-  (I know, rollercoin.com has lower down the benefit from this game, thats why I make the repo public. [update](https://rollercoin.com/blog/gaming-rebalance-update/))
+{{< youtube 0LgMaCDIAsk >}}
+
+- only support 'Coin-Flip' Game for now.
+  > right, rollercoin.com had decrease the benefit from this game, thats why I make the repo public. [update](https://rollercoin.com/blog/gaming-rebalance-update/)
 
 
-2. Help you to pass the geetest. <br>
+1. Help you to pass the geetest. <br>
   - only support level 1 captcha test for now.
   [there are three levels of geetest captcha test](https://github.com/AaronYang2333/RollerCoin_Assistant_Tool/issues/6)
 
@@ -35,11 +36,5 @@ There are two main funcs in this tool.
 2. and if you use 1920\*1080 screen, strongly recommend you to fullscreen you web browser. 
 							
 
-### Video Link
-
-Checkout in {{% button href="https://www.bilibili.com/video/BV1EU4y1H7Eo/" icon="fas fa-video" %}}Bilibili{{% /button %}} 
-
-Checkout in {{% button href="https://www.youtube.com/watch?v=0LgMaCDIAsk" icon="fas fa-video" %}}Youtube{{% /button %}}
-
 ### Repo
-you can get code from [github](https://gitee.com/aaron2333/RollerCoin_Assistant_Tool), [gitee](https://gitee.com/aaron2333/RollerCoin_Assistant_Tool)
+you can get code from [gitee](https://gitee.com/aaron2333/RollerCoin_Assistant_Tool)
