@@ -88,13 +88,57 @@ make manifests
 {{% expand title="Modify Controller [[Optional]]()" %}}
 you can moidfy file `/~/projects/guestbook/internal/controller/guestbook_controller.go`
 ```go
-// import ( "fmt" )
+// 	import ( "fmt" )
+// 	appsv1 "k8s.io/api/apps/v1"
+//	corev1 "k8s.io/api/core/v1"
+//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
 	fmt.Printf("I am a controller ->>>>>>")
 	fmt.Printf("Name: %s, Namespace: %s", req.Name, req.Namespace)
+
+	guestbook := &webappv1.Guestbook{}
+	if err := r.Get(ctx, req.NamespacedName, guestbook); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	fooString := guestbook.Spec.Foo
+	replicas := int32(1)
+	fmt.Printf("Foo String: %s", fooString)
+
+	// labels := map[string]string{
+	// 	"app": req.Name,
+	// }
+
+	// dep := &appsv1.Deployment{
+	// 	ObjectMeta: metav1.ObjectMeta{
+	// 		Name:      req.Name + "-deployment",
+	// 		Namespace: req.Namespace,
+	// 		Labels:    labels,
+	// 	},
+	// 	Spec: appsv1.DeploymentSpec{
+	// 		Replicas: &replicas,
+	// 		Selector: &metav1.LabelSelector{
+	// 			MatchLabels: labels,
+	// 		},
+	// 		Template: corev1.PodTemplateSpec{
+	// 			ObjectMeta: metav1.ObjectMeta{
+	// 				Labels: labels,
+	// 			},
+	// 			Spec: corev1.PodSpec{
+	// 				Containers: []corev1.Container{{
+	// 					Name:  fooString,
+	// 					Image: "busybox:latest",
+	// 				}},
+	// 			},
+	// 		},
+	// 	},
+	// }
+
+	// if err := r.Create(ctx, dep); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
 
 	return ctrl.Result{}, nil
 }
@@ -105,14 +149,17 @@ And you can use `make run` to test your controller.
 make run
 ```
 and use following command to send a request
-> make sure you install crds -> 'make install' before you exec this following command 
+> make sure you install crds -> `make install` before you exec this following command 
+```shell
+make install
+```
 ```shell
 kubectl apply -k config/samples/
 ```
 
 your controller terminal should be look like this
 ```text
-I am a controller ->>>>>>Name: guestbook-sample, Namespace: default
+I am a controller ->>>>>>Name: guestbook-sample, Namespace: defaultFoo String: foo-value
 ```
 {{% /expand %}}
 
@@ -126,4 +173,21 @@ install `guestbook` crd in k8s
 ```shell
 cd ~/projects/guestbook
 make install
+```
+
+### uninstall CRDs
+```shell
+make uninstall
+
+make undeploy
+```
+
+### Deploy to cluster
+```shell
+make docker-build IMG=aaron666/guestbook-operator:test
+make docker-build docker-push IMG=<some-registry>/<project-name>:tag
+```
+
+```shell
+make deploy IMG=<some-registry>/<project-name>:tag
 ```
