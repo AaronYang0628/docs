@@ -93,6 +93,7 @@ you can moidfy file `/~/projects/guestbook/internal/controller/guestbook_control
 //	corev1 "k8s.io/api/core/v1"
 //	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// The context is used to allow cancellation of requests, and potentially things like tracing. 
 	_ = log.FromContext(ctx)
 
 	fmt.Printf("I am a controller ->>>>>>")
