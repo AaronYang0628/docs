@@ -5,13 +5,13 @@ weight = 1
 +++
 
 ### Basic 
-Kubebuilder 是一个使用 CRDs 构建 K8s API 的 SDK，主要是：
+Kubebuilder 是一个使用 [CRDs](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/api-extension/custom-resources/) 构建 K8s API 的 SDK，主要是：
 
-- 提供一套可扩展的 API 框架，用于开发 [CRDs](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) 和 [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/)；
-- 提供脚手架工具初始化 CRDs 工程，自动生成 [boilerplate](https://github.com/kubernetes-sigs/kubebuilder/blob/master/docs/book/src/reference/boilerplate.md) 模板代码和配置；
-- 基于 controller-runtime, client-go 构建
+- 基于 [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) 以及 [client-go](https://github.com/kubernetes/client-go) 构建
+- 提供一套可扩展的 API 框架，方便用户从零开始开发 [CRDs](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) 和 [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 和 Admission Webhooks 来扩展 K8s。
+- 还提供脚手架工具初始化 CRDs 工程，自动生成 [boilerplate](https://github.com/kubernetes-sigs/kubebuilder/blob/master/docs/book/src/reference/boilerplate.md) 模板代码和配置；
 
-方便用户从零开始开发 CRDs，Controllers 和 Admission Webhooks 来扩展 K8s。
+
 
 ### Architecture
 ![mvc](../../../images/content/kubernetes/kubebuilder_arch.png)
@@ -57,10 +57,10 @@ Manager是核心组件，可以协调多个控制器、处理缓存、客户端�
     * 事件被写入本地缓存（如 Indexer），避免频繁访问 API Server。
     * 缓存（Cache）的作用是减少对API Server的直接请求，同时保证控制器能够快速读取资源的最新状态。
 - [Event](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/event/event.go)
-    Kubernetes API Server 通过 HTTP 长连接 推送资源变更事件，client-go 的 Informer 负责监听这些事件。
-    * API Server → Manager的Informer → Cache → Controller的Watch → Predicate过滤 → WorkQueue → Reconcile()。
+    > Kubernetes API Server 通过 HTTP 长连接 推送资源变更事件，client-go 的 Informer 负责监听这些事件。
+    * API Server → Manager的Informer → Cache → Controller的Watch → Predicate过滤 → WorkQueue →  Controller的Reconcile()方法
 - [informers](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/cache/internal/informers.go)
-    * Manager通过Informer机制与API Server建立连接。
+    * Manager通过 client-go 提供的Informer机制与API Server建立连接。
     * Informer会监听（Watch）特定资源类型（如用户定义的CRD），并将变更事件写入本地缓存（Cache）
 
 
@@ -82,11 +82,49 @@ If you wanna build your own controller, please check [https://github.com/kuberne
 - how to process events
 1. 每个Controller在初始化时会向Manager注册它关心的资源类型（例如通过Owns(&v1.Pod{})声明关注Pod资源）。
 
-2. Manager根据Controller的注册信息，为相关资源创建对应的Informer和Watch。
+2. Manager根据Controller的注册信息，为相关资源创建对应的Informer和Watch, check [link](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/builder/controller.go#L180-L200)
 
 3. 当资源变更事件发生时，Informer会将事件从缓存中取出，并通过Predicate（过滤器）判断是否需要触发协调逻辑。
 
-4. 若事件通过过滤，Controller会将事件加入队列（WorkQueue），最终调用用户实现的Reconcile()函数进行处理。
+4. 若事件通过过滤，Controller会将事件加入队列（WorkQueue），最终调用用户实现的Reconcile()函数进行处理, check [link](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/internal/controller/controller.go#L148-L218)
+
+```go
+func (c *Controller[request]) Start(ctx context.Context) error {
+
+	c.ctx = ctx
+
+	queue := c.NewQueue(c.Name, c.RateLimiter)
+
+    c.Queue = &priorityQueueWrapper[request]{TypedRateLimitingInterface: queue}
+
+	err := func() error {
+
+            // start to sync event sources
+            if err := c.startEventSources(ctx); err != nil {
+                return err
+            }
+
+            for i := 0; i < c.MaxConcurrentReconciles; i++ {
+                go func() {
+                    for c.processNextWorkItem(ctx) {
+
+                    }
+                }()
+            }
+	}()
+
+	c.LogConstructor(nil).Info("All workers finished")
+}
+```
+
+```go
+func (c *Controller[request]) processNextWorkItem(ctx context.Context) bool {
+	obj, priority, shutdown := c.Queue.GetWithPriority()
+
+	c.reconcileHandler(ctx, obj, priority)
+
+}
+```
 
 ### Webhook
 Webhooks are a mechanism to intercept requests to the Kubernetes API server. They can be used to validate, mutate, or even proxy requests.
