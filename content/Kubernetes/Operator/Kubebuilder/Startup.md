@@ -88,7 +88,9 @@ make manifests
 {{% expand title="Modify Controller [[Optional]]()" %}}
 you can moidfy file `/~/projects/guestbook/internal/controller/guestbook_controller.go`
 ```go
-// 	import ( "fmt" )
+// 	"fmt"
+// "k8s.io/apimachinery/pkg/api/errors"
+// "k8s.io/apimachinery/pkg/types"
 // 	appsv1 "k8s.io/api/apps/v1"
 //	corev1 "k8s.io/api/core/v1"
 //	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -114,7 +116,7 @@ func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// dep := &appsv1.Deployment{
 	// 	ObjectMeta: metav1.ObjectMeta{
-	// 		Name:      req.Name + "-deployment",
+	// 		Name:      fooString + "-deployment",
 	// 		Namespace: req.Namespace,
 	// 		Labels:    labels,
 	// 	},
@@ -137,8 +139,16 @@ func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// 	},
 	// }
 
-	// if err := r.Create(ctx, dep); err != nil {
-	// 	return ctrl.Result{}, err
+	// existingDep := &appsv1.Deployment{}
+	// err := r.Get(ctx, types.NamespacedName{Name: dep.Name, Namespace: dep.Namespace}, existingDep)
+	// if err != nil {
+	// 	if errors.IsNotFound(err) {
+	// 		if err := r.Create(ctx, dep); err != nil {
+	// 			return ctrl.Result{}, err
+	// 		}
+	// 	} else {
+	// 		return ctrl.Result{}, err
+	// 	}
 	// }
 
 	return ctrl.Result{}, nil

@@ -50,8 +50,10 @@ func main() {
 ### Manager
 Manager是核心组件，可以协调多个控制器、处理缓存、客户端、领导选举等，来自[https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/manager/manager.go](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/manager/manager.go#L332-L335)
 - [Client](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/client/interfaces.go#L164-L178) 承担了与 Kubernetes API Server 通信、操作资源对象、读写缓存等关键职责; 分为两类：
-    - [Reader](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/client/client.go#L333-L352)：优先读Cache， 避免频繁访问 API Server
+    - [Reader](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/client/client.go#L333-L352)：优先读Cache， 避免频繁访问 API Server, Get后放缓存
     - Writer: 支持写操作（Create、Update、Delete、Patch），直接与 API Server 交互。
+    - [informers](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/cache/internal/informers.go) 是 client-go 提供的核心组件，用于监听（Watch）Kubernetes API Server 中特定资源类型（如 Pod、Deployment 或自定义 CRD）的变更事件（Create/Update/Delete）。
+        * Client 依赖 Informer 机制自动同步缓存。当 API Server 中资源变更时，Informer 会更新本地缓存，确保后续读操作获取最新数据。
 - [Cache](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/cache/informer_cache.go)
     * Cache 通过 内置的client 的 ListWatcher机制 监听 API Server 的资源变更。
     * 事件被写入本地缓存（如 Indexer），避免频繁访问 API Server。
@@ -60,9 +62,6 @@ Manager是核心组件，可以协调多个控制器、处理缓存、客户端�
     > Kubernetes API Server 通过 HTTP 长连接 推送资源变更事件，client-go 的 Informer 负责监听这些消息。
     * Event：事件是Kubernetes API Server与Controller之间传递的信息，包含资源类型、资源名称、事件类型（ADDED、MODIFIED、DELETED）等信息，并转换成requets, check [link](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/handler/enqueue.go#L56-L59)
     * API Server → Manager的Informer → Cache → Controller的Watch → Predicate过滤 → WorkQueue →  Controller的Reconcile()方法
-- [informers](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/cache/internal/informers.go)
-    * Manager通过 client-go 提供的Informer机制与API Server建立连接。
-    * Informer会监听（Watch）特定资源类型（如用户定义的CRD），并将变更事件写入本地缓存（Cache）
 
 
 ### Controller
