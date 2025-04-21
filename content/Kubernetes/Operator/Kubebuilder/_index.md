@@ -53,11 +53,12 @@ Manager是核心组件，可以协调多个控制器、处理缓存、客户端�
     - [Reader](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/client/client.go#L333-L352)：优先读Cache， 避免频繁访问 API Server
     - Writer: 支持写操作（Create、Update、Delete、Patch），直接与 API Server 交互。
 - [Cache](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/cache/informer_cache.go)
-    * Cache 通过 ListWatcher 监听 API Server 的资源变更。
+    * Cache 通过 内置的client 的 ListWatcher机制 监听 API Server 的资源变更。
     * 事件被写入本地缓存（如 Indexer），避免频繁访问 API Server。
     * 缓存（Cache）的作用是减少对API Server的直接请求，同时保证控制器能够快速读取资源的最新状态。
 - [Event](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/event/event.go)
-    > Kubernetes API Server 通过 HTTP 长连接 推送资源变更事件，client-go 的 Informer 负责监听这些事件。
+    > Kubernetes API Server 通过 HTTP 长连接 推送资源变更事件，client-go 的 Informer 负责监听这些消息。
+    * Event：事件是Kubernetes API Server与Controller之间传递的信息，包含资源类型、资源名称、事件类型（ADDED、MODIFIED、DELETED）等信息，并转换成requets, check [link](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/handler/enqueue.go#L56-L59)
     * API Server → Manager的Informer → Cache → Controller的Watch → Predicate过滤 → WorkQueue →  Controller的Reconcile()方法
 - [informers](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/cache/internal/informers.go)
     * Manager通过 client-go 提供的Informer机制与API Server建立连接。
