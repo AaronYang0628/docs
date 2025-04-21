@@ -79,7 +79,6 @@ func (r *GuestbookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 ```
 If you wanna build your own controller, please check [https://github.com/kubernetes/community/blob/master/contributors/devel/sig-api-machinery/controllers.md](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-api-machinery/controllers.md)
 
-- how to process events
 1. 每个Controller在初始化时会向Manager注册它关心的资源类型（例如通过Owns(&v1.Pod{})声明关注Pod资源）。
 
 2. Manager根据Controller的注册信息，为相关资源创建对应的Informer和Watch, check [link](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/builder/controller.go#L180-L200)
