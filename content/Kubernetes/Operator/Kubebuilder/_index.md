@@ -53,7 +53,7 @@ Manager是核心组件，可以协调多个控制器、处理缓存、客户端�
     - [Reader](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/client/client.go#L333-L352)：优先读Cache， 避免频繁访问 API Server, Get后放缓存
     - Writer: 支持写操作（Create、Update、Delete、Patch），直接与 API Server 交互。
     - [informers](https://github.com/kubernetes-sigs/controller-runtime/blob/main/pkg/cache/internal/informers.go) 是 client-go 提供的核心组件，用于监听（Watch）Kubernetes API Server 中特定资源类型（如 Pod、Deployment 或自定义 CRD）的变更事件（Create/Update/Delete）。
-        * Client 依赖 Informer 机制自动同步缓存。当 API Server 中资源变更时，Informer 会更新本地缓存，确保后续读操作获取最新数据。
+        * Client 依赖 Informer 机制自动同步缓存。当 API Server 中资源变更时，Informer 会定时更新本地缓存，确保后续读操作获取最新数据。
 - [Cache](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.20.0/pkg/cache/informer_cache.go)
     * Cache 通过 内置的client 的 ListWatcher机制 监听 API Server 的资源变更。
     * 事件被写入本地缓存（如 Indexer），避免频繁访问 API Server。
