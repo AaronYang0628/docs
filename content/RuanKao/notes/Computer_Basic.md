@@ -31,10 +31,18 @@ mindmap
 1. 流水线
 流水线是指在程序执行时多条指令重叠进行操作的一种准并行处理实现技术。各种部件同时处理是针对不同指令而言的，它们可同时为多条指令的不同部分进行工作，以提高各部件的利用率和指令的平均执行速度
 
+```mermaid
+flowchart LR
+    A[取指] --> B(分析)
+    B --> C[执行]
+```
 
+**流水线周期 △t = Max（T_取指,T_分析,T_执行)**
 
-![mvc](../../../images/content/ruankao/compute_pipeline.png)
-![mvc](../../../images/content/ruankao/compute_pipeline_formula.png)
+**流水线执行时间公式 SUM（T_取指,T_分析,T_执行）+ （n - 1）* △t**
+
+**流水线吞吐率**
+
 ![mvc](../../../images/content/ruankao/compute_pipeline_throughput_rate.png)
 ![mvc](../../../images/content/ruankao/compute_pipeline_accelerate_rate.png)
 
