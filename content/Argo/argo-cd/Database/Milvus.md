@@ -11,18 +11,17 @@ weight = 7
 - minio has installed, if not check [link](argo/argo-cd/storage/minio/index.html)
 
 ### Steps
-#### 1. prepare mariadb credentials secret
+#### 1. copy minio credentials secret
 ```shell
 kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
-kubectl -n database create secret generic mariadb-credentials \
-    --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
-    --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+kubectl -n storage get secret minio-secret -o json \
+    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+    | kubectl -n database apply -f -
+
 ```
 
-#### 2. prepare `deploy-mariadb.yaml`
+#### 2. prepare `deploy-milvus.yaml`
 ```yaml
-a---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -68,7 +67,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -77,7 +76,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -86,7 +85,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -95,7 +94,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -104,7 +103,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -113,7 +112,7 @@ spec:
           replicaCount: 1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 8
@@ -121,7 +120,7 @@ spec:
         indexNode:
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -132,7 +131,7 @@ spec:
             type: ClusterIP
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -144,7 +143,7 @@ spec:
             tag: 2.5.5-debian-12-r1
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -168,7 +167,7 @@ spec:
             pullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: 1
+              cpu: 500m
               memory: 1Gi
             limits:
               cpu: 2
@@ -176,16 +175,16 @@ spec:
         externalS3:
           host: "minio-api.dev.tech"
           port: 32080
-          existingSecret: "milvus-minio-credentials"
-          existingSecretAccessKeyIDKey: "username"
-          existingSecretKeySecretKey: "password"
+          existingSecret: "minio-secret"
+          existingSecretAccessKeyIDKey: "root-user"
+          existingSecretKeySecretKey: "root-password"
           bucket: "milvus"
-          rootPath: "file"
+          rootPath: "/"
         etcd:
           enabled: true
           image:
             registry: m.lab.zverse.space/docker.io
-          replicaCount: 3
+          replicaCount: 1
           auth:
             rbac:
               create: false
@@ -193,15 +192,15 @@ spec:
               secureTransport: false
           resources:
             requests:
-              cpu: 1
-              memory: 2Gi
+              cpu: 500m
+              memory: 1Gi
             limits:
               cpu: 2
               memory: 4Gi
           persistence:
             enabled: true
             storageClass: ""
-            size: 100Gi
+            size: 2Gi
           preUpgradeJob:
             enabled: false
         minio:
@@ -212,20 +211,20 @@ spec:
             registry: m.lab.zverse.space/docker.io
           heapOpts: -Xmx32768m -Xms10240m
           controller:
-            replicaCount: 3
+            replicaCount: 1
             livenessProbe:
               failureThreshold: 8
             resources:
               requests:
-                cpu: 8
-                memory: 16Gi
+                cpu: 500m
+                memory: 1Gi
               limits:
                 cpu: 16
                 memory: 20Gi
             persistence:
               enabled: true
               storageClass: ""
-              size: 300Gi
+              size: 2Gi
           service:
             ports:
               client: 9092

@@ -155,7 +155,7 @@ K8S_MASTER_IP=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jso
 MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
 podman run --rm \
     --entrypoint bash \
-    --add-host=minio-api.dev.tech:10.200.60.64 \
+    --add-host=minio-api.dev.tech:${K8S_MASTER_IP} \
     -it m.daocloud.io/docker.io/minio/mc:latest \
     -c "mc alias set minio http://minio-api.dev.tech:32080 admin ${MINIO_ACCESS_SECRET} \
         && mc ls minio \
