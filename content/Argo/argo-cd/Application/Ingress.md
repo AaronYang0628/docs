@@ -22,9 +22,9 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://ben-wangz.github.io/helm-chart-mirror/charts
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
     chart: ingress-nginx
-    targetRevision: 4.9.0
+    targetRevision: 4.11.3
     helm:
       releaseName: ingress-nginx
       values: |
