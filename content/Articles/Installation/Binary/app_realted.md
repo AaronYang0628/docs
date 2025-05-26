@@ -12,3 +12,13 @@ vim ~/.bashrc
 export PATH=$PATH:/usr/local/go/bin
 source ~/.bashrc
 ```
+
+```shell
+wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+tar xzf apache-maven-3.9.6-bin.tar.gz -C /usr/local
+ln -sfn /usr/local/apache-maven-3.9.6/bin/mvn /root/bin/mvn  
+export PATH=/usr/local/apache-maven-3.9.6/bin:$PATH
+source ~/.bashrc
+```
+
+mvn io.javaoperatorsdk:bootstrapper:5.0.4:create -DprojectGroupId=org.acme -DprojectArtifactId=metdata-operator
