@@ -41,7 +41,7 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: 59.1.0
+    targetRevision: 72.6.2
     helm:
       releaseName: prometheus-stack
       values: |
@@ -50,215 +50,108 @@ spec:
         global:
           rbac:
             create: true
+          imageRegistry: ""
+          imagePullSecrets: []
         alertmanager:
           enabled: true
           ingress:
             enabled: false
           serviceMonitor:
             selfMonitor: true
+            interval: ""
           alertmanagerSpec:
             image:
               registry: m.daocloud.io/quay.io
+              repository: prometheus/alertmanager
+              tag: v0.28.1
+            replicas: 1
+            resources: {}
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: nfs-external
-                  accessModes:
-                  - ReadWriteOnce
+                  storageClassName: ""
+                  accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
-                      storage: 20Gi
+                      storage: 2Gi
         grafana:
           enabled: true
-          image:
-            registry: m.daocloud.io/docker.io
-          testFramework:
-            enabled: true
-            image:
-              registry: m.daocloud.io/docker.io
-          downloadDashboardsImage:
-            registry: m.daocloud.io/docker.io
-          serviceMonitor:
-            enabled: true
           ingress:
             enabled: true
             annotations:
               cert-manager.io/clusterissuer: self-signed-issuer
-            ingressClassName: nginx
+              kubernetes.io/ingress.class: nginx
+            hosts:
+              - grafana.dev.tech
             path: /
             pathtype: ImplementationSpecific
-            hosts:
-            - grafana.astronomy.zhejianglab.com
             tls:
-            - secretName: grafana.astronomy.zhejianglab.com-tls
+            - secretName: grafana.dev.tech-tls
               hosts:
-              - grafana.astronomy.zhejianglab.com
-          persistence:
-            enabled: true
-            storageClassName: nfs-external
-          initChownData:
-            enabled: true
-            image:
-              registry: m.daocloud.io/docker.io
-          admin:
-            existingSecret: prometheus-stack-credentials
-            userKey: grafana-username
-            passwordKey: grafana-password
-          datasources: {}
-          dashboardProviders: {}
-          dashboards: {}
-          sidecar:
-            image:
-              registry: m.daocloud.io/quay.io
-            dashboards:
-              enabled: true
-            datasources:
-              enabled: true
-          imageRenderer:
-            enabled: false
-            image:
-              registry: m.daocloud.io/docker.io
-        kubernetesServiceMonitors:
-          enabled: true
-          sidecar:
-        kubeApiServer:
-          enabled: true
-        kubelet:
-          enabled: true
-          namespace: kube-system
-        kubeControllerManager:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-        coreDns:
-          enabled: true
-          serviceMonitor:
-            enabled: true
-        kubeDns:
-          enabled: false
-        kubeEtcd:
-          enabled: true
-          service:
-            enabled: true
-          serviceMonitor:
-            enabled: true
-        kubeScheduler:
-          enabled: true
-          service:
-            enabled: true
-          serviceMonitor:
-            enabled: true
-            insecureSkipVerify: true
-        kubeProxy:
-          enabled: true
-          service:
-            enabled: true
-          serviceMonitor:
-            enabled: true
-        kubeStateMetrics:
-          enabled: true
-        kube-state-metrics:
-          image:
-            registry: m.daocloud.io/registry.k8s.io
-          prometheus:
-            monitor:
-              enabled: true
-          selfMonitor:
-            enabled: false
-        nodeExporter:
-          enabled: true
-        prometheus-node-exporter:
-          image:
-            registry: m.daocloud.io/quay.io
-          prometheus:
-            monitor:
-              enabled: true
+              - grafana.dev.tech
         prometheusOperator:
-          enabled: true
           admissionWebhooks:
-            enabled: true
-            deployment:
-              enabled: false
-              image:
-                registry: m.daocloud.io/quay.io
             patch:
-              enabled: true
+              resources: {}
               image:
                 registry: m.daocloud.io/registry.k8s.io
-            certManager:
-              enabled: false
-          serviceAccount:
-            create: true
-          service:
-            type: ClusterIP
-          serviceMonitor:
-            selfMonitor: true
+                repository: ingress-nginx/kube-webhook-certgen
+                tag: v1.5.3  
+          image:
+            registry: m.daocloud.io/quay.io
+            repository: prometheus-operator/prometheus-operator
+          prometheusConfigReloader:
+            image:
+              registry: m.daocloud.io/quay.io
+              repository: prometheus-operator/prometheus-config-reloader
+            resources: {}
+          thanosImage:
+            registry: m.daocloud.io/quay.io
+            repository: thanos/thanos
+            tag: v0.38.0
         prometheus:
           enabled: true
-          serviceAccount:
-            create: true
-          thanosService:
-            enabled: false
-          thanosServiceMonitor:
-            enabled: false
-          thanosServiceExternal:
-            enabled: false
-          service:
-            type: ClusterIP
-          servicePerReplica:
-            enabled: false
-          podDisruptionBudget:
-            enabled: false
-          thanosIngress:
-            enabled: false
           ingress:
             enabled: true
             annotations:
               cert-manager.io/clusterissuer: self-signed-issuer
-            ingressClassName: nginx
-            paths:
-            - /
-            pathtype: ImplementationSpecific
+              kubernetes.io/ingress.class: nginx
             hosts:
-            - prometheus.astronomy.zhejianglab.com
+              - prometheus.dev.tech
+            path: /
+            pathtype: ImplementationSpecific
             tls:
-            - secretName: prometheus.astronomy.zhejianglab.com-tls
+            - secretName: prometheus.dev.tech-tls
               hosts:
-              - prometheus.astronomy.zhejianglab.com
-          serviceMonitor:
-            selfMonitor: true
+              - prometheus.dev.tech
           prometheusSpec:
             image:
               registry: m.daocloud.io/quay.io
-            storageSpec:
+              repository: prometheus/prometheus
+              tag: v3.4.0
+            replicas: 1
+            shards: 1
+            resources: {}
+            storageSpec: 
               volumeClaimTemplate:
                 spec:
-                  storageClassName: nfs-external
-                  accessModes:
-                  - ReadWriteOnce
+                  storageClassName: ""
+                  accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
-                      storage: 20Gi
+                      storage: 2Gi
         thanosRuler:
           enabled: false
           ingress:
             enabled: false
-          serviceMonitor:
-            selfMonitor: true
           thanosRulerSpec:
+            replicas: 1
+            storage: {}
+            resources: {}
             image:
               registry: m.daocloud.io/quay.io
-          storage:
-            volumeClaimTemplate:
-              spec:
-                storageClassName: nfs-external
-                accessModes:
-                - ReadWriteOnce
-                resources:
-                  requests:
-                    storage: 20Gi
-        windowsMonitoring:
-          enabled: false
+              repository: thanos/thanos
+              tag: v0.38.0
   destination:
     server: https://kubernetes.default.svc
     namespace: monitor
@@ -280,10 +173,10 @@ kubectl -n monitor get secret prometheus-stack-credentials -o jsonpath='{.data.g
 ```
 
 #### 8. [[OPTIONAL]]() check web dashboard
-> add `$K8S_MASTER_IP grafana.astronomy.zhejianglab.com` to **/etc/hosts**
+> add `$K8S_MASTER_IP grafana.dev.tech` to **/etc/hosts**
 
-> add `$K8S_MASTER_IP prometheus.astronomy.zhejianglab.com` to **/etc/hosts**
+> add `$K8S_MASTER_IP prometheus.dev.tech` to **/etc/hosts**
 
-prometheus-srver: [https://prometheus.astronomy.zhejianglab.com:32443/](https://prometheus.astronomy.zhejianglab.com:32443/)
+prometheus-srver: [https://prometheus.dev.tech:32443/](https://prometheus.dev.tech:32443/)
 
-grafana-console: [https://grafana.astronomy.zhejianglab.com:32443/](https://grafana.astronomy.zhejianglab.com:32443/)
+grafana-console: [https://grafana.dev.tech:32443/](https://grafana.dev.tech:32443/)

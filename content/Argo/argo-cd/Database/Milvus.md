@@ -58,20 +58,23 @@ spec:
             pullPolicy: IfNotPresent
           resources:
             requests:
-              cpu: 500m
-              memory: 1Gi
+              cpu: 2
+              memory: 512Mi
             limits:
-              cpu: 1000m
+              cpu: 2
               memory: 2Gi
         dataCoord:
           replicaCount: 1
           resources:
             requests:
               cpu: 500m
-              memory: 1Gi
+              memory: 512Mi
             limits:
               cpu: 2
-              memory: 4Gi
+              memory: 2Gi
+          metrics:
+            enabled: true
+            
         rootCoord:
           replicaCount: 1
           resources:
@@ -115,8 +118,8 @@ spec:
               cpu: 500m
               memory: 1Gi
             limits:
-              cpu: 8
-              memory: 30Gi
+              cpu: 2
+              memory: 2Gi
         indexNode:
           resources:
             requests:
@@ -124,7 +127,7 @@ spec:
               memory: 1Gi
             limits:
               cpu: 2
-              memory: 4Gi
+              memory: 2Gi
         proxy:
           replicaCount: 1
           service:
@@ -135,7 +138,7 @@ spec:
               memory: 1Gi
             limits:
               cpu: 2
-              memory: 4Gi
+              memory: 2Gi
         attu:
           image:
             registry: m.lab.zverse.space/docker.io
@@ -173,13 +176,13 @@ spec:
               cpu: 2
               memory: 4Gi
         externalS3:
-          host: "minio-api.dev.tech"
-          port: 32080
+          host: "minio.storage"
+          port: 9000
           existingSecret: "minio-secret"
           existingSecretAccessKeyIDKey: "root-user"
           existingSecretKeySecretKey: "root-password"
           bucket: "milvus"
-          rootPath: "/"
+          rootPath: "file"
         etcd:
           enabled: true
           image:
@@ -196,7 +199,7 @@ spec:
               memory: 1Gi
             limits:
               cpu: 2
-              memory: 4Gi
+              memory: 2Gi
           persistence:
             enabled: true
             storageClass: ""
@@ -209,7 +212,6 @@ spec:
           enabled: true
           image:
             registry: m.lab.zverse.space/docker.io
-          heapOpts: -Xmx32768m -Xms10240m
           controller:
             replicaCount: 1
             livenessProbe:
@@ -219,8 +221,8 @@ spec:
                 cpu: 500m
                 memory: 1Gi
               limits:
-                cpu: 16
-                memory: 20Gi
+                cpu: 2
+                memory: 2Gi
             persistence:
               enabled: true
               storageClass: ""
@@ -260,6 +262,13 @@ kubectl -n argocd apply -f deploy-milvus.yaml
 argocd app sync argocd/milvus
 ```
 
+#### 5. check Attu WebUI
+milvus address: `milvus-proxy:19530`
+
+milvus database: `default`
+```shell
+https://milvus.dev.tech:32443/#/
+```
 
 #### 5. [[Optional]]() import data
 import data by using sql file

@@ -22,32 +22,32 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://ben-wangz.github.io/helm-chart-mirror/charts
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
     chart: cert-manager
-    targetRevision: 1.13.3
+    targetRevision: 1.17.2
     helm:
       releaseName: cert-manager
       values: |
         installCRDs: true
         image:
           repository: m.daocloud.io/quay.io/jetstack/cert-manager-controller
-          tag: v1.13.3
+          tag: v1.17.2
         webhook:
           image:
             repository: m.daocloud.io/quay.io/jetstack/cert-manager-webhook
-            tag: v1.13.3
+            tag: v1.17.2
         cainjector:
           image:
             repository: m.daocloud.io/quay.io/jetstack/cert-manager-cainjector
-            tag: v1.13.3
+            tag: v1.17.2
         acmesolver:
           image:
             repository: m.daocloud.io/quay.io/jetstack/cert-manager-acmesolver
-            tag: v1.13.3
+            tag: v1.17.2
         startupapicheck:
           image:
-            repository: m.daocloud.io/quay.io/jetstack/cert-manager-ctl
-            tag: v1.13.3
+            repository: m.daocloud.io/quay.io/jetstack/cert-manager-startupapicheck
+            tag: v1.17.2
   destination:
     server: https://kubernetes.default.svc
     namespace: basic-components
