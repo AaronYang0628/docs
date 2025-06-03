@@ -47,3 +47,10 @@ git clone https://github.com/containers/buildah.git
 cd buildah
 make & make install
 ```
+
+## add to path
+```shell
+vim ~/.bashrc 
+export PATH=$PATH:/root/bin
+source ~/.bashrc
+```

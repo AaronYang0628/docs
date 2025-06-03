@@ -5,8 +5,10 @@ weight = 1
 +++
 
 ### Preliminary
-- Kubernets has installed, if not [check link](kubernetes/command/install/index.html)
-> [[Optional]](): Helm binary is working, if not [check link](/kubernetes/helm/helm_chart/index.html)
+- Kubernets has installed, if not [check 🔗link](kubernetes/command/install/index.html)
+  
+> [!TIP]
+> Helm binary has installed, if not [check 🔗link](/kubernetes/helm/helm_chart/index.html)
 
 ### 1. install argoCD binary
 ```shell
