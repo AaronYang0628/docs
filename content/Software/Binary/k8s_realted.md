@@ -14,7 +14,6 @@ mv -f minikube ${HOME}/bin
 ```
 
 ## kubectl
-
 ```shell
 MIRROR="files.m.daocloud.io/"
 VERSION=$(curl -L -s https://${MIRROR}dl.k8s.io/release/stable.txt)
@@ -26,7 +25,6 @@ mv -f kubectl ${HOME}/bin
 ```
 
 ## helm
-
 ```shell
 ARCH_IN_FILE_NAME=linux-amd64
 FILE_NAME=helm-v3.13.3-${ARCH_IN_FILE_NAME}.tar.gz
@@ -39,14 +37,6 @@ rm -rf ./${ARCH_IN_FILE_NAME}
 chmod u+x ${HOME}/bin/helm
 ```
 
-## builah
-
-```shell
-apt install -y git make golang-go build-essential libgpgme-dev btrfs-progs libbtrfs-dev libdevmapper-dev libostree-dev libseccomp-dev libselinux1-dev pkg-config
-git clone https://github.com/containers/buildah.git
-cd buildah
-make & make install
-```
 
 ## add to path
 ```shell
