@@ -57,7 +57,7 @@ weight = 1
     {{% tab title="1.preare secret" %}}
   ```bash
   kubectl get namespaces monitor > /dev/null 2>&1 || kubectl create namespace monitor
-    kubectl -n monitor create secret generic prometheus-stack-credentials \
+  kubectl -n monitor create secret generic prometheus-stack-credentials \
     --from-literal=grafana-username=admin \
     --from-literal=grafana-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
   ```
@@ -66,6 +66,7 @@ weight = 1
 
   {{< tabs groupid="2222" >}}
     {{% tab title="2.prepare `prometheus-stack.yaml`" %}}
+  ```yaml
     apiVersion: argoproj.io/v1alpha1
     kind: Application
     metadata:
@@ -193,6 +194,7 @@ weight = 1
       destination:
         server: https://kubernetes.default.svc
         namespace: monitor
+  ```
     {{% /tab %}}
   {{< /tabs >}}
 
