@@ -1,53 +1,57 @@
 +++
-title = 'First Pytorch ISVC'
+title = 'First Inference Service'
 date = 2024-03-07T15:00:59+08:00
 weight = 2
 +++
 
-### Iris Inference
+## Iris Inference
 
 > More Information about `iris` service can be found 🔗[link](https://scikit-learn.org/1.4/auto_examples/datasets/plot_iris_dataset.html)
 
-1. create a namespace
+### 1. create a namespace
 ```shell
 kubectl create namespace kserve-test
 ```
 
-1.  deploy a sample `iris` service
+### 2.  deploy a sample `iris` service
 ```bash
 kubectl apply -n kserve-test -f - <<EOF
 apiVersion: "serving.kserve.io/v1beta1"
 kind: "InferenceService"
 metadata:
-  name: "first-torchserve"
+  name: "sklearn-iris"
   namespace: kserve-test
 spec:
   predictor:
     model:
+      args: ["--enable_docs_url=True"]
       modelFormat:
-        name: pytorch
-      storageUri: gs://kfserving-examples/models/torchserve/image_classifier/v1
-      resources:
-        limits:
-          memory: 4Gi
+        name: sklearn
+      resources: {}
+      runtime: kserve-sklearnserver
+      storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
 EOF
 ```
 
-1. Check `InferenceService` status
+### 3. Check `InferenceService` status
 ```shell
-kubectl -n kserve-test get inferenceservices first-torchserve 
+kubectl -n kserve-test get inferenceservices sklearn-iris 
 ```
 
 {{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
 
 ```bash
 kubectl -n kserve-test get pod
-#NAME                                           READY   STATUS    RESTARTS   AGE
-#first-torchserve-predictor-00001-deplo...      2/2     Running   0          25s
+#NAME                                      READY   STATUS    RESTARTS   AGE
+#sklearn-iris-predictor-00001-depl...      2/2     Running   0          25s
 
-kubectl -n kserve-test get inferenceservices first-torchserve
+kubectl -n istio-system get svc istio-ingressgateway 
+#NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                      AGE
+#istio-ingressgateway   LoadBalancer   10.109.126.91   <pending>     15021:31427/TCP,80:32132/TCP,443:32239/TCP   28m
+
+kubectl -n kserve-test get inferenceservices sklearn-iris
 #NAME           URL   READY     PREV   LATEST   PREVROLLEDOUTREVISION   LATESTREADYREVISION   AGE
-#kserve-test   first-torchserve      http://first-torchserve.kserve-test.example.com   True           100                              first-torchserve-predictor-00001   2m59s
+#sklearn-iris   http://sklearn-iris.kserve-test.example.com   True       100         sklearn-iris-predictor-00001   12m
 ```
 
 {{% /notice %}}
@@ -100,10 +104,18 @@ After all pods are ready, you can access the service by using the following comm
 
 
 
-4. Perform a prediction
+### 4. Perform a prediction
 First, prepare your inference input request inside a file:
 ```shell
-wget -O ./mnist-input.json https://raw.githubusercontent.com/kserve/kserve/refs/heads/master/docs/samples/v1beta1/torchserve/v1/imgconv/input.json
+cat <<EOF > "./iris-input.json"
+{
+  "instances": [
+    [6.8,  2.8,  4.8,  1.4],
+    [6.0,  3.4,  4.5,  1.6]
+  ]
+}
+EOF
+
 ```
 
 {{% notice style="tip" title="Remember to forward port if using minikube" expanded="false"%}}
@@ -114,11 +126,11 @@ ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L "*:${INGRES
 
 {{% /notice %}}
 
-5. Invoke the service
+### 5. Invoke the service
 ```shell
-SERVICE_HOSTNAME=$(kubectl -n kserve-test get inferenceservice first-torchserve  -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-# http://first-torchserve.kserve-test.example.com 
-curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/mnist:predict" -d @./mnist-input.json
+SERVICE_HOSTNAME=$(kubectl -n kserve-test get inferenceservice sklearn-iris  -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+# http://sklearn-iris.kserve-test.example.com 
+curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/sklearn-iris:predict" -d @./iris-input.json
 ```
 
 {{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
@@ -127,23 +139,23 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http
 *   Trying 192.168.58.2...
 * TCP_NODELAY set
 * Connected to 192.168.58.2 (192.168.58.2) port 32132 (#0)
-> POST /v1/models/mnist:predict HTTP/1.1
-> Host: my-torchserve.kserve-test.example.com
+> POST /v1/models/sklearn-iris:predict HTTP/1.1
+> Host: sklearn-iris.kserve-test.example.com
 > User-Agent: curl/7.61.1
 > Accept: */*
 > Content-Type: application/json
-> Content-Length: 401
+> Content-Length: 76
 > 
-* upload completely sent off: 401 out of 401 bytes
+* upload completely sent off: 76 out of 76 bytes
 < HTTP/1.1 200 OK
-< content-length: 19
+< content-length: 21
 < content-type: application/json
-< date: Mon, 09 Jun 2025 09:27:27 GMT
+< date: Mon, 09 Jun 2025 08:05:31 GMT
 < server: istio-envoy
-< x-envoy-upstream-service-time: 1128
+< x-envoy-upstream-service-time: 5
 < 
 * Connection #0 to host 192.168.58.2 left intact
-{"predictions":[2]}
+{"predictions":[1,1]}
 ```
 
 {{% /notice %}}
