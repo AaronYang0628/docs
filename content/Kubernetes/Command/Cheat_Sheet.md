@@ -4,15 +4,17 @@ date = 2024-03-08T11:16:18+08:00
 weight = 1
 +++
 
-## Context
-### 1. use different config
+## Switch Context
+### use different config
 ```shell
 kubectl --kubeconfig /root/.kube/config_ack get pod
 ```
 
+---
+
 ## Resource
-### 1. create resource
-{{< tabs groupid="main" style="primary" title="Resource From" icon="thumbtack" >}}
+### create resource
+{{< tabs groupid="main" style="transparent" title="Resource From" icon="thumbtack" >}}
 {{< tab title = "File" >}}
   {{< tabs groupid="tabs-resource" >}}
   {{% tab title="bash" %}}
@@ -47,7 +49,7 @@ kubectl --kubeconfig /root/.kube/config_ack get pod
   {{% /expand %}}
 {{< /tab >}}
 
-{{< tab title="Helm Chart" style="default" color="darkorchid" >}}
+{{< tab title="Helm Chart" style="transparent" >}}
    {{< tabs groupid="tabs-resource" >}}
   {{% tab title="helm" %}}
   ```bash
@@ -103,22 +105,22 @@ kubectl --kubeconfig /root/.kube/config_ack get pod
 {{< /tabs >}}
 
 
-### 2. debug resource
+### debug resource
 ```shell
 kubectl -n <$namespace> describe <$resource_id>
 ```
 
-### 3. logging resource
+### logging resource
 ```shell
 kubectl -n <$namespace> logs -f <$resource_id>
 ```
 
-### 4. port forwarding resource
+### port forwarding resource
 ```shell
 kubectl -n <$namespace> port-forward  <$resource_id> --address 0.0.0.0 8080:80 # local:pod
 ```
 
-### 5. delete all resource under specific namespace
+### delete all resource under specific namespace
 ```shell
 kubectl delete all --all -n <$namespace>
 ```
@@ -128,42 +130,42 @@ kubectl delete all --all --all-namespaces
 ```
 {{% /expand %}}
 
-### 6. delete error pods
+### delete error pods
 ```shell
 kubectl -n <$namespace> delete pods --field-selector status.phase=Failed
 ```
 
-### 7. force delete
+### force delete
 ```shell
 kubectl -n <$namespace> delete pod <$resource_id> --force --grace-period=0
 ```
 
-### 8. opening a Bash Shell inside a Pod 
+### opening a Bash Shell inside a Pod 
 ```shell
 kubectl -n <$namespace> exec -it <$resource_id> -- bash  
 ```
 
-### 9. copy secret to another namespace
+### copy secret to another namespace
 ```shell
 kubectl -n <$namespaceA> get secret <$secret_name> -o json \
     | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
     | kubectl -n <$namespaceB> apply -f -
 ```
 
-### 10. copy secret to another name
+### copy secret to another name
 ```shell
 kubectl -n <$namespace> get secret <$old_secret_name> -o json | \
 jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid","ownerReferences","annotations","labels"]) | .metadata.name = "<$new_secret_name>"' | \
 kubectl apply -n <$namespace> -f -
 ```
 
-### 11. delete all completed job
+### delete all completed job
 ```shell
 kubectl delete jobs -n <$namespace> --field-selector status.successful=1 
 ```
 
 ## Nodes
-### 1. add taint
+### add taint
 ```shell
 kubectl taint nodes <$node_ip> <key:value>
 ```
@@ -172,7 +174,7 @@ kubectl taint nodes <$node_ip> <key:value>
 kubectl taint nodes node1 dedicated:NoSchedule
 ```
 {{% /expand %}}
-### 2. remove taint
+### remove taint
 ```shell
 kubectl remove taint
 ```
@@ -182,14 +184,13 @@ kubectl taint nodes node1 dedicated:NoSchedule-
 ```
 {{% /expand %}}
 
-### 3. show info extract by json path
+### show info extract by json path
 ```shell
 kubectl get nodes -o jsonpath='{.items[*].spec.podCIDR}'
 ```
 
 ## Deploy
-
-### 1. rollout
+### rollout
 show rollout history
 ```shell
 kubectl -n <$namespace> rollout history deploy/<$deploy_resource_id>

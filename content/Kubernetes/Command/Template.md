@@ -5,50 +5,33 @@ weight = 5
 +++
 
 
-### 0. create namespace
+### create namespace
 ```shell
 kubectl get namespaces common-secrets > /dev/null 2>&1 || kubectl create namespace common-secrets
 ```
 
-### 0. sleeping deployment
-```yaml
+### sleeping deployment
+{{< highlight type="yaml" wrap="true" hl_lines="11-13" >}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: rucio
   name: rucio-deployment
   namespace: default
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: rucio
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: rucio
     spec:
       containers:
-      - command:
-        - sleep
-        - inf
-        image: registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-client:release-35.6.0
+        image: registry.gitlab.com/ska-rucio-client:release-35.6.0
+        - command:
+          - sleep
+          - inf
         imagePullPolicy: Always
         name: rucio-container
         resources: {}
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
-```
+{{< /highlight >}}
 
-### 0. create [StorageClass]() (sc)
+
+### create [StorageClass]() (sc)
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -56,13 +39,6 @@ metadata:
   annotations:
     meta.helm.sh/release-name: my-nfs-subdir-external-provisioner
     meta.helm.sh/release-namespace: nfs-provisioner
-  creationTimestamp: "2024-03-18T08:28:45Z"
-  labels:
-    app: nfs-subdir-external-provisioner
-    app.kubernetes.io/managed-by: Helm
-    chart: nfs-subdir-external-provisioner-4.0.18
-    heritage: Helm
-    release: my-nfs-subdir-external-provisioner
   name: nfs-external-nas
 mountOptions:
 - vers=4
@@ -73,14 +49,12 @@ mountOptions:
 - timeo=600
 - retrans=2
 - noresvport
-parameters:
-  archiveOnDelete: "true"
 provisioner: cluster.local/my-nfs-subdir-external-provisioner
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 ```
 
-### 1. create [PersistentVolume]() (pv)
+### create [PersistentVolume]() (pv)
 ```yaml
 ---
 apiVersion: "v1"
@@ -98,17 +72,9 @@ spec:
   persistentVolumeReclaimPolicy: "Delete"
   local:
     path: "/mnt/flink-job"
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: "kubernetes.io/hostname"
-          operator: "In"
-          values:
-          - "cs-cluster-control-plane"
 ```
 
-### 2. create [PersistentVolumeClaim]() (pvc)
+### create [PersistentVolumeClaim]() (pvc)
 ```yaml
 ---
 apiVersion: "v1"
@@ -132,7 +98,7 @@ status:
     storage: "50Gi"
 ```
 
-### 3. create ingress
+### create ingress
 ```yaml
 ---
 apiVersion: "networking.k8s.io/v1"
@@ -164,7 +130,7 @@ spec:
 
 ```
 
-### 4. create statefulSet (sts)
+### create statefulSet (sts)
 ```yaml
 ---
 apiVersion: "apps/v1"
@@ -187,18 +153,9 @@ spec:
       containers:
       - name: "nginx"
         image: "localhost/fpga-mock:1.0.3"
-        env:
-        - name: "FPGA_CLIENT_HOST_PREFIX"
-          value: "job-template-example-fpga-server-"
-        - name: "FPGA_CLIENT_PORT"
-          value: "1080"
-        - name: "RECORD_COUNT"
-          value: "-1"
-        - name: "RECORD_INTERVAL_MILLISECONDS"
-          value: "1000"
 ```
 
-### 5. create Service (svc)
+### create Service (svc)
 ```yaml
 apiVersion: v1
 kind: Service
@@ -221,7 +178,7 @@ spec:
   type: NodePort
 ```
 
-### 6. create Job(job)
+### create Job(job)
 ```yaml
 apiVersion: batch/v1
 kind: Job
@@ -287,20 +244,19 @@ spec:
                 path: datahub_access_token
 ```
 
-### 7. create Secret(secret)
-- create from literal
-```shell
-kubectl -n application create secret generic job-template-config-secret \
-    --from-literal="oss_endpoint=http://oss-cn-hangzhou-zjy-d01-a.ops.cloud.zhejianglab.com/" \
-    --from-literal="oss_access_key=${OSS_ACCESS_KEY}" \
-    --from-literal="oss_access_secret=${OSS_ACCESS_SECRET}" \
-    --from-literal="datahub_access_token=${DATAHUB_ACCESS_TOKEN}" \
-     -o yaml --dry-run=client \
-    | kubectl -n application apply -f -
-```
+### create Secret(secret)
 
-- create from file
-```yaml
+{{< tabs title="create from" >}}
+{{% tab title="literal" %}}
+```shell
+kubectl -n common-secrets create secret generic git-zhejianglab-credentials \
+    --from-literal="username=${GIT_USERNAME}" \
+    --from-literal="password=${GIT_PASSWORD}"
+```
+{{% /tab %}}
+{{% tab title="file" %}}
+```shell
+kubectl apply -n kserve-test -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -324,17 +280,25 @@ data:
       config:
         server: ${REST-SINK-URL:http://datahub-gms.application:8080}
         token: ${DATAHUB-ACCESS-TOKEN}
+EOF
 ```
+{{% /tab %}}
+{{% tab title="other" %}}
+```shell
+kubectl -n datahub get secret datahub-user-secret -o json \
+    | jq 'del(.metadata["namespace","creationTimestamp","resourceVersion","selfLink","uid"])' \
+    | kubectl -n data-and-computing apply -f -
+```
+{{% /tab %}}
+{{< /tabs >}}
 
-### 8. create Service Monitor (smon)
+
+### create Service Monitor (smon)
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    app.kubernetes.io/instance: api-server
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: nginx
     release: prometheus-stack
   name: api-server
   namespace: monitor

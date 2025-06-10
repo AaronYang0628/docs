@@ -121,16 +121,9 @@ ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINI
 4. and go!
 
 ### Useful Command
-#### download [kubectl binary](kubernetes/command/install/index.html)
-```shell
-MIRROR="files.m.daocloud.io/"
-VERSION=$(curl -L -s https://${MIRROR}dl.k8s.io/release/stable.txt)
-[ $(uname -m) = x86_64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl"
-[ $(uname -m) = aarch64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/arm64/kubectl"
-chmod u+x kubectl
-mkdir -p ${HOME}/bin
-mv -f kubectl ${HOME}/bin
-```
+
+#### download [kubectl binary](software/binary/k8s_realted/index.md#kubectl)
+
 {{< tabs groupid="devpod">}}
 {{% tab title="ack" %}}
 
@@ -147,16 +140,8 @@ when you in pod, and using **kubectl** you should change `clusters.cluster.serve
 
 
 
-#### download [Argocd binary]()
-```shell
-MIRROR="files.m.daocloud.io/"
-VERSION=v2.9.3
-[ $(uname -m) = x86_64 ] && curl -sSLo argocd "https://${MIRROR}github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-amd64"
-[ $(uname -m) = aarch64 ] && curl -sSLo argocd "https://${MIRROR}github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-arm64"
-chmod u+x argocd
-mkdir -p ${HOME}/bin
-mv -f argocd ${HOME}/bin
-```
+#### download [Argocd binary](software/binary/k8s_realted/index.md#argocd)
+
 
 #### exec into devpod
 ```shell
