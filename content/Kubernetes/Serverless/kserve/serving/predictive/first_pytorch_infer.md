@@ -4,7 +4,7 @@ date = 2024-03-07T15:00:59+08:00
 weight = 3
 +++
 
-### Iris Inference
+### Mnist Inference
 
 > More Information about `mnist` service can be found 🔗[link](https://github.com/pytorch/examples/tree/main/mnist)
 
