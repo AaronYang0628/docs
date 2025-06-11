@@ -1,7 +1,7 @@
 +++
 title = 'Resource Template'
 date = 2024-03-08T11:16:18+08:00
-weight = 5
+weight = 3
 +++
 
 
