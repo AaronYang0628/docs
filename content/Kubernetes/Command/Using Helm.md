@@ -1,6 +1,7 @@
 +++
-title = 'Using Helm Chart'
+title = 'Helm Chart CheatSheet'
 date = 2024-03-07T15:00:59+08:00
+weight = 2
 +++
 
 ### 'helm search': Finding Charts

@@ -2,63 +2,103 @@
 tags = ["Kafka"]
 title = 'Install Kafka'
 date = 2024-03-07T15:00:59+08:00
-weight = 20
+weight = 5
 +++
 
-## Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](argo/argo-cd/argocd/index.html)
 
-## Steps
+### Installation
 
-### 1. prepare deploy-kafka.yaml
-{{< tabs groupid="kafka">}}
-  {{% tab title="ArgoCD" %}}
-- create file `deploy-kafka-in-argocd.yaml` with content below
-```yaml
+{{< tabs groupid="prometheus" style="primary" title="Install By" icon="thumbtack" >}}
 
-```
-  {{% /tab  %}}
+{{< tab title="Helm" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
-  {{% tab title="helm"%}}
-- create file `deploy-kafka-in-helm.yaml` with content below
-```yaml
+{{< /tab >}}
 
-```
-  {{% /tab %}}
+{{< tab title="ArgoCD" style="transparent">}}
+  <p> <b>Preliminary </b></p>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
-  {{% tab title="docker"%}}
-- create file `deploy-kafka-in-docker.yaml` with content below
-```yaml
 
-```
-  {{% /tab %}}
+
+{{< /tab >}}
+
+
+{{< tab title="Docker Compose" style="default" >}}
+  <p> <b>Preliminary </b></p>
+  1. Docker has installed, if not check 🔗<a href="docs/software/container/docker/index.html" target="_blank">link</a> </p></br>
+   
+
+  {{% notice style="important" title="Using Proxy" %}} 
+  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
+  {{% /notice %}}
+
+  <p> <b>1.init server </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.check dashboard </b></p>
+  And then you can visit 🔗<a href="http://localhost:18123" target="_blank">http://localhost:18123</a>
+
+  <p> <b>3.use cli api </b></p>
+  And then you can visit 🔗<a href="http://localhost:19000" target="_blank">http://localhost:19000</a>
+  {{% notice style="transparent" %}}
+  ```bash
+
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.use visual client </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
+
 {{< /tabs >}}
 
 
-### 2. deploy
-{{< tabs groupid="kafka">}}
-  {{% tab title="ArgoCD" %}}
-then you can apply it to k8s
-```shell
-kubectl -n argocd apply -f deploy-kafka-in-argocd.yaml
+
+### FAQ
+
+{{% expand title="Q1: Show me almost **endless** possibilities" %}}
+You can add standard markdown syntax:
+
+- multiple paragraphs
+- bullet point lists
+- _emphasized_, **bold** and even **_bold emphasized_** text
+- [links](https://example.com)
+- etc.
+
+```plaintext
+...and even source code
 ```
 
-and sync it by argocd
-```shell
-argocd app sync argocd/kafka
+> the possibilities are endless (almost - including other shortcodes may or may not work)
+{{% /expand %}}
+
+
+{{% expand title="Q2: Show me almost **endless** possibilities" %}}
+You can add standard markdown syntax:
+
+- multiple paragraphs
+- bullet point lists
+- _emphasized_, **bold** and even **_bold emphasized_** text
+- [links](https://example.com)
+- etc.
+
+```plaintext
+...and even source code
 ```
-  {{% /tab  %}}
 
-  {{% tab title="helm"%}}
-```yaml
-
-```
-  {{% /tab %}}
-
-  {{% tab title="docker"%}}
-```yaml
-
-```
-  {{% /tab %}}
-{{< /tabs >}}
+> the possibilities are endless (almost - including other shortcodes may or may not work)
+{{% /expand %}}
