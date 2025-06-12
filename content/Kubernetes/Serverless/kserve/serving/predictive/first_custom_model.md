@@ -98,7 +98,14 @@ if __name__ == "__main__":
     ModelServer().start([model])
 {{< /highlight >}}
 
-2. create `Dockerfile`
+2. create `requirements.txt`
+```text
+kserve
+torchvision==0.18.0
+pillow>=10.3.0,<11.0.0
+```
+
+3. create `Dockerfile`
   
 {{< highlight type="dockerfile" >}}
 FROM m.daocloud.io/docker.io/library/python:3.11-slim
@@ -113,19 +120,19 @@ COPY model.py .
 CMD ["python", "model.py", "--model_name=custom-model"]
 {{< /highlight >}}
 
-3. build and push custom docker image
+4. build and push custom docker image
 ```bash
 docker build -t ay-custom-model .
 docker tag ddfd0186813e docker-registry.lab.zverse.space/ay/ay-custom-model:latest
 docker push docker-registry.lab.zverse.space/ay/ay-custom-model:latest
 ```
 
-4. create a namespace
+5. create a namespace
 ```bash
 kubectl create namespace kserve-test
 ```
 
-5.  deploy a sample `iris` service
+6.  deploy a sample `custom-model` service
 ```bash
 kubectl apply -n kserve-test -f - <<EOF
 apiVersion: serving.kserve.io/v1beta1
@@ -140,7 +147,7 @@ spec:
 EOF
 ```
 
-6. Check `InferenceService` status
+7. Check `InferenceService` status
 ```shell
 kubectl -n kserve-test get inferenceservices ay-custom-model
 ```
@@ -206,7 +213,7 @@ After all pods are ready, you can access the service by using the following comm
 {{< /tabs >}}
 
 
-7. Perform a prediction
+8. Perform a prediction
   
 First, prepare your inference input request inside a file:
 ```shell
@@ -221,7 +228,7 @@ ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L "*:${INGRES
 
 {{% /notice %}}
 
-1. Invoke the service
+9. Invoke the service
 ```shell
 export SERVICE_HOSTNAME=$(kubectl -n kserve-test get inferenceservice ay-custom-model  -o jsonpath='{.status.url}' | cut -d "/" -f 3)
 # http://ay-custom-model.kserve-test.example.com
