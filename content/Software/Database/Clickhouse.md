@@ -21,9 +21,223 @@ weight = 3
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
 
+  <p> <b>1.prepare admin credentials secret</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic clickhouse-admin-credentials \
+      --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.prepare `deploy-clickhouse.yaml` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: clickhouse
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://charts.bitnami.com/bitnami
+      chart: clickhouse
+      targetRevision: 4.5.1
+      helm:
+        releaseName: clickhouse
+        values: |
+          serviceAccount:
+            name: clickhouse
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+          volumePermissions:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+              pullPolicy: IfNotPresent
+          zookeeper:
+            enabled: true
+            image:
+              registry: m.daocloud.io/docker.io
+              pullPolicy: IfNotPresent
+            replicaCount: 3
+            persistence:
+              enabled: true
+              storageClass: nfs-external
+              size: 8Gi
+            volumePermissions:
+              enabled: false
+              image:
+                registry: m.daocloud.io/docker.io
+                pullPolicy: IfNotPresent
+          shards: 2
+          replicaCount: 3
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+            hostname: clickhouse.dev.geekcity.tech
+            ingressClassName: nginx
+            path: /?(.*)
+            tls: true
+          persistence:
+            enabled: false
+          resources:
+            requests:
+              cpu: 2
+              memory: 512Mi
+            limits:
+              cpu: 3
+              memory: 1024Mi
+          auth:
+            username: admin
+            existingSecret: clickhouse-admin-credentials
+            existingSecretKey: password
+          metrics:
+            enabled: true
+            image:
+              registry: m.daocloud.io/docker.io
+              pullPolicy: IfNotPresent
+            serviceMonitor:
+              enabled: true
+              namespace: monitor
+              jobLabel: clickhouse
+              selector:
+                app.kubernetes.io/name: clickhouse
+                app.kubernetes.io/instance: clickhouse
+              labels:
+                release: prometheus-stack
+          extraDeploy:
+            - |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: clickhouse-tool
+                namespace: database
+                labels:
+                  app.kubernetes.io/name: clickhouse-tool
+              spec:
+                replicas: 1
+                selector:
+                  matchLabels:
+                    app.kubernetes.io/name: clickhouse-tool
+                template:
+                  metadata:
+                    labels:
+                      app.kubernetes.io/name: clickhouse-tool
+                  spec:
+                    containers:
+                      - name: clickhouse-tool
+                        image: m.daocloud.io/docker.io/clickhouse/clickhouse-server:23.11.5.29-alpine
+                        imagePullPolicy: IfNotPresent
+                        env:
+                          - name: CLICKHOUSE_USER
+                            value: admin
+                          - name: CLICKHOUSE_PASSWORD
+                            valueFrom:
+                              secretKeyRef:
+                                key: password
+                                name: clickhouse-admin-credentials
+                          - name: CLICKHOUSE_HOST
+                            value: csst-clickhouse.csst
+                          - name: CLICKHOUSE_PORT
+                            value: "9000"
+                          - name: TZ
+                            value: Asia/Shanghai
+                        command:
+                          - tail
+                        args:
+                          - -f
+                          - /etc/hosts
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: database
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>3.deploy clickhouse </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n argocd apply -f deploy-clickhouse.yaml
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.sync by argocd </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/clickhouse
+  ```
+  {{% /notice %}}
+
+  <p> <b>5.prepare `clickhouse-interface.yaml` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: clickhouse
+      app.kubernetes.io/instance: clickhouse
+    name: clickhouse-interface
+  spec:
+    ports:
+    - name: http
+      port: 8123
+      protocol: TCP
+      targetPort: http
+      nodePort: 31567
+    - name: tcp
+      port: 9000
+      protocol: TCP
+      targetPort: tcp
+      nodePort: 32005
+    selector:
+      app.kubernetes.io/component: clickhouse
+      app.kubernetes.io/instance: clickhouse
+      app.kubernetes.io/name: clickhouse
+    type: NodePort
+  ```
+  {{% /notice %}}
+
+  <p> <b>6.apply to k8s </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database apply -f clickhouse-interface.yaml
+  ```
+  {{% /notice %}}
+
+  <p> <b>7.extract clickhouse admin credentials  </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
+  ```
+  {{% /notice %}}
+
+  <p> <b>8.invoke http api  </b></p>
+
+  {{% notice style="transparent" %}}
+  ```text
+  add `$K8S_MASTER_IP clickhouse.dev.geekcity.tech` to **/etc/hosts**
+  ```
+  ```shell
+  CK_PASS=$(kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d)
+  echo 'SELECT version()' | curl -k "https://admin:${CK_PASS}@clickhouse.dev.geekcity.tech:32443/" --data-binary @-
+  ```
+  {{% /notice %}}
 
 {{< /tab >}}
 

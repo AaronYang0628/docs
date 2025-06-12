@@ -21,8 +21,93 @@ weight = 90
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
+  <p> <b>1.prepare mariadb credentials secret </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic mariadb-credentials \
+      --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.prepare `deploy-mariadb.yaml` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: mariadb
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://charts.bitnami.com/bitnami
+      chart: mariadb
+      targetRevision: 16.3.2
+      helm:
+        releaseName: mariadb
+        values: |
+          architecture: standalone
+          auth:
+            database: test-mariadb
+            username: aaron.yang
+            existingSecret: mariadb-credentials
+          primary:
+            extraFlags: "--character-set-server=utf8mb4 --collation-server=utf8mb4_bin"
+            persistence:
+              enabled: false
+          secondary:
+            replicaCount: 1
+            persistence:
+              enabled: false
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+          volumePermissions:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+              pullPolicy: IfNotPresent
+          metrics:
+            enabled: false
+            image:
+              registry: m.daocloud.io/docker.io
+              pullPolicy: IfNotPresent
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: database
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>3.deploy mariadb </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n argocd apply -f deploy-mariadb.yaml
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.sync by argocd </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/mariadb
+  ```
+  {{% /notice %}}
+
+  <p> <b>5.check mariadb </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
+  ```
+  {{% /notice %}}
 
 
 {{< /tab >}}
