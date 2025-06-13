@@ -5,10 +5,10 @@ weight = 1
 +++
 
 ### Preliminary
-- Kubernets has installed, if not [check 🔗link](kubernetes/command/install/index.html)
-  
-> [!TIP]
-> Helm binary has installed, if not [check 🔗link](/kubernetes/helm/helm_chart/index.html)
+- Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
+- Helm binary has installed, if not check 🔗[link](software/binary/helm/index.html)
+
+
 
 ### 1. install argoCD binary
 
@@ -18,7 +18,7 @@ weight = 1
 
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
 {{< tab title="Helm" >}}
-  <a><b>1. Prepare argocd.values.yaml</b></a> <br/>
+  <b>1. Prepare argocd.values.yaml</b><br/>
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="`argocd.values.yaml`" %}}
     crds:
@@ -59,7 +59,7 @@ weight = 1
     {{% /tab%}}
   {{< /tabs >}}
 
-  <a><b>2. Install argoCD </b></a><br/>
+  <b>2. Install argoCD </b><br/>
 
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="shell" %}}
