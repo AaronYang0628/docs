@@ -1,7 +1,8 @@
 +++
-title = 'Install Neo4j'
-date = 2024-03-07T15:00:59+08:00
-weight = 5
+tags = ["Template"]
+title = 'Template'
+date = 2024-06-07T15:00:59+08:00
+draft = true
 +++
 
 
@@ -111,21 +112,9 @@ weight = 5
 
   {{% notice style="transparent" %}}
   ```bash
-  mkdir -p neo4j/data
-  podman run --rm \
-      --name neo4j \
-      -p 7474:7474 \
-      -p 7687:7687 \
-      -e neo4j_ROOT_PASSWORD=mysql \
-      -v $(pwd)/neo4j/data:/data \
-      -d docker.io/library/neo4j:5.18.0-community-bullseye
+
   ```
   {{% /notice %}}
-
-  and then you can visit 🔗<a href="/docs/software/container/index.html" target="_blank">[http://localhost:7474]</a> </p></br>
-
-  username: `root` </br>
-  password: `mysql` </br>
 
 {{< /tab >}}
 
@@ -273,5 +262,3 @@ You can add standard markdown syntax:
 
 > the possibilities are endless (almost - including other shortcodes may or may not work)
 {{% /expand %}}
-
-

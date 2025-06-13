@@ -298,6 +298,373 @@ weight = 3
 
 {{< /tab >}}
 
+
+{{< tab title="Argo Workflow" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. Argo Workflow has installed, if not check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
+
+
+  <p> <b>1.prepare `argocd-login-credentials` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic mariadb-credentials \
+      --from-literal=mariadb-root-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=mariadb-replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=mariadb-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>2.apply rolebinding to k8s </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl apply -f - <<EOF
+  ---
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: application-administrator
+  rules:
+    - apiGroups:
+        - argoproj.io
+      resources:
+        - applications
+      verbs:
+        - '*'
+    - apiGroups:
+        - apps
+      resources:
+        - deployments
+      verbs:
+        - '*'
+
+  ---
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: application-administration
+    namespace: argocd
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: application-administrator
+  subjects:
+    - kind: ServiceAccount
+      name: argo-workflow
+      namespace: business-workflows
+
+  ---
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: application-administration
+    namespace: application
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: application-administrator
+  subjects:
+    - kind: ServiceAccount
+      name: argo-workflow
+      namespace: business-workflows
+  EOF
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>4.prepare clickhouse admin credentials secret </b></p> 
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespace application > /dev/null 2>&1 || kubectl create namespace application
+  kubectl -n application create secret generic clickhouse-admin-credentials \
+    --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+  <p> <b>5.prepare deploy-clickhouse-flow.yaml </b></p> 
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  apiVersion: argoproj.io/v1alpha1
+  kind: Workflow
+  metadata:
+    generateName: deploy-argocd-app-ck-
+  spec:
+    entrypoint: entry
+    artifactRepositoryRef:
+      configmap: artifact-repositories
+      key: default-artifact-repository
+    serviceAccountName: argo-workflow
+    templates:
+    - name: entry
+      inputs:
+        parameters:
+        - name: argocd-server
+          value: argo-cd-argocd-server.argocd:443
+        - name: insecure-option
+          value: --insecure
+      dag:
+        tasks:
+        - name: apply
+          template: apply
+        - name: prepare-argocd-binary
+          template: prepare-argocd-binary
+          dependencies:
+          - apply
+        - name: sync
+          dependencies:
+          - prepare-argocd-binary
+          template: sync
+          arguments:
+            artifacts:
+            - name: argocd-binary
+              from: "{{tasks.prepare-argocd-binary.outputs.artifacts.argocd-binary}}"
+            parameters:
+            - name: argocd-server
+              value: "{{inputs.parameters.argocd-server}}"
+            - name: insecure-option
+              value: "{{inputs.parameters.insecure-option}}"
+        - name: wait
+          dependencies:
+          - sync
+          template: wait
+          arguments:
+            artifacts:
+            - name: argocd-binary
+              from: "{{tasks.prepare-argocd-binary.outputs.artifacts.argocd-binary}}"
+            parameters:
+            - name: argocd-server
+              value: "{{inputs.parameters.argocd-server}}"
+            - name: insecure-option
+              value: "{{inputs.parameters.insecure-option}}"
+    - name: apply
+      resource:
+        action: apply
+        manifest: |
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: app-clickhouse
+            namespace: argocd
+          spec:
+            syncPolicy:
+              syncOptions:
+              - CreateNamespace=true
+            project: default
+            source:
+              repoURL: https://charts.bitnami.com/bitnami
+              chart: clickhouse
+              targetRevision: 4.5.3
+              helm:
+                releaseName: app-clickhouse
+                values: |
+                  image:
+                    registry: docker.io
+                    repository: bitnami/clickhouse
+                    tag: 23.12.3-debian-11-r0
+                    pullPolicy: IfNotPresent
+                  service:
+                    type: ClusterIP
+                  volumePermissions:
+                    enabled: false
+                    image:
+                      registry: m.daocloud.io/docker.io
+                      pullPolicy: IfNotPresent
+                  ingress:
+                    enabled: true
+                    ingressClassName: nginx
+                    annotations:
+                      cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                      nginx.ingress.kubernetes.io/rewrite-target: /$1
+                    path: /?(.*)
+                    hostname: clickhouse.dev.geekcity.tech
+                    tls: true
+                  shards: 2
+                  replicaCount: 3
+                  persistence:
+                    enabled: false
+                  auth:
+                    username: admin
+                    existingSecret: clickhouse-admin-credentials
+                    existingSecretKey: password
+                  zookeeper:
+                    enabled: true
+                    image:
+                      registry: m.daocloud.io/docker.io
+                      repository: bitnami/zookeeper
+                      tag: 3.8.3-debian-11-r8
+                      pullPolicy: IfNotPresent
+                    replicaCount: 3
+                    persistence:
+                      enabled: false
+                    volumePermissions:
+                      enabled: false
+                      image:
+                        registry: m.daocloud.io/docker.io
+                        pullPolicy: IfNotPresent
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: application
+    - name: prepare-argocd-binary
+      inputs:
+        artifacts:
+        - name: argocd-binary
+          path: /tmp/argocd
+          mode: 755
+          http:
+            url: https://files.m.daocloud.io/github.com/argoproj/argo-cd/releases/download/v2.9.3/argocd-linux-amd64
+      outputs:
+        artifacts:
+        - name: argocd-binary
+          path: "{{inputs.artifacts.argocd-binary.path}}"
+      container:
+        image: m.daocloud.io/docker.io/library/fedora:39
+        command:
+        - sh
+        - -c
+        args:
+        - |
+          ls -l {{inputs.artifacts.argocd-binary.path}}
+    - name: sync
+      inputs:
+        artifacts:
+        - name: argocd-binary
+          path: /usr/local/bin/argocd
+        parameters:
+        - name: argocd-server
+        - name: insecure-option
+          value: ""
+      container:
+        image: m.daocloud.io/docker.io/library/fedora:39
+        env:
+        - name: ARGOCD_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: argocd-login-credentials
+              key: username
+        - name: ARGOCD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: argocd-login-credentials
+              key: password
+        - name: WITH_PRUNE_OPTION
+          value: --prune
+        command:
+        - sh
+        - -c
+        args:
+        - |
+          set -e
+          export ARGOCD_SERVER={{inputs.parameters.argocd-server}}
+          export INSECURE_OPTION={{inputs.parameters.insecure-option}}
+          export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
+          argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
+          argocd app sync argocd/app-clickhouse ${WITH_PRUNE_OPTION} --timeout 300
+    - name: wait
+      inputs:
+        artifacts:
+        - name: argocd-binary
+          path: /usr/local/bin/argocd
+        parameters:
+        - name: argocd-server
+        - name: insecure-option
+          value: ""
+      container:
+        image: m.daocloud.io/docker.io/library/fedora:39
+        env:
+        - name: ARGOCD_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: argocd-login-credentials
+              key: username
+        - name: ARGOCD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: argocd-login-credentials
+              key: password
+        command:
+        - sh
+        - -c
+        args:
+        - |
+          set -e
+          export ARGOCD_SERVER={{inputs.parameters.argocd-server}}
+          export INSECURE_OPTION={{inputs.parameters.insecure-option}}
+          export ARGOCD_USERNAME=${ARGOCD_USERNAME:-admin}
+          argocd login ${INSECURE_OPTION} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} ${ARGOCD_SERVER}
+          argocd app wait argocd/app-clickhouse
+  ```
+  {{% /notice %}}
+
+  <p> <b>6.subimit to argo workflow client </b></p> 
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argo -n business-workflows submit deploy-clickhouse-flow.yaml
+  ```
+  {{% /notice %}}
+
+  <p> <b>7.extract clickhouse admin credentials  </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d
+  ```
+  {{% /notice %}}
+
+  <p> <b>8.invoke http api  </b></p>
+
+  {{% notice style="transparent" %}}
+  ```text
+  add `$K8S_MASTER_IP clickhouse.dev.geekcity.tech` to **/etc/hosts**
+  ```
+  ```shell
+  CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) && echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.geekcity.tech/" --data-binary @-
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>9.create external interface </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application apply -f - <<EOF
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: clickhouse
+      app.kubernetes.io/instance: app-clickhouse
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: clickhouse
+      app.kubernetes.io/version: 23.12.2
+      argocd.argoproj.io/instance: app-clickhouse
+      helm.sh/chart: clickhouse-4.5.3
+    name: app-clickhouse-service-external
+  spec:
+    ports:
+    - name: tcp
+      port: 9000
+      protocol: TCP
+      targetPort: tcp
+      nodePort: 30900
+    selector:
+      app.kubernetes.io/component: clickhouse
+      app.kubernetes.io/instance: app-clickhouse
+      app.kubernetes.io/name: clickhouse
+    type: NodePort
+  EOF
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
+
 {{< /tabs >}}
 
 

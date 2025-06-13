@@ -1,5 +1,5 @@
 +++
-title = 'Prepare Cluster'
+title = 'Prepare k8s Cluster'
 date = 2024-03-07T15:00:59+08:00
 weight = 1
 +++
@@ -41,6 +41,8 @@ kind create cluster --name test
 ```
 and the you can visit [https://kind.sigs.k8s.io/docs/user/quick-start/](https://kind.sigs.k8s.io/docs/user/quick-start/) for mode detail.
 {{% /tab %}}
+
+
 {{% tab title="minkube" %}}
 ```shell
 MIRROR="files.m.daocloud.io/"
@@ -67,6 +69,12 @@ alias kubectl="minikube kubectl --"
 and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
 
 {{% /tab %}}
+
+{{% tab title="k3s" %}}
+
+
+{{% /tab %}}
+
 {{% tab title="normal" %}}
 #### Prerequisites
 - Hardware Requirements:

@@ -37,7 +37,7 @@ rm -rf ./${ARCH_IN_FILE_NAME}
 chmod u+x ${HOME}/bin/helm
 ```
 
-## ArgoCD
+## argoCD
 ```shell
 MIRROR="files.m.daocloud.io/"
 VERSION=v2.9.3
