@@ -24,7 +24,69 @@ weight = 1
   2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
+  <p> <b>1.prepare `nfs-provisioner.yaml` </b></p> 
 
+  {{% notice style="transparent" %}}
+  ```yaml
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: nfs-provisioner
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+      chart: nfs-subdir-external-provisioner
+      targetRevision: 4.0.18
+      helm:
+        releaseName: nfs-provisioner
+        values: |
+          image:
+            repository: m.daocloud.io/registry.k8s.io/sig-storage/nfs-subdir-external-provisioner
+            pullPolicy: IfNotPresent
+          nfs:
+            server: nfs.services.test
+            path: /
+            mountOptions:
+              - vers=4
+              - minorversion=0
+              - rsize=1048576
+              - wsize=1048576
+              - hard
+              - timeo=600
+              - retrans=2
+              - noresvport
+            volumeName: nfs-subdir-external-provisioner-nas
+            reclaimPolicy: Retain
+          storageClass:
+            create: true
+            defaultClass: true
+            name: nfs-external-nas
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: storage
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>3.deploy mariadb </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n argocd apply -f nfs-provisioner.yaml
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.sync by argocd </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/nfs-provisioner
+  ```
+  {{% /notice %}}
 
 {{< /tab >}}
 
