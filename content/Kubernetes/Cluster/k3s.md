@@ -1,11 +1,13 @@
 +++
-title = 'Minikube'
+title = 'K3s'
 date = 2024-03-07T15:00:59+08:00
 weight = 1
 +++
 
 ### Preliminary
 - Minikube has installed, if not [check link](kubernetes/command/install/index.html)
+
+
 
 
 #### [[Optional]]() disable aegis service and reboot system for `Aliyun`

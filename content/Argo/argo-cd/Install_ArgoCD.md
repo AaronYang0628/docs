@@ -11,15 +11,8 @@ weight = 1
 > Helm binary has installed, if not [check 🔗link](/kubernetes/helm/helm_chart/index.html)
 
 ### 1. install argoCD binary
-```shell
-MIRROR="files.m.daocloud.io/"
-VERSION=v2.9.3
-[ $(uname -m) = x86_64 ] && curl -sSLo argocd "https://${MIRROR}github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-amd64"
-[ $(uname -m) = aarch64 ] && curl -sSLo argocd "https://${MIRROR}github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-arm64"
-chmod u+x argocd
-mkdir -p ${HOME}/bin
-mv -f argocd ${HOME}/bin
-```
+
+{{% include file="Content\Software\Binary\argocd.md" %}}
 
 ### 2. install components
 

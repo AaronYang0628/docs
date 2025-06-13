@@ -105,11 +105,10 @@ weight = 1
 
   {{% /notice %}}
 
-
   {{% notice style="tip" title="Check Knative Hello World" icon="check" expanded="false"%}}
 
   asdasda
-  <!-- {{% include file="Software/Binary/app_realted.md" %}} -->
+
   https://knative.dev/docs/install/yaml-install/serving/install-serving-with-yaml/#configure-dns
 
   {{% /notice %}}

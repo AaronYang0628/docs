@@ -1,67 +1,78 @@
 +++
 title = 'Prepare k8s Cluster'
-date = 2024-03-07T15:00:59+08:00
+date = 2025-03-07T15:00:59+08:00
 weight = 1
 +++
 
+Init K8s Cluster you can choose one of the following methods.
 {{%children depth="999" description="false" showhidden="true" %}}
 
 
-
-There are many ways to build a kubernetes cluster.
-
 ### Install Kuberctl
-```shell
-MIRROR="files.m.daocloud.io/"
-VERSION=$(curl -L -s https://${MIRROR}dl.k8s.io/release/stable.txt)
-[ $(uname -m) = x86_64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl"
-[ $(uname -m) = aarch64 ] && curl -sSLo kubectl "https://${MIRROR}dl.k8s.io/release/${VERSION}/bin/linux/arm64/kubectl"
-chmod u+x kubectl
-mkdir -p ${HOME}/bin
-mv -f kubectl ${HOME}/bin
-```
 
+{{% include file="Content\Software\Binary\kubectl.md" %}}
 
 ### Build Cluster
 
-{{< tabs groupid="install" >}}
+{{< tabs title="Install By" icon="thumbtack"  groupid="install" >}}
 {{% tab title="kind" %}}
-```shell
-MIRROR="files.m.daocloud.io/"
-VERSION=v0.20.0
-[ $(uname -m) = x86_64 ] && curl -sSLo kind "https://${MIRROR}github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-amd64"
-[ $(uname -m) = aarch64 ] && curl -sSLo kind "https://${MIRROR}github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-arm64"
-chmod u+x kind
-mkdir -p ${HOME}/bin
-mv -f kind ${HOME}/bin
-```
+#### Prerequisites
+- Hardware Requirements:
+
+    1. At least 2 GB of RAM per machine (minimum 1 GB)
+    2. 2 CPUs on the master node
+    3. Full network connectivity among all machines (public or private network)
+
+- Operating System:
+    1. Ubuntu 20.04/18.04, CentOS 7/8, or any other supported Linux distribution.
+
+- Network Requirements:
+    1. Unique hostname, MAC address, and product_uuid for each node.
+    2. Certain ports need to be open (e.g., 6443, 2379-2380, 10250, 10251, 10252, 10255, etc.)
+
+
+#### Install
+{{% include file="Content\Software\Binary\kind.md" %}}
+
 Creating a Kubernetes cluster is as simple as `kind create cluster`
 ```shell
 kind create cluster --name test
 ```
+
+#### Reference
 and the you can visit [https://kind.sigs.k8s.io/docs/user/quick-start/](https://kind.sigs.k8s.io/docs/user/quick-start/) for mode detail.
 {{% /tab %}}
 
 
 {{% tab title="minkube" %}}
-```shell
-MIRROR="files.m.daocloud.io/"
-[ $(uname -m) = x86_64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
-[ $(uname -m) = aarch64 ] && curl -sSLo minikube "https://${MIRROR}storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64"
-chmod u+x minikube
-mkdir -p ${HOME}/bin
-mv -f minikube ${HOME}/bin
-```
-[[Optional]]() disable aegis service and reboot system for aliyun
+#### Prerequisites
+- Hardware Requirements:
+
+    1. At least 2 GB of RAM per machine (minimum 1 GB)
+    2. 2 CPUs on the master node
+    3. Full network connectivity among all machines (public or private network)
+
+- Operating System:
+    1. Ubuntu 20.04/18.04, CentOS 7/8, or any other supported Linux distribution.
+
+- Network Requirements:
+    1. Unique hostname, MAC address, and product_uuid for each node.
+    2. Certain ports need to be open (e.g., 6443, 2379-2380, 10250, 10251, 10252, 10255, etc.)
+
+#### Install
+{{% include file="Content\Software\Binary\minikube.md" %}}
+
+- [[Optional]]() disable aegis service and reboot system for aliyun
 ```shell
 sudo systemctl disable aegis && sudo reboot
 ```
 
 after you download binary, you can start your cluster
 ```shell
-minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
+minikube start --kubernetes-version=v1.33.0 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
 ```
 
+#### Tips
 add alias for convinence
 ```shell
 alias kubectl="minikube kubectl --"
@@ -71,7 +82,24 @@ and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://miniku
 {{% /tab %}}
 
 {{% tab title="k3s" %}}
+#### Prerequisites
+- [Hardware Requirements](https://docs.k3s.io/installation/requirements?os=debian#hardware):
 
+    1. Server need to have at least 2 cores, 2 GB RAM
+    2. Agent need 1 core , 512 MB RAM
+
+- Operating System:
+    1. K3s is expected to work on most modern Linux systems.
+
+- Network Requirements:
+    1. The K3s server needs port 6443 to be accessible by all nodes.
+    2. If you wish to utilize the metrics server, all nodes must be accessible to each other on port 10250.
+
+
+#### Install
+
+#### Reference
+https://docs.k3s.io/quick-start
 
 {{% /tab %}}
 
