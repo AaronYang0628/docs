@@ -42,11 +42,13 @@ weight = 2
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `cert-manager.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
+  kubectl -n argocd apply -f - << EOF
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
@@ -86,14 +88,7 @@ weight = 2
     destination:
       server: https://kubernetes.default.svc
       namespace: basic-components
-  ```
-  {{% /notice %}}
-
-  <p> <b>2.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f cert-manager.yaml
+  EOF
   ```
   {{% /notice %}}
 
@@ -109,6 +104,7 @@ weight = 2
 
   {{% notice style="transparent" %}}
   ```yaml
+  kubectl apply  -f - <<EOF
   ---
   apiVersion: cert-manager.io/v1
   kind: Issuer
@@ -144,16 +140,10 @@ weight = 2
   spec:
     ca:
       secretName: root-secret
+  EOF
   ```
   {{% /notice %}}
 
-  <p> <b>5.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f self-signed.yaml
-  ```
-  {{% /notice %}}
 
 {{< /tab >}}
 

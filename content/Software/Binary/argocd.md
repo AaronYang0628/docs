@@ -12,3 +12,10 @@ chmod u+x argocd
 mkdir -p ${HOME}/bin
 mv -f argocd ${HOME}/bin
 ```
+[[Optional]]() add to PATH
+```shell
+cat >> ~/.bashrc  << EOF
+export PATH=$PATH:/root/bin
+EOF
+source ~/.bashrc
+```
