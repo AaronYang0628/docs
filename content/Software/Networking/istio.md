@@ -61,17 +61,17 @@ weight = 1
     source:
       repoURL: https://istio-release.storage.googleapis.com/charts
       chart: base
-      targetRevision: 1.26.1
+      targetRevision: 1.23.2
       helm:
-        releaseName: cert-manager
+        releaseName: istio-base
         values: |
-          global:
-            istioNamespace: istio-system
-          base:
-            excludedCRDs: []
-            enableCRDTemplates: true
-            enableIstioConfigCRDs: true
-          defaultRevision: "default"
+          defaults:
+            global:
+              istioNamespace: istio-system
+            base:
+              enableCRDTemplates: false
+              enableIstioConfigCRDs: true
+            defaultRevision: "default"
     destination:
       server: https://kubernetes.default.svc
       namespace: istio-system
@@ -79,7 +79,7 @@ weight = 1
   ```
   {{% /notice %}}
 
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>2.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -87,7 +87,7 @@ weight = 1
   ```
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-istio-istiod.yaml` </p>
+  <p> <b>3.prepare</b> `deploy-istiod.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -95,7 +95,7 @@ weight = 1
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
-    name: istio-base
+    name: istiod
   spec:
     syncPolicy:
       syncOptions:
@@ -104,17 +104,40 @@ weight = 1
     source:
       repoURL: https://istio-release.storage.googleapis.com/charts
       chart: istiod
-      targetRevision: 1.26.1
+      targetRevision: 1.23.2
       helm:
-        releaseName: cert-manager
+        releaseName: istiod
         values: |
-          global:
-            istioNamespace: istio-system
-          base:
-            excludedCRDs: []
-            enableCRDTemplates: true
-            enableIstioConfigCRDs: true
-          defaultRevision: "default"
+          defaults:
+            global:
+              istioNamespace: istio-system
+              defaultResources:
+                requests:
+                  cpu: 10m
+                  memory: 128Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+              hub: m.daocloud.io/docker.io/istio
+              proxy:
+                autoInject: disabled
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 2000m
+                    memory: 1024Mi
+            pilot:
+              autoscaleEnabled: true
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 2048Mi
+              cpu:
+                targetAverageUtilization: 80
+              podAnnotations:
+                cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     destination:
       server: https://kubernetes.default.svc
       namespace: istio-system
@@ -122,52 +145,82 @@ weight = 1
   ```
   {{% /notice %}}
 
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>4.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/istio-base
+  argocd app sync argocd/istiod
   ```
   {{% /notice %}}
 
-  <p> <b>5.apply to k8s</b></p>
+  <p> <b>5.prepare</b> `deploy-istio-ingressgateway.yaml` </p>
 
   {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f xxxx.yaml
-  ```
-  {{% /notice %}}
-
-  <p> <b>6.apply xxxx.yaml directly</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f - <<EOF
-  
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: istio-ingressgateway
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://istio-release.storage.googleapis.com/charts
+      chart: gateway
+      targetRevision: 1.23.2
+      helm:
+        releaseName: gateway
+        values: |
+          defaults:
+            replicaCount: 1
+            podAnnotations:
+              inject.istio.io/templates: "gateway"
+              sidecar.istio.io/inject: "true"
+              cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 2000m
+                memory: 1024Mi
+            service:
+              type: ClusterIP
+              ports:
+              - name: status-port
+                port: 15021
+                protocol: TCP
+                targetPort: 15021
+              - name: http2
+                port: 80
+                protocol: TCP
+                targetPort: 80
+              - name: https
+                port: 443
+                protocol: TCP
+                targetPort: 443
+            autoscaling:
+              enabled: true
+              minReplicas: 1
+              maxReplicas: 5
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: istio-system
   EOF
   ```
   {{% /notice %}}
 
-{{< /tab >}}
-
-
-{{< tab title="Docker" style="transparent" >}}
- <p> <b>Preliminary </b></p>
-  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/software/container/index.html" target="_blank">link</a> </p></br>
-  
-
-  {{% notice style="important" title="Using Proxy" %}} 
-  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
-  {{% /notice %}}
-
-
-  <p> <b>1.init server </b></p> 
+  <p> <b>6.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-
+  argocd app sync argocd/istio-ingressgateway
   ```
   {{% /notice %}}
+
 
 {{< /tab >}}
 

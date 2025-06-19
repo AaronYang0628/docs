@@ -5,8 +5,8 @@ weight = 1
 +++
 
 ## Preliminary
-- v 1.30 + Kubernetes has installed, if not check 🔗[link](kubernetes/command/install/index.html)
-- Helm has installed, if not check 🔗[link](kubernetes/command/install/index.html)
+- v 1.30 + Kubernetes has installed, if not check 🔗[link](kubernetes/cluster/index.html)
+- Helm has installed, if not check 🔗[link](software/binary/helm/index.html)
 
 
 ### Installation
@@ -139,7 +139,7 @@ weight = 1
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd//index.html" target="_blank">link</a> </p></br>
   3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.install gateway API CRDs </b></p>
@@ -157,7 +157,260 @@ weight = 1
   following 🔗[link](/docs/software/application/cert_manager/index.html) to install cert manager
   {{% /notice %}}
 
-  <p> <b>3.install cert manager </b></p>
+  <p> <b>3.install istio system </b></p>
+
+  {{% notice style="important" title="Reference" %}} 
+  following 🔗[link](/docs/software/nerworking/istio/index.html) to install three istio components (istio-base, istiod, istio-ingressgateway)
+  {{% /notice %}}
+
+  <p> <b>4.install Knative Operator </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: knative-operator
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: knative-operator
+      targetRevision: v1.15.7
+      helm:
+        releaseName: knative-operator
+        values: |
+          knative_operator:
+            knative_operator:
+              image: m.daocloud.io/gcr.io/knative-releases/knative.dev/operator/cmd/operator
+              tag: v1.15.7
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+                limits:
+                  cpu: 1000m
+                  memory: 1000Mi
+            operator_webhook:
+              image: m.daocloud.io/gcr.io/knative-releases/knative.dev/operator/cmd/webhook
+              tag: v1.15.7
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+                limits:
+                  cpu: 500m
+                  memory: 500Mi
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: knative-serving
+  EOF
+  ```
+  {{% /notice %}}
+
+  <p> <b>5.sync by argocd</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/knative-operator
+  ```
+  {{% /notice %}}
+
+  <p> <b>6.install kserve serving CRD </b></p>
+
+
+  {{< highlight hl_lines="8 11"  type="yaml" >}}
+  kubectl apply -f - <<EOF
+  apiVersion: operator.knative.dev/v1beta1
+  kind: KnativeServing
+  metadata:
+    name: knative-serving
+    namespace: knative-serving
+  spec:
+    version: 1.15.2 # this is knative serving version
+    config:
+      domain:
+        example.com: ""
+  EOF
+  {{< /highlight >}}
+
+  {{% notice style="transparent" %}}
+  ```bash
+
+  ```
+  {{% /notice %}}
+
+  <p> <b>7.install kserve CRD </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: kserve-crd
+    annotations:
+      argocd.argoproj.io/sync-options: ServerSideApply=true
+      argocd.argoproj.io/compare-options: IgnoreExtraneous
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: kserve-crd
+      targetRevision: v0.15.2
+      helm:
+        releaseName: kserve-crd 
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kserve
+  EOF
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>8.sync by argocd</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/kserve-crd
+  ```
+  {{% /notice %}}
+
+  <p> <b>9.install kserve Controller </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: kserve
+    annotations:
+      argocd.argoproj.io/sync-options: ServerSideApply=true
+      argocd.argoproj.io/compare-options: IgnoreExtraneous
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: kserve
+      targetRevision: v0.15.2
+      helm:
+        releaseName: kserve
+        values: |
+          kserve:
+            agent:
+              image: m.daocloud.io/docker.io/kserve/agent
+            router:
+              image: m.daocloud.io/docker.io/kserve/router
+            storage:
+              image: m.daocloud.io/docker.io/kserve/storage-initializer
+              s3:
+                accessKeyIdName: AWS_ACCESS_KEY_ID
+                secretAccessKeyName: AWS_SECRET_ACCESS_KEY
+                endpoint: ""
+                region: ""
+                verifySSL: ""
+                useVirtualBucket: ""
+                useAnonymousCredential: ""
+            controller:
+              deploymentMode: "Serverless"
+              rbacProxyImage: m.daocloud.io/quay.io/brancz/kube-rbac-proxy:v0.18.0
+              rbacProxy:
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 300Mi
+                  requests:
+                    cpu: 100m
+                    memory: 300Mi
+              gateway:
+                domain: example.com
+              image: m.daocloud.io/docker.io/kserve/kserve-controller
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 300Mi
+                requests:
+                  cpu: 100m
+                  memory: 300Mi
+            servingruntime:
+              tensorflow:
+                image: tensorflow/serving
+                tag: 2.6.2
+              mlserver:
+                image: m.daocloud.io/docker.io/seldonio/mlserver
+                tag: 1.5.0
+              sklearnserver:
+                image: m.daocloud.io/docker.io/kserve/sklearnserver
+              xgbserver:
+                image: m.daocloud.io/docker.io/kserve/xgbserver
+              huggingfaceserver:
+                image: m.daocloud.io/docker.io/kserve/huggingfaceserver
+                devShm:
+                  enabled: false
+                  sizeLimit: ""
+                hostIPC:
+                  enabled: false
+              huggingfaceserver_multinode:
+                shm:
+                  enabled: true
+                  sizeLimit: "3Gi"
+              tritonserver:
+                image: nvcr.io/nvidia/tritonserver
+              pmmlserver:
+                image: m.daocloud.io/docker.io/kserve/pmmlserver
+              paddleserver:
+                image: m.daocloud.io/docker.io/kserve/paddleserver
+              lgbserver:
+                image: m.daocloud.io/docker.io/kserve/lgbserver
+              torchserve:
+                image: pytorch/torchserve-kfs
+                tag: 0.9.0
+              art:
+                image: m.daocloud.io/docker.io/kserve/art-explainer
+            localmodel:
+              enabled: false
+              controller:
+                image: m.daocloud.io/docker.io/kserve/kserve-localmodel-controller
+              jobNamespace: kserve-localmodel-jobs
+              agent:
+                hostPath: /mnt/models
+                image: m.daocloud.io/docker.io/kserve/kserve-localmodelnode-agent
+            inferenceservice:
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: "2Gi"
+                requests:
+                  cpu: "1"
+                  memory: "2Gi"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kserve
+  EOF
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>10.sync by argocd</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/kserve
+  ```
+  {{% /notice %}}
 
 
 {{< /tab >}}
