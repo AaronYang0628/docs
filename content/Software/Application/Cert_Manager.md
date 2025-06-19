@@ -19,7 +19,7 @@ weight = 30
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add cert-manager-repo https://charts.jetstack.io
   helm repo update
   ```
   {{% /notice %}}
@@ -28,12 +28,16 @@ weight = 30
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  helm install cert-manager-repo/cert-manager --generate-name --version 1.17.2
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  {{% notice style="important" title="Using Mirror" %}} 
+  ```shell
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
+    && helm install ay-helm-mirror/cert-manager --generate-name --version 1.17.2
+  ```
+  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
   {{% /notice %}}
 
 {{< /tab >}}
@@ -41,7 +45,7 @@ weight = 30
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
   3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `cert-manager.yaml` </p>
@@ -151,10 +155,21 @@ weight = 30
 {{< tab title="Docker" style="transparent" >}}
  <p> <b>Preliminary </b></p>
   1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/software/container/index.html" target="_blank">link</a> </p></br>
-  
+
+  <p> <b>1.just run</b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  docker run --name cert-manager -e ALLOW_EMPTY_PASSWORD=yes bitnami/cert-manager:latest
+  ```
+  {{% /notice %}}
 
   {{% notice style="important" title="Using Proxy" %}} 
-  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
+  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](/docs/kubernetes/proxy/daocloud/index.html)
+  ```shell
+  docker run --name cert-manager \
+    -e ALLOW_EMPTY_PASSWORD=yes 
+    m.daocloud.io/docker.io/bitnami/cert-manager:latest
+  ```
   {{% /notice %}}
 
 {{< /tab >}}
