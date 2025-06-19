@@ -1,7 +1,7 @@
 +++
 title = 'Install ElasticSearch'
 date = 2024-04-12T15:00:59+08:00
-weight = 7
+weight = 50
 +++
 
 ### Preliminary

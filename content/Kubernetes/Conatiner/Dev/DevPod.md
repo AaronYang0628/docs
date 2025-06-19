@@ -5,11 +5,11 @@ weight = 4
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- Devpod has installed, if not check [link](https://devpod.sh/)
+- Kubernetes has installed, if not check 🔗[link](kubernetes/cluster/index.html)
+- Devpod has installed, if not check 🔗[link](https://devpod.sh/)
 
 
-### Get provider config
+### 1. Get provider config
 {{< tabs groupid="devpod">}}
 {{% tab title="ack" %}}
 ```text
@@ -114,7 +114,7 @@ ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINI
 {{% /tab %}}
 {{< /tabs >}}
 
-### Create workspace
+### 2. Create workspace
 1. get git repo link
 2. choose appropriate provider
 3. choose ide type and version
@@ -122,8 +122,11 @@ ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINI
 
 ### Useful Command
 
-#### download [kubectl binary](software/binary/k8s_realted/index.md#kubectl)
+  {{% notice style="important" title="Install Kubectl" %}} 
+  for more information, you can check 🔗[link](/docs/software/binary/kubectl/index.html) to install kubectl
+  {{% /notice %}}
 
+- How to use it in devpod
 {{< tabs groupid="devpod">}}
 {{% tab title="ack" %}}
 
@@ -138,22 +141,17 @@ when you in pod, and using **kubectl** you should change `clusters.cluster.serve
 {{< /tabs >}}
 
 
-
-
-#### download [Argocd binary](software/binary/k8s_realted/index.md#argocd)
-
-
-#### exec into devpod
+- exec into devpod
 ```shell
 kubectl -n devpod exec -it <$resource_id> -c devpod -- bin/bash
 ```
 
-#### add DNS item
+- add DNS item
 ```text
-10.102.1.52 gitee.zhejianglab.com
+10.aaa.bbb.ccc gitee.zhejianglab.com
 ```
 
-#### shutdown ssh tunnel
+- shutdown ssh tunnel
 {{< tabs groupid="ssh">}}
 {{% tab title="windows" %}}
 ```shell

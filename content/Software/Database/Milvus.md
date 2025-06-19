@@ -1,7 +1,7 @@
 +++
 title = 'Install Milvus'
 date = 2025-05-26T01:00:59+08:00
-weight = 7
+weight = 131
 +++
 
 ### Preliminary

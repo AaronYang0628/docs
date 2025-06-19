@@ -2,7 +2,7 @@
 tags = ["Ingress"]
 title = 'Install Ingress'
 date = 2024-06-07T15:00:59+08:00
-weight = 3
+weight = 90
 +++
 
 

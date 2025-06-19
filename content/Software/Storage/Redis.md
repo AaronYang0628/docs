@@ -2,7 +2,7 @@
 tags = ["Reids"]
 title = 'Install Reids'
 date = 2024-05-07T15:00:59+08:00
-weight = 20
+weight = 180
 +++
 
 ### Preliminary
