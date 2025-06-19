@@ -4,7 +4,7 @@ date = 2025-03-07T15:00:59+08:00
 weight = 1
 +++
 
-Init K8s Cluster you can choose one of the following methods.
+Building a K8s Cluster, you can choose one of the following methods.
 {{%children depth="999" description="false" showhidden="true" %}}
 
 
@@ -19,12 +19,12 @@ Init K8s Cluster you can choose one of the following methods.
 #### Prerequisites
 - Hardware Requirements:
 
-    1. At least 2 GB of RAM per machine (minimum 1 GB)
-    2. 2 CPUs on the master node
+    1. At least **2 GB** of RAM per machine (minimum **1 GB**)
+    2. **2 CPUs** on the master node
     3. Full network connectivity among all machines (public or private network)
 
 - Operating System:
-    1. Ubuntu 20.04/18.04, CentOS 7/8, or any other supported Linux distribution.
+    1. Ubuntu 22.04/14.04, CentOS 7/8, or any other supported Linux distribution.
 
 - Network Requirements:
     1. Unique hostname, MAC address, and product_uuid for each node.
