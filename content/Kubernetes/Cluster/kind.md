@@ -1,11 +1,13 @@
 +++
-title = 'KubeAdm'
-date = 2025-02-07T15:00:59+08:00
-weight = 113
+title = 'Kind'
+date = 2024-03-07T15:00:59+08:00
+weight = 111
 +++
 
 ### Preliminary
 - Minikube has installed, if not [check link](kubernetes/command/install/index.html)
+
+
 
 
 #### [[Optional]]() disable aegis service and reboot system for `Aliyun`
