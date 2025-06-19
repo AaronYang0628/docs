@@ -1,13 +1,13 @@
 +++
 title = 'Install Argo WorkFlow'
 date = 2024-03-07T15:00:59+08:00
-weight = 1
+weight = 2
 +++
 
 ### Preliminary
-- Kubernets has installed, if not [check link](kubernetes/command/install/index.html)
-- Argo CD has installed, if not [check link](argo/argo-cd/argocd.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not [check link](argo/argo-cd/application/cert_manager/index.html)
+- Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
+- Argo CD has installed, if not check 🔗[link](software/cicd/argocd.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗[link](software/application/cert_manager.html)
 
 ### 1. prepare `argo-workflows.yaml`
 
