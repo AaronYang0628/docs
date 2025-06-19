@@ -1,6 +1,7 @@
 +++
 title = 'gRpc'
 date = 2024-04-07T15:00:59+08:00
+weight = 70
 +++
 
 This guide gets you started with gRPC in C++ with a simple working example.

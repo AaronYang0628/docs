@@ -1,7 +1,7 @@
 +++
 title = 'Deploy GateKeeper Server'
 date = 2024-03-12T15:00:59+08:00
-weight = 1
+weight = 70
 +++
 
 **Official Website**: [https://open-policy-agent.github.io/gatekeeper/website/](https://open-policy-agent.github.io/gatekeeper/website/)

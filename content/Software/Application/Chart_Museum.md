@@ -2,7 +2,7 @@
 tags = ["Chart Museum"]
 title = 'Install Chart Museum'
 date = 2024-06-07T15:00:59+08:00
-weight = 4
+weight = 31
 +++
 
 

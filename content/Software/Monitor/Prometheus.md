@@ -2,7 +2,7 @@
 tags = ["Permetheus"]
 title = 'Install Permetheus Stack'
 date = 2024-06-07T15:00:59+08:00
-weight = 1
+weight = 160
 +++
 
 

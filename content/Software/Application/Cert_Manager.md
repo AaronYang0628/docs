@@ -2,7 +2,7 @@
 tags = ["Cert Manager"]
 title = 'Install Cert Manager'
 date = 2024-06-07T15:00:59+08:00
-weight = 2
+weight = 30
 +++
 
 
@@ -13,7 +13,7 @@ weight = 2
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/software/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 

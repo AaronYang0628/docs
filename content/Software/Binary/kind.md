@@ -1,6 +1,7 @@
 +++
 title = 'Kind Binary'
 date = 2025-04-07T15:00:59+08:00
+weight = 110
 +++
 
 ```shell

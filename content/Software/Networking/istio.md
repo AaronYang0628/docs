@@ -2,7 +2,7 @@
 tags = ["Istio"]
 title = 'Install Istio'
 date = 2024-06-07T15:00:59+08:00
-weight = 1
+weight = 91
 +++
 
 
@@ -172,7 +172,7 @@ weight = 1
       chart: gateway
       targetRevision: 1.23.2
       helm:
-        releaseName: gateway
+        releaseName: istio-ingressgateway
         values: |
           defaults:
             replicaCount: 1
@@ -188,20 +188,20 @@ weight = 1
                 cpu: 2000m
                 memory: 1024Mi
             service:
-              type: ClusterIP
+              type: LoadBalancer
               ports:
               - name: status-port
                 port: 15021
                 protocol: TCP
                 targetPort: 15021
               - name: http2
-                port: 80
+                port: 88
                 protocol: TCP
-                targetPort: 80
+                targetPort: 88
               - name: https
-                port: 443
+                port: 444
                 protocol: TCP
-                targetPort: 443
+                targetPort: 444
             autoscaling:
               enabled: true
               minReplicas: 1

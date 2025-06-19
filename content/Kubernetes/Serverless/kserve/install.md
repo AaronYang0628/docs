@@ -16,7 +16,7 @@ weight = 1
 {{< tab title="Shell" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.install from script directly</b></p>
 
@@ -160,7 +160,7 @@ weight = 1
   <p> <b>3.install istio system </b></p>
 
   {{% notice style="important" title="Reference" %}} 
-  following 🔗[link](/docs/software/nerworking/istio/index.html) to install three istio components (istio-base, istiod, istio-ingressgateway)
+  following 🔗[link](/docs/software/networking/istio/index.html) to install three istio components (istio-base, istiod, istio-ingressgateway)
   {{% /notice %}}
 
   <p> <b>4.install Knative Operator </b></p>
