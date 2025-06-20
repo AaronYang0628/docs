@@ -31,7 +31,7 @@ Building a K8s Cluster, you can choose one of the following methods.
     2. Certain ports need to be open (e.g., 6443, 2379-2380, 10250, 10251, 10252, 10255, etc.)
 
 
-#### Install
+#### Install Kind Binary
 {{% include file="Content\Software\Binary\kind.md" %}}
 
 Creating a Kubernetes cluster is as simple as `kind create cluster`

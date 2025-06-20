@@ -195,13 +195,13 @@ weight = 91
                 protocol: TCP
                 targetPort: 15021
               - name: http2
-                port: 88
+                port: 80
                 protocol: TCP
-                targetPort: 88
+                targetPort: 80
               - name: https
-                port: 444
+                port: 443
                 protocol: TCP
-                targetPort: 444
+                targetPort: 443
             autoscaling:
               enabled: true
               minReplicas: 1
