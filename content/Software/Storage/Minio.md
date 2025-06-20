@@ -12,17 +12,17 @@ weight = 130
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
 {{< /tab >}}
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  4. cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Ingres has installed on argoCD, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  4. Cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/software/application/cert_manager/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare minio credentials secret </b></p>
 
@@ -39,6 +39,7 @@ weight = 130
 
   {{% notice style="transparent" %}}
   ```yaml
+  kubectl -n argocd apply -f - << EOF
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
@@ -141,18 +142,11 @@ weight = 130
     destination:
       server: https://kubernetes.default.svc
       namespace: storage
+  EOF
   ```
   {{% /notice %}}
 
-
-  <p> <b>3.deploy minio </b></p>
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f deploy-minio.yaml
-  ```
-  {{% /notice %}}
-
-  <p> <b>4.sync by argocd </b></p>
+  <p> <b>3.sync by argocd </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -160,7 +154,7 @@ weight = 130
   ```
   {{% /notice %}}
 
-  <p> <b>5.decode minio secret </b></p>
+  <p> <b>4.decode minio secret </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -170,13 +164,16 @@ weight = 130
 
   <p> <b>5.visit web console </b></p>
 
-  `minio-console.dev.tech` should be resolved to nginx-ingress </br>
+  {{% notice style="note" title="Login Credentials" %}} 
 
-  for example, add `$K8S_MASTER_IP minio-console.dev.tech` to `/etc/hosts` </br>
+  add `$K8S_MASTER_IP minio-console.dev.tech` to `/etc/hosts`
 
-  address: `http://minio-console.dev.tech:32080/login` </br>
+  address: 🔗[http://minio-console.dev.tech:32080/login](hhttp://minio-console.dev.tech:32080/login) 
 
-  > access key: `admin` </br>
+  > access key: `admin` 
+
+  > secret key: ``
+  {{% /notice %}}
 
   <p> <b>6.using mc </b></p>
 
@@ -193,6 +190,17 @@ weight = 130
           && mc mb --ignore-existing minio/test \
           && mc cp /etc/hosts minio/test/etc/hosts \
           && mc ls --recursive minio"
+  ```
+  {{% /notice %}}
+
+  {{% notice style="transparent" %}}
+  ```bash
+  K8S_MASTER_IP=$(kubectl get node -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+  MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
+  podman run --rm \
+      --entrypoint bash \
+      --add-host=minio-api.dev.tech:${K8S_MASTER_IP} \
+      -it m.daocloud.io/docker.io/minio/mc:latest
   ```
   {{% /notice %}}
 

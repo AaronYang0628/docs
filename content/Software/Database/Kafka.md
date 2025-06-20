@@ -12,8 +12,8 @@ weight = 110
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
 {{< /tab >}}
 
@@ -27,6 +27,7 @@ weight = 110
 {{< tabs groupid="kafka">}}
   {{% tab title="kraft-minimal" %}}
 ```yaml
+kubectl -n argocd apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -44,7 +45,7 @@ spec:
       releaseName: kafka
       values: |
         image:
-          registry: m.lab.zverse.space/docker.io
+          registry: m.daocloud.io/docker.io
         controller:
           replicaCount: 0
           persistence:
@@ -75,20 +76,20 @@ spec:
           autoDiscovery:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
         volumePermissions:
           enabled: false
           image:
-            registry: m.lab.zverse.space/docker.io
+            registry: m.daocloud.io/docker.io
         metrics:
           kafka:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
           jmx:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
         provisioning:
           enabled: false
         kraft:
@@ -96,7 +97,7 @@ spec:
         zookeeper:
           enabled: true
           image:
-            registry: m.lab.zverse.space/docker.io
+            registry: m.daocloud.io/docker.io
           replicaCount: 1
           auth:
             client:
@@ -108,7 +109,7 @@ spec:
           volumePermissions:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
             metrics:
               enabled: false
           tls:
@@ -119,11 +120,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: database
+EOF
 ```
   {{% /tab  %}}
 
   {{% tab title="zookeeper-minimal-plaintext"%}}
 ```yaml
+kubectl -n argocd apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -141,7 +144,7 @@ spec:
       releaseName: kafka
       values: |
         image:
-          registry: m.lab.zverse.space/docker.io
+          registry: m.daocloud.io/docker.io
         listeners:
           client:
             protocol: PLAINTEXT
@@ -175,20 +178,20 @@ spec:
           autoDiscovery:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
         volumePermissions:
           enabled: false
           image:
-            registry: m.lab.zverse.space/docker.io
+            registry: m.daocloud.io/docker.io
         metrics:
           kafka:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
           jmx:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
         provisioning:
           enabled: false
         kraft:
@@ -196,7 +199,7 @@ spec:
         zookeeper:
           enabled: true
           image:
-            registry: m.lab.zverse.space/docker.io
+            registry: m.daocloud.io/docker.io
           replicaCount: 1
           auth:
             client:
@@ -208,7 +211,7 @@ spec:
           volumePermissions:
             enabled: false
             image:
-              registry: m.lab.zverse.space/docker.io
+              registry: m.daocloud.io/docker.io
             metrics:
               enabled: false
           tls:
@@ -219,25 +222,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: database
+EOF
 ```
   {{% /tab %}}
 {{< /tabs >}}
 
-  <p> <b>2.deploy kafka </b></p>
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f deploy-kafka.yaml
-  ```
-  {{% /notice %}}
-
-  <p> <b>3.sync by argocd </b></p>
+  <p> <b>2.sync by argocd </b></p>
   {{% notice style="transparent" %}}
   ```bash
   argocd app sync argocd/kafka
   ```
   {{% /notice %}}
 
-  <p> <b>4.set up client tool </b></p> 
+  <p> <b>3.set up client tool </b></p> 
 
 {{< tabs groupid="kafka">}}
   {{% tab title="sasl-plaintext" %}}
@@ -261,6 +258,7 @@ kubectl -n database \
 
   {{% notice style="transparent" %}}
   ```yaml
+  kubectl -n database apply -f - << EOF
   apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -283,7 +281,7 @@ kubectl -n database \
             secretName: client-properties
         containers:
         - name: kafka-client-tools
-          image: docker.io/bitnami/kafka:3.6.2
+          image: m.daocloud.io/docker.io/bitnami/kafka:3.6.2
           volumeMounts:
           - name: client-properties
             mountPath: /bitnami/custom/client.properties
@@ -301,14 +299,7 @@ kubectl -n database \
           - -f
           - /etc/hosts
           imagePullPolicy: IfNotPresent
-  ```
-  {{% /notice %}}
-
-  <p> <b>6.apply client tool to k8s </b></p> 
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n database apply -f kafka-client-tools.yaml
+  EOF
   ```
   {{% /notice %}}
 
