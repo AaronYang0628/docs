@@ -178,16 +178,16 @@ weight = 1
       - CreateNamespace=true
     project: default
     source:
-      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      repoURL: https://knative.github.io/operator
       chart: knative-operator
-      targetRevision: v1.15.7
+      targetRevision: v1.18.1
       helm:
         releaseName: knative-operator
         values: |
           knative_operator:
             knative_operator:
               image: m.daocloud.io/gcr.io/knative-releases/knative.dev/operator/cmd/operator
-              tag: v1.15.7
+              tag: v1.18.1
               resources:
                 requests:
                   cpu: 100m
@@ -197,7 +197,7 @@ weight = 1
                   memory: 1000Mi
             operator_webhook:
               image: m.daocloud.io/gcr.io/knative-releases/knative.dev/operator/cmd/webhook
-              tag: v1.15.7
+              tag: v1.18.1
               resources:
                 requests:
                   cpu: 100m
@@ -231,7 +231,7 @@ weight = 1
     name: knative-serving
     namespace: knative-serving
   spec:
-    version: 1.15.2 # this is knative serving version
+    version: 1.18.0 # this is knative serving version
     config:
       domain:
         example.com: ""
@@ -273,6 +273,22 @@ weight = 1
       namespace: kserve
   EOF
   ```
+  {{% /notice %}}
+
+  {{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+
+  ```plaintext
+  knative-serving    activator-cbf5b6b55-7gw8s                                 Running        116s
+  knative-serving    autoscaler-c5d454c88-nxrms                                Running        115s
+  knative-serving    autoscaler-hpa-6c966695c6-9ld24                           Running        113s
+  knative-serving    cleanup-serving-serving-1.18.0-45nhg                      Completed      113s
+  knative-serving    controller-84f96b7676-jjqfp                               Running        115s
+  knative-serving    net-istio-controller-574679cd5f-2sf4d                     Running        112s
+  knative-serving    net-istio-webhook-85c99487db-mmq7n                        Running        111s
+  knative-serving    storage-version-migration-serving-serving-1.18.0-k28vf    Completed      113s
+  knative-serving    webhook-75d4fb6db5-qqcwz                                  Running        114s
+  ```
+
   {{% /notice %}}
 
 
@@ -404,6 +420,18 @@ weight = 1
   {{% /notice %}}
 
 
+  {{% notice style="caution" title="if you have 'failed calling webhook ...' " icon="hand" expanded="false"%}}
+
+  ```plaintext
+  Internal error occurred: failed calling webhook "clusterservingruntime.kserve-webhook-server.validator": failed to call webhook: Post "https://kserve-webhook-server-service.kserve.svc:443/validate-serving-kserve-io-v1alpha1-clusterservingruntime?timeout=10s": no endpoints available for service "kserve-webhook-server-service"                               Running        114s
+  ```
+
+  Just wait for a while and the resync, and it will be fine.
+
+  {{% /notice %}}
+  
+
+
   <p> <b>10.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
@@ -411,6 +439,35 @@ weight = 1
   argocd app sync argocd/kserve
   ```
   {{% /notice %}}
+
+
+  <p> <b>11.install kserve eventing CRD</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.18.1/eventing-crds.yaml
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>12.install kserve eventing</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v1.18.1/eventing-core.yaml
+  ```
+  {{% /notice %}}
+  
+  {{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+
+  ```plaintext
+  knative-eventing   eventing-controller-cc45869cd-fmhg8        1/1     Running       0          3m33s
+  knative-eventing   eventing-webhook-67fcc6959b-lktxd          1/1     Running       0          3m33s
+  knative-eventing   job-sink-7f5d754db-tbf2z                   1/1     Running       0          3m33s
+  ```
+
+  {{% /notice %}}
+                                       
 
 
 {{< /tab >}}
