@@ -25,7 +25,7 @@ weight = 110
   <p> <b>1.prepare `deploy-kafka.yaml` </b></p>
 
 {{< tabs groupid="kafka">}}
-  {{% tab title="kraft-minimal" %}}
+  {{% tab title="kraft-minimal❌" %}}
 ```yaml
 kubectl -n argocd apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
@@ -124,7 +124,7 @@ EOF
 ```
   {{% /tab  %}}
 
-  {{% tab title="zookeeper-minimal-plaintext"%}}
+  {{% tab title="zookeeper-minimal-plaintext✔️"%}}
 ```yaml
 kubectl -n argocd apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
