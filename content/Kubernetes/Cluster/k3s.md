@@ -5,41 +5,37 @@ weight = 112
 +++
 
 ### Preliminary
-- Minikube has installed, if not [check link](kubernetes/command/install/index.html)
+- [Hardware Requirements](https://docs.k3s.io/installation/requirements?os=debian#hardware):
+
+    1. Server need to have at least 2 cores, 2 GB RAM
+    2. Agent need 1 core , 512 MB RAM
+
+- Operating System:
+    1. K3s is expected to work on most modern Linux systems.
+
+- Network Requirements:
+    1. The K3s server needs port 6443 to be accessible by all nodes.
+    2. If you wish to utilize the metrics server, all nodes must be accessible to each other on port 10250.
 
 
-
-
-#### [[Optional]]() disable aegis service and reboot system for `Aliyun`
-
+### Init server
 ```shell
-sudo systemctl disable aegis && sudo reboot
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - server --cluster-init --flannel-backend=vxlan --node-taint "node-role.kubernetes.io/control-plane=true:NoSchedule"
 ```
 
-#### [[Optional]]() customize your cluster
+### Get token
 ```shell
-minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
-```
-{{% expand title="If you wanna use podman ..." %}}
-minikube start --driver=podman ...
-```shell
-minikube start --driver=podman --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
-```
-{{% /expand %}}
-
-#### [[Optional]]() restart minikube
-```shell
-minikube stop && minikube start
-```
-#### Add alias
-```shell
-alias kubectl="minikube kubectl --"
+cat /var/lib/rancher/k3s/server/node-token
 ```
 
-#### Forward
+### Join worker
 ```shell
-ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
+
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn K3S_URL=https://<master-ip>:6443 K3S_TOKEN=<join-token> sh -
 ```
 
-and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
-
+### Copy kubeconfig
+```shell
+mkdir -p $HOME/.kube
+cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+```

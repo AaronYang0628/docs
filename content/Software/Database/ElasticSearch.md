@@ -5,10 +5,10 @@ weight = 50
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](/argo/argo-cd/argocd/index.html)
-- ingres has installed on argoCD, if not check [link](/argo/argo-cd/application/ingress/index.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](/argo/argo-cd/application/cert_manager/index.html)
+- Kubernetes has installed, if not check 🔗[link](kubernetes/command/install/index.html)
+- argoCD has installed, if not check 🔗[link](/argo/argo-cd/argocd/index.html)
+- ingres has installed on argoCD, if not check 🔗[link](/argo/argo-cd/application/ingress/index.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗[link](/argo/argo-cd/application/cert_manager/index.html)
 
 ### Steps
 
