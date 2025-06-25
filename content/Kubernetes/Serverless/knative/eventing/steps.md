@@ -1,16 +1,18 @@
 +++
 tags = ["Kafka"]
-title = 'Install Kafka Channel'
+title = 'Install Kafka Broker'
 date = 2024-03-07T15:00:59+08:00
 weight = 110
 +++
 
-follow  [Kafka Channel](https://knative.dev/docs/eventing/sources/kafka/#install-the-kafka-channel-controller)
+![func1](../../../../../images/content/kubernetes/knative/broker.png)
 
-### Install a default Channel (messaging) layer¶
+### Install a default Channel (messaging) layer
+```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-controller.yaml
+```
 
-
+{{% expand title="Expand me..."  %}}
 ```
 configmap/kafka-broker-config created
 configmap/kafka-channel-config created
@@ -45,9 +47,13 @@ deployment.apps/kafka-webhook-eventing created
 service/kafka-webhook-eventing created
 ```
 
+{{% /expand %}}
 
+```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-channel.yaml
+```
 
+{{% expand title="Expand me..."  %}}
 ```
 configmap/config-kafka-channel-data-plane created
 clusterrole.rbac.authorization.k8s.io/knative-kafka-channel-data-plane created
@@ -56,14 +62,16 @@ clusterrolebinding.rbac.authorization.k8s.io/knative-kafka-channel-data-plane cr
 statefulset.apps/kafka-channel-dispatcher created
 deployment.apps/kafka-channel-receiver created
 service/kafka-channel-ingress created
+```
+{{% /expand %}}
 
+### Install a Broker layer
+
+```shell
+kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-broker.yaml
 ```
 
-### Install a Broker layer¶
-
-
-kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-broker.yaml
-
+{{% expand title="Expand me..."  %}}
 ```
 configmap/config-kafka-broker-data-plane created
 clusterrole.rbac.authorization.k8s.io/knative-kafka-broker-data-plane created
@@ -72,8 +80,10 @@ clusterrolebinding.rbac.authorization.k8s.io/knative-kafka-broker-data-plane cre
 statefulset.apps/kafka-broker-dispatcher created
 deployment.apps/kafka-broker-receiver created
 service/kafka-broker-ingress created
-
 ```
+{{% /expand %}}
+
+
 
 doc -> https://knative.dev/docs/eventing/brokers/broker-types/kafka-broker/
 
@@ -89,15 +99,18 @@ some sts replia is 0, please check
 
 
 
-### Install optional Eventing extensions¶
+### [[Optional]]() Install Eventing extensions
 - kafka sink
+```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-sink.yaml
+```
 
 doc -> https://knative.dev/docs/eventing/sinks/kafka-sink/
 
 
 - kafka source
+```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-source.yaml
-
+```
 
 doc -> https://knative.dev/docs/eventing/sources/kafka-source/
