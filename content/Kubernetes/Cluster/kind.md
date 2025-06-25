@@ -5,7 +5,7 @@ weight = 111
 +++
 
 ### Preliminary
-- Minikube has installed, if not [check link](kubernetes/command/install/index.html)
+- Kind binary has installed, if not check 🔗[link](software/binary/kind/index.html)
 
 
 

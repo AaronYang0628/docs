@@ -106,6 +106,6 @@ weight = 15
 [[menu.shortcuts]]
 name = " <i class='fas fa-book'></i>  Conti.cc"
 identifier = "CnConti"
-url = "https://blog.cnconti.cc/"
+url = "https://memo.cnconti.tech"
 weight = 16
 
