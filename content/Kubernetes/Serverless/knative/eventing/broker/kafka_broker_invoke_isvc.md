@@ -41,7 +41,7 @@ EOF
 
 ### 2. Create Broker Setting
 ```yaml
-kubectl -n knative-eventing apply -f - <<EOF
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -63,7 +63,7 @@ kind: Broker
 metadata:
   annotations:
     eventing.knative.dev/broker.class: Kafka
-  name: first-broker
+  name: isvc-broker
   namespace: kserve-test
 spec:
   config:
@@ -74,7 +74,12 @@ spec:
 EOF
 ```
 
-### 4. Create Trigger
+### 4. Create InferenceService
+{{% notice style="important" title="Reference" %}} 
+you can create **isvc** `first-tourchserve` service, by following 🔗[link](/Kubernetes/Serverless/kserve/serving/predictive/first_pytorch_infer.md)
+{{% /notice %}}
+
+### 5. Create Trigger
 ```yaml
 kubectl -n kserve-test apply -f - << EOF
 apiVersion: eventing.knative.dev/v1
@@ -83,7 +88,7 @@ metadata:
   name: kserve-trigger
   namespace: kserve-test
 spec:
-  broker: first-broker
+  broker: isvc-broker
   filter:
     attributes:
       type: prediction-request
@@ -92,12 +97,9 @@ spec:
 EOF
 ```
 
-### 5. Create InferenceService
-{{% notice style="important" title="Reference" %}} 
-you can create `first-tourchserve` service, by following 🔗[link](/Kubernetes/Serverless/kserve/serving/predictive/first_pytorch_infer.md)
-{{% /notice %}}
 
-### 5. Test
+
+### 6. Test
 > Normally, we can invoke `first-tourchserve` by executing
 
 ```shell
@@ -111,7 +113,7 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http
 > Now, you can access model by executing
 ```shell
 export KAFKA_BROKER_INGRESS_PORT=$(kubectl -n knative-eventing get service kafka-broker-ingress -o jsonpath='{.spec.ports[?(@.name=="http-container")].nodePort}')
-curl -v "http://${MASTER_IP}:${KAFKA_BROKER_INGRESS_PORT}/kserve-test/first-broker" \
+curl -v "http://${MASTER_IP}:${KAFKA_BROKER_INGRESS_PORT}/kserve-test/isvc-broker" \
   -X POST \
   -H "Ce-Id: $(date +%s)" \
   -H "Ce-Specversion: 1.0" \
@@ -120,5 +122,32 @@ curl -v "http://${MASTER_IP}:${KAFKA_BROKER_INGRESS_PORT}/kserve-test/first-brok
   -H "Content-Type: application/json" \
   -d @./mnist-input.json 
 ```
+{{% expand title="if you cannot see the preidction result" %}}
+> please check kafka
+```bash
+# list all topics, find suffix is `isvc-broker` -> knative-broker-kserve-test-isvc-broker
+kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+    'kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --command-config $CLIENT_CONFIG_FILE --list'
+```
 
-
+```bash
+# retrieve msg from that topic
+kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+  'kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVER --consumer.config $CLIENT_CONFIG_FILE --topic knative-broker-kserve-test-isvc-broker --from-beginning'
+```
+And then, you could see
+```json
+{
+    "instances": [
+        {
+            "data": "iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAw0lEQVR4nGNgGFggVVj4/y8Q2GOR83n+58/fP0DwcSqmpNN7oOTJw6f+/H2pjUU2JCSEk0EWqN0cl828e/FIxvz9/9cCh1zS5z9/G9mwyzl/+PNnKQ45nyNAr9ThMHQ/UG4tDofuB4bQIhz6fIBenMWJQ+7Vn7+zeLCbKXv6z59NOPQVgsIcW4QA9YFi6wNQLrKwsBebW/68DJ388Nun5XFocrqvIFH59+XhBAxThTfeB0r+vP/QHbuDCgr2JmOXoSsAAKK7bU3vISS4AAAAAElFTkSuQmCC"
+        }
+    ]
+}
+{
+    "predictions": [
+        2
+    ]
+}
+```
+{{% /expand %}}
