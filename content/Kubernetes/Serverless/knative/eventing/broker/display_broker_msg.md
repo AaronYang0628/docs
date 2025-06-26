@@ -6,6 +6,16 @@ date = 2024-03-07T15:00:59+08:00
 weight = 40
 +++
 
+### Flow
+```mermaid
+flowchart LR
+    A[Curl] -->|HTTP| B{Broker}
+    B -->|Subscribe| D[Trigger1]
+    B -->|Subscribe| E[Trigger2]
+    B -->|Subscribe| F[Trigger3]
+    E --> G[Display Service]
+```
+
 ## Setps
 
 ### 1. Create Broker Setting
@@ -19,7 +29,7 @@ metadata:
 data:
   default.topic.partitions: "10"
   default.topic.replication.factor: "1"
-  bootstrap.servers: "kafka.database.svc.cluster.local:9092"
+  bootstrap.servers: "kafka.database.svc.cluster.local:9092" #kafka service address
   default.topic.config.retention.ms: "3600"
 EOF
 ```
@@ -49,14 +59,14 @@ deadletterSink:
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
-  name: my-service-trigger
+  name: display-service-trigger
 spec:
-  broker: default
+  broker: first-broker
   subscriber:
     ref:
       apiVersion: serving.knative.dev/v1
       kind: Service
-      name: my-service
+      name: event-display
 ```
 
 ### 4. Create Sink Service (Display Message)
