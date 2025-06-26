@@ -45,7 +45,19 @@ EOF
 deadletterSink:
 
 ### 3. Create Trigger
-
+```yaml
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: my-service-trigger
+spec:
+  broker: default
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: my-service
+```
 
 ### 4. Create Sink Service (Display Message)
 ```yaml
