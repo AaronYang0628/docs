@@ -2,18 +2,24 @@
 tags = ["Kafka"]
 title = 'Install Kafka Broker'
 date = 2024-03-07T15:00:59+08:00
-weight = 110
+weight = 9
 +++
 
-![func1](../../../../../images/content/kubernetes/knative/broker.png)
+### About
+![broker](../../../../../../images/content/kubernetes/knative/broker.png)
 
-### Install a default Channel (messaging) layer
+- Source, curl, kafkaSource, 
+- Broker
+- Trigger
+- Sink: ksvc, isvc
+
+### Install a Channel (messaging) layer
 ```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-controller.yaml
 ```
 
-{{% expand title="Expand me..."  %}}
-```
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+```plaintext
 configmap/kafka-broker-config created
 configmap/kafka-channel-config created
 customresourcedefinition.apiextensions.k8s.io/kafkachannels.messaging.knative.dev created
@@ -47,13 +53,13 @@ deployment.apps/kafka-webhook-eventing created
 service/kafka-webhook-eventing created
 ```
 
-{{% /expand %}}
+{{% /notice %}}
 
 ```shell
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-channel.yaml
 ```
 
-{{% expand title="Expand me..."  %}}
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
 ```
 configmap/config-kafka-channel-data-plane created
 clusterrole.rbac.authorization.k8s.io/knative-kafka-channel-data-plane created
@@ -63,7 +69,7 @@ statefulset.apps/kafka-channel-dispatcher created
 deployment.apps/kafka-channel-receiver created
 service/kafka-channel-ingress created
 ```
-{{% /expand %}}
+{{% /notice %}}
 
 ### Install a Broker layer
 
@@ -71,7 +77,7 @@ service/kafka-channel-ingress created
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-broker.yaml
 ```
 
-{{% expand title="Expand me..."  %}}
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
 ```
 configmap/config-kafka-broker-data-plane created
 clusterrole.rbac.authorization.k8s.io/knative-kafka-broker-data-plane created
@@ -81,12 +87,15 @@ statefulset.apps/kafka-broker-dispatcher created
 deployment.apps/kafka-broker-receiver created
 service/kafka-broker-ingress created
 ```
-{{% /expand %}}
+{{% /notice %}}
+
+{{% notice style="important" title="Reference" %}} 
+for more information, you can check 🔗[https://knative.dev/docs/eventing/brokers/broker-types/kafka-broker/](https://knative.dev/docs/eventing/brokers/broker-types/kafka-broker/)
+{{% /notice %}}
 
 
-
-doc -> https://knative.dev/docs/eventing/brokers/broker-types/kafka-broker/
-
+{{% expand title="if you cannot find `kafka-channel-dispatcher`" %}}
+> please check sts
 ```
 root@ay-k3s01:~# kubectl -n knative-eventing  get sts
 NAME                       READY   AGE
@@ -95,6 +104,10 @@ kafka-channel-dispatcher   0/0     22m
 ```
 
 some sts replia is 0, please check
+{{% /expand %}}
+
+
+
 
 
 
@@ -105,7 +118,9 @@ some sts replia is 0, please check
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-sink.yaml
 ```
 
-doc -> https://knative.dev/docs/eventing/sinks/kafka-sink/
+{{% notice style="important" title="Reference" %}} 
+for more information, you can check 🔗[https://knative.dev/docs/eventing/sinks/kafka-sink/](https://knative.dev/docs/eventing/sinks/kafka-sink/)
+{{% /notice %}}
 
 
 - kafka source
@@ -113,4 +128,6 @@ doc -> https://knative.dev/docs/eventing/sinks/kafka-sink/
 kubectl apply -f https://github.com/knative-extensions/eventing-kafka-broker/releases/download/knative-v1.18.0/eventing-kafka-source.yaml
 ```
 
-doc -> https://knative.dev/docs/eventing/sources/kafka-source/
+{{% notice style="important" title="Reference" %}} 
+for more information, you can check 🔗[https://knative.dev/docs/eventing/sources/kafka-source/](https://knative.dev/docs/eventing/sources/kafka-source/)
+{{% /notice %}}
