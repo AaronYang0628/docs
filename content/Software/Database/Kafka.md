@@ -361,26 +361,55 @@ kubectl -n database \
 
   {{% notice style="transparent" %}}
   ```bash
-
+  mkdir -p kafka/data
+  chmod -R 777 kafka/data
+  podman run --rm \
+      --name kafka-server \
+      --hostname kafka-server \
+      -p 9092:9092 \
+      -p 9094:9094 \
+      -v $(pwd)/kafka/data:/bitnami/kafka/data \
+      -e KAFKA_CFG_NODE_ID=0 \
+      -e KAFKA_CFG_PROCESS_ROLES=controller,broker \
+      -e KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka-server:9093 \
+      -e KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094 \
+      -e KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://host.containers.internal:9094 \
+      -e KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT \
+      -e KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+      -d m.daocloud.io/docker.io/bitnami/kafka:3.6.2
   ```
   {{% /notice %}}
 
-  <p> <b>2.check dashboard </b></p>
-  And then you can visit 🔗<a href="http://localhost:18123" target="_blank">http://localhost:18123</a>
-
-  <p> <b>3.use cli api </b></p>
-  And then you can visit 🔗<a href="http://localhost:19000" target="_blank">http://localhost:19000</a>
+  <p> <b>2.list topic </b></p>
   {{% notice style="transparent" %}}
   ```bash
+  BOOTSTRAP_SERVER=host.containers.internal:9094
+  podman run --rm \
+      -it m.daocloud.io/docker.io/bitnami/kafka:3.6.2 kafka-topics.sh \
+          --bootstrap-server $BOOTSTRAP_SERVER --list
 
   ```
   {{% /notice %}}
 
-  <p> <b>4.use visual client </b></p>
+
+  <p> <b>2.create topic </b></p>
   {{% notice style="transparent" %}}
   ```bash
+  BOOTSTRAP_SERVER=host.containers.internal:9094
+  # BOOTSTRAP_SERVER=10.200.60.64:9094
+  TOPIC=test-topic
+  podman run --rm \
+      -it m.daocloud.io/docker.io/bitnami/kafka:3.6.2 kafka-topics.sh \
+          --bootstrap-server $BOOTSTRAP_SERVER \
+          --create \
+          --if-not-exists \
+          --topic $TOPIC
   ```
   {{% /notice %}}
+
+
+
+
 
 {{< /tab >}}
 
