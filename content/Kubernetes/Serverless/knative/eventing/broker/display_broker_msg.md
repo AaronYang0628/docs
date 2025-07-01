@@ -20,7 +20,7 @@ flowchart LR
 
 ### 1. Create Broker Setting
 ```yaml
-kubectl -n knative-eventing apply -f - <<EOF
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -56,10 +56,12 @@ deadletterSink:
 
 ### 3. Create Trigger
 ```yaml
+kubectl apply -f - <<EOF
 apiVersion: eventing.knative.dev/v1
 kind: Trigger
 metadata:
   name: display-service-trigger
+  namespace: kserve-test
 spec:
   broker: first-broker
   subscriber:
@@ -67,15 +69,17 @@ spec:
       apiVersion: serving.knative.dev/v1
       kind: Service
       name: event-display
+EOF
 ```
 
 ### 4. Create Sink Service (Display Message)
 ```yaml
-kubectl apply -n kserve-test -f - <<EOF
+kubectl apply -f - <<EOF
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: event-display
+  namespace: kserve-test
 spec:
   template:
     spec:
