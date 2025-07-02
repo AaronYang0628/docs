@@ -102,3 +102,27 @@ kubectl run curl-test --image=curlimages/curl -it --rm --restart=Never -- \
   -d '{"test": "Broker is working"}'
 ```
 
+### 6. Check message
+```shell
+kubectl -n kserve-test logs -f deploy/event-display-00001-deployment 
+```
+
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+```plaintext
+2025/07/02 09:01:25 Failed to read tracing config, using the no-op default: empty json tracing config
+☁️  cloudevents.Event
+Context Attributes,
+  specversion: 1.0
+  type: test.type
+  source: curl-test
+  id: 1751446880
+  datacontenttype: application/json
+Extensions,
+  knativekafkaoffset: 6
+  knativekafkapartition: 6
+Data,
+  {
+    "test": "Broker is working"
+  }
+```
+{{% /notice %}}
