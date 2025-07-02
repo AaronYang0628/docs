@@ -408,6 +408,22 @@ kubectl -n database \
   {{% /notice %}}
 
 
+  <p> <b>2.consume record </b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  BOOTSTRAP_SERVER=host.containers.internal:9094
+  # BOOTSTRAP_SERVER=10.200.60.64:9094
+  TOPIC=test-topic
+  podman run --rm \
+      -it m.daocloud.io/docker.io/bitnami/kafka:3.6.2 kafka-console-consumer.sh \
+          --bootstrap-server $BOOTSTRAP_SERVER \
+          --topic $TOPIC \
+          --from-beginning
+  ```
+  {{% /notice %}}
+
+
+
 
 
 
