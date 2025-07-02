@@ -67,7 +67,7 @@ spec:
     attributes:
       type: prediction-request-udf-attr # you can change this
   subscriber:
-    uri: http://test-transformer.kserve-test.svc.cluster.local/v1/models/mnist:predict
+    uri: http://prediction-and-sink.kserve-test.svc.cluster.local/v1/models/mnist:predict
 EOF
 {{< /highlight >}}
 
@@ -77,7 +77,7 @@ kubectl apply -f - <<EOF
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: test-transformer
+  name: prediction-and-sink
   namespace: kserve-test
 spec:
   predictor:
@@ -108,10 +108,10 @@ EOF
 
 {{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
 ```plaintext
-root@ay-k3s01:~# kubectl -n kserve-test get pod 
-NAME                                                             READY   STATUS    RESTARTS   AGE
-test-transformer-predictor-00001-deployment-5d86dd94b7-w74zd     2/2     Running   0          5h11m
-test-transformer-transformer-00001-deployment-65678f64f7-2h9j4   2/2     Running   0          25m
+root@ay-k3s01:~# kubectl -n kserve-test get pod
+NAME                                                              READY   STATUS    RESTARTS   AGE
+prediction-and-sink-predictor-00001-deployment-f64bb76f-jqv4m     2/2     Running   0          3m46s
+prediction-and-sink-transformer-00001-deployment-76cccd867lksg9   2/2     Running   0          4m3s
 ```
 {{% /notice %}}
 
@@ -120,7 +120,7 @@ test-transformer-transformer-00001-deployment-65678f64f7-2h9j4   2/2     Running
 - preparation
 ```shell
 wget -O ./mnist-input.json https://raw.githubusercontent.com/kserve/kserve/refs/heads/master/docs/samples/v1beta1/torchserve/v1/imgconv/input.json
-SERVICE_NAME=test-transformer
+SERVICE_NAME=prediction-and-sink
 MODEL_NAME=mnist
 INPUT_PATH=@./mnist-input.json
 PLAIN_SERVICE_HOSTNAME=$(kubectl -n kserve-test get inferenceservice $SERVICE_NAME -o jsonpath='{.status.url}' | cut -d "/" -f 3)
@@ -131,6 +131,30 @@ export INGRESS_HOST=192.168.100.112
 export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
 curl -v -H "Host: ${PLAIN_SERVICE_HOSTNAME}" -H "Content-Type: application/json" -d $INPUT_PATH http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/$MODEL_NAME:predict
 ```
+
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+```plaintext
+curl -v -H "Host: ${PLAIN_SERVICE_HOSTNAME}" -H "Content-Type: application/json" -d $INPUT_PATH http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/$MODEL_NAME:predict
+*   Trying 192.168.100.112:31855...
+* Connected to 192.168.100.112 (192.168.100.112) port 31855
+> POST /v1/models/mnist:predict HTTP/1.1
+> Host: prediction-and-sink.kserve-test.ay.test.dev
+> User-Agent: curl/8.5.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 401
+> 
+< HTTP/1.1 200 OK
+< content-length: 19
+< content-type: application/json
+< date: Wed, 02 Jul 2025 08:55:05 GMT,Wed, 02 Jul 2025 08:55:04 GMT
+< server: istio-envoy
+< x-envoy-upstream-service-time: 209
+< 
+* Connection #0 to host 192.168.100.112 left intact
+{"predictions":[2]}
+```
+{{% /notice %}}
 
 ### 6. Invoke Broker
 - preparation
@@ -169,16 +193,16 @@ kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
 ```json
 {
     "specversion": "1.0",
-    "id": "745ac69b-fc1f-4f63-a05e-e76056d49a1f",
+    "id": "822e3115-0185-4752-9967-f408dda72004",
     "source": "data-and-computing/kafka-sink-transformer",
     "type": "org.zhejianglab.zverse.data-and-computing.kafka-sink-transformer",
-    "time": "2025-07-02T08:20:12.908936+00:00",
+    "time": "2025-07-02T08:57:04.133497+00:00",
     "data":
     {
         "predictions": [2]
     },
-    "request-host": "test-transformer-transformer.kserve-test.svc.cluster.local",
-    "kserve-isvc-name": "test-transformer",
+    "request-host": "prediction-and-sink-transformer.kserve-test.svc.cluster.local",
+    "kserve-isvc-name": "prediction-and-sink",
     "kserve-isvc-namespace": "kserve-test",
     "test-trace-id": "16ec3446-48d6-422e-9926-8224853e84a7"
 }
