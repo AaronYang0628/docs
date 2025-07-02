@@ -12,42 +12,101 @@ weight = 31
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
-  {{< tabs groupid="1111" >}}
-    {{% tab title="1.get helm repo" %}}
+  <p> <b>1.get helm repo </b></p>
+
+  {{% notice style="transparent" %}}
   ```bash
   helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
   helm repo update
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
-  {{< tabs groupid="22222" >}}
-    {{% tab title="2.install chart" %}}
+  <p> <b>2.install chart </b></p>
+
+  {{% notice style="transparent" %}}
   ```bash
   helm install ay-helm-mirror/kube-prometheus-stack --generate-name
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
-  {{< tabs groupid="tips" >}}
-    {{% tab style="tip" %}}
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% notice style="important" title="Using Mirror" %}} 
+  ```shell
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
+    && helm install ay-helm-mirror/cert-manager --generate-name --version 1.17.2
+  ```
+  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
+  {{% /notice %}}
 
 {{< /tab >}}
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
+  4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
-  {{< tabs groupid="2222" >}}
-    {{% tab title="2.prepare `chart-museum.yaml`" %}}
+  <p> <b>1.prepare</b> `cert-manager.yaml` </p>
+
+  {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
+    {{% tab title="PVC" %}}
+    kubectl get namespaces basic-components > /dev/null 2>&1 || kubectl create namespace basic-components
+    kubectl -n basic-components create secret generic chart-museum-credentials \
+        --from-literal=username=admin \
+        --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+        
+    {{% /tab %}}
+
+    {{% tab title="Minio" %}}
+
+    {{% /tab %}}
+  {{< /tabs >}}
+
+  <p> <b>1.prepare</b> `cert-manager.yaml` </p>
+
+  {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
+    {{% tab title="PVC" %}}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: chart-museum
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+      project: default
+      source:
+        repoURL: https://chartmuseum.github.io/charts
+        chart: chartmuseum
+        targetRevision: 3.10.3
+        helm:
+          releaseName: chart-museum
+          values: |
+            replicaCount: 1
+            image:
+              repository: ghcr.io/helm/chartmuseum
+            persistence:
+              enabled: false
+              storageClass: ""
+            volumePermissions:
+              image:
+                registry: m.daocloud.io/docker.io
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts:
+                - name: chartmuseum.ay.dev
+                  path: /?(.*)
+                  tls: true
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: basic-components
+    {{% /tab %}}
+
+    {{% tab title="Minio" %}}
     apiVersion: argoproj.io/v1alpha1
     kind: Application
     metadata:
@@ -87,21 +146,13 @@ weight = 31
   {{< /tabs >}}
 
 
-  {{< tabs groupid="3333" >}}
-    {{% tab title="3.apply to k8s " %}}
-  ```bash
-    kubectl -n argocd apply -f chart-museum.yaml
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  <p> <b>3.sync by argocd</b></p>
 
-  {{< tabs groupid="4444" >}}
-    {{% tab title="4.sync by argocd" %}}
+  {{% notice style="transparent" %}}
   ```bash
-    argocd app sync argocd/chart-museum
+  argocd app sync argocd/chart-museum
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
 
 {{< /tab >}}
