@@ -1,151 +1,156 @@
 +++
-title = 'First Customer Transformer'
+title = 'Kafka Sink Transformer'
 date = 2024-03-07T15:00:59+08:00
-weight = 3
+weight = 5
 +++
 
-### Mnist Inference
+### AlexNet Inference
 
-> More Information about `mnist` service can be found 🔗[link](https://github.com/pytorch/examples/tree/main/mnist)
+> More Information about `Custom Transformer` service can be found 🔗[link](https://kserve.github.io/website/0.15/modelserving/v1beta1/transformer/torchserve_image_transformer/)
 
-1. create a namespace
-```shell
+1. Implement Custom Transformer using Kserve API
+
+{{< highlight lineNos="true" lineNoStart="1" type="py" hl_lines="41 85">}}
+import os
+import argparse
+import json
+
+from typing import Dict, Union
+from kafka import KafkaProducer
+from cloudevents.http import CloudEvent
+from cloudevents.conversion import to_structured
+
+from kserve import (
+    Model,
+    ModelServer,
+    model_server,
+    logging,
+    InferRequest,
+    InferResponse,
+)
+
+from kserve.logging import logger
+from kserve.utils.utils import generate_uuid
+
+kafka_producer = KafkaProducer(
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    bootstrap_servers=os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+)
+
+class ImageTransformer(Model):
+    def __init__(self, name: str):
+        super().__init__(name, return_response_headers=True)
+        self.ready = True
+
+
+    def preprocess(
+        self, payload: Union[Dict, InferRequest], headers: Dict[str, str] = None
+    ) -> Union[Dict, InferRequest]:
+        logger.info("Received inputs %s", payload)
+        logger.info("Received headers %s", headers)
+        self.request_trace_key = os.environ.get('REQUEST_TRACE_KEY', 'algo.trace.requestId')
+        if self.request_trace_key not in payload:
+            logger.error("Request trace key '%s' not found in payload, you cannot trace the prediction result", self.request_trace_key)
+            if "instances" not in payload:
+                raise ValueError(
+                    f"Request trace key '{self.request_trace_key}' not found in payload and 'instances' key is missing."
+                )
+        else:
+            headers[self.request_trace_key] = payload.get(self.request_trace_key)
+   
+        return {"instances": payload["instances"]}
+
+    def postprocess(
+        self,
+        infer_response: Union[Dict, InferResponse],
+        headers: Dict[str, str] = None,
+        response_headers: Dict[str, str] = None,
+    ) -> Union[Dict, InferResponse]:
+        logger.info("postprocess headers: %s", headers)
+        logger.info("postprocess response headers: %s", response_headers)
+        logger.info("postprocess response: %s", infer_response)
+
+        attributes = {
+            "source": "data-and-computing/kafka-sink-transformer",
+            "type": "org.zhejianglab.zverse.data-and-computing.kafka-sink-transformer",
+            "request-host": headers.get('host', 'unknown'),
+            "kserve-isvc-name": headers.get('kserve-isvc-name', 'unknown'),
+            "kserve-isvc-namespace": headers.get('kserve-isvc-namespace', 'unknown'),
+            self.request_trace_key: headers.get(self.request_trace_key, 'unknown'),
+        }
+
+        _, cloudevent = to_structured(CloudEvent(attributes, infer_response))
+        try:
+            kafka_producer.send(os.environ.get('KAFKA_TOPIC', 'test-topic'), value=cloudevent.decode('utf-8').replace("'", '"'))
+            kafka_producer.flush()
+        except Exception as e:
+            logger.error("Failed to send message to Kafka: %s", e)
+        return infer_response
+
+parser = argparse.ArgumentParser(parents=[model_server.parser])
+args, _ = parser.parse_known_args()
+
+if __name__ == "__main__":
+    if args.configure_logging:
+        logging.configure_logging(args.log_config_file)
+    logging.logger.info("available model name: %s", args.model_name)
+    logging.logger.info("all args: %s", args.model_name)
+    model = ImageTransformer(args.model_name)
+    ModelServer().start([model])
+
+{{< /highlight >}}
+
+1. modify `pyproject.toml`
+```text
+kserve
+torchvision==0.18.0
+pillow>=10.3.0,<11.0.0
+```
+
+1. create `Dockerfile`
+  
+{{< highlight type="dockerfile" >}}
+FROM m.daocloud.io/docker.io/library/python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir  -r requirements.txt 
+
+COPY model.py .
+
+CMD ["python", "model.py", "--model_name=custom-model"]
+{{< /highlight >}}
+
+4. build and push custom docker image
+```bash
+docker build -t ay-custom-model .
+docker tag ddfd0186813e docker-registry.lab.zverse.space/ay/ay-custom-model:latest
+docker push docker-registry.lab.zverse.space/ay/ay-custom-model:latest
+```
+
+5. create a namespace
+```bash
 kubectl create namespace kserve-test
 ```
 
-1.  deploy a sample `iris` service
+6.  deploy a sample `custom-model` service
 ```bash
 kubectl apply -n kserve-test -f - <<EOF
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
 metadata:
-  name: "first-torchserve"
-  namespace: kserve-test
+  name: ay-custom-model
 spec:
   predictor:
-    model:
-      modelFormat:
-        name: pytorch
-      storageUri: gs://kfserving-examples/models/torchserve/image_classifier/v1
-      resources:
-        limits:
-          memory: 4Gi
+    containers:
+      - name: kserve-container
+        image: docker-registry.lab.zverse.space/ay/ay-custom-model:latest
 EOF
 ```
 
-1. Check `InferenceService` status
+7. Check `InferenceService` status
 ```shell
-kubectl -n kserve-test get inferenceservices first-torchserve 
+kubectl -n kserve-test get inferenceservices ay-custom-model
 ```
-
-{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
-
-```bash
-kubectl -n kserve-test get pod
-#NAME                                           READY   STATUS    RESTARTS   AGE
-#first-torchserve-predictor-00001-deplo...      2/2     Running   0          25s
-
-kubectl -n kserve-test get inferenceservices first-torchserve
-#NAME           URL   READY     PREV   LATEST   PREVROLLEDOUTREVISION   LATESTREADYREVISION   AGE
-#kserve-test   first-torchserve      http://first-torchserve.kserve-test.example.com   True           100                              first-torchserve-predictor-00001   2m59s
-```
-
-{{% /notice %}}
-
-
-After all pods are ready, you can access the service by using the following command
-
-{{< tabs groupid="kserve" style="primary" title="Access By" icon="thumbtack" >}}
-
-{{< tab title="LoadBalancer" style="transparent" >}}
-  If the <b>EXTERNAL-IP</b> value is set, your environment has an external load balancer that you can use for the ingress gateway.
-
-  {{< tabs groupid="1111" >}}
-    {{% tab %}}
-  ```bash
-  export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
-
-{{< /tab >}}
-
-{{< tab title="Node Port" style="transparent" >}}
-  If the EXTERNAL-IP value is none (or perpetually pending), your environment does not provide an external load balancer for the ingress gateway. In this case, you can access the gateway using the service’s node port.
-
-  {{< tabs groupid="1111" >}}
-    {{% tab %}}
-  ```bash
-  export INGRESS_HOST=$(minikube ip)
-  export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
-{{< /tab >}}
-
-{{< tab title="Port Forward" style="transparent" >}}
-
-  {{< tabs groupid="1111" >}}
-    {{% tab %}}
-  ```bash
-  export INGRESS_HOST=$(minikube ip)
-  kubectl port-forward --namespace istio-system svc/istio-ingressgateway 30080:80
-  export INGRESS_PORT=30080
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
-{{< /tab >}}
-{{< /tabs >}}
-
-
-
-4. Perform a prediction
-First, prepare your inference input request inside a file:
-```shell
-wget -O ./mnist-input.json https://raw.githubusercontent.com/kserve/kserve/refs/heads/master/docs/samples/v1beta1/torchserve/v1/imgconv/input.json
-```
-
-{{% notice style="tip" title="Remember to forward port if using minikube" expanded="false"%}}
-
-```bash
-ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L "*:${INGRESS_PORT}:0.0.0.0:${INGRESS_PORT}" -N -f
-```
-
-{{% /notice %}}
-
-5. Invoke the service
-```shell
-SERVICE_HOSTNAME=$(kubectl -n kserve-test get inferenceservice first-torchserve  -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-# http://first-torchserve.kserve-test.example.com 
-curl -v -H "Host: ${SERVICE_HOSTNAME}" -H "Content-Type: application/json" "http://${INGRESS_HOST}:${INGRESS_PORT}/v1/models/mnist:predict" -d @./mnist-input.json
-```
-
-{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
-
-```plaintext
-*   Trying 192.168.58.2...
-* TCP_NODELAY set
-* Connected to 192.168.58.2 (192.168.58.2) port 32132 (#0)
-> POST /v1/models/mnist:predict HTTP/1.1
-> Host: my-torchserve.kserve-test.example.com
-> User-Agent: curl/7.61.1
-> Accept: */*
-> Content-Type: application/json
-> Content-Length: 401
-> 
-* upload completely sent off: 401 out of 401 bytes
-< HTTP/1.1 200 OK
-< content-length: 19
-< content-type: application/json
-< date: Mon, 09 Jun 2025 09:27:27 GMT
-< server: istio-envoy
-< x-envoy-upstream-service-time: 1128
-< 
-* Connection #0 to host 192.168.58.2 left intact
-{"predictions":[2]}
-```
-
-{{% /notice %}}
-
 

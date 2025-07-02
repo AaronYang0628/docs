@@ -158,30 +158,3 @@ And then, you could see
 ```
 {{% /expand %}}
 
-
-```yaml
-kubectl apply -f - << EOF
-apiVersion: sources.knative.dev/v1
-kind: SinkBinding
-metadata:
-  name: redirect-isvc-msg
-  namespace: kserve-test
-spec:
-  subject:
-    apiVersion: serving.knative.dev/v1
-    kind: InferenceService
-    name: first-torchserve
-    namespace: kserve-test
-  sink:
-    ref:
-      apiVersion: eventing.knative.dev/v1
-      kind: Broker
-      name: isvc-broker
-      namespace: kserve-test
-  reply:
-    ref:
-      apiVersion: serving.knative.dev/v1
-      kind: Service
-      name: event-display
-EOF
-```
