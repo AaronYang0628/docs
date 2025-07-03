@@ -189,7 +189,29 @@ curl -v "http://${MASTER_IP}:${KAFKA_BROKER_INGRESS_PORT}/kserve-test/isvc-broke
   -H "Content-Type: application/json" \
   -d @./image-with-trace-id.json 
 ```
-- check kafka topic `test-topic`
+
+- check **input data** in kafka topic `knative-broker-kserve-test-isvc-broker`
+```shell
+kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+  'kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVER --consumer.config $CLIENT_CONFIG_FILE --topic knative-broker-kserve-test-isvc-broker --from-beginning'
+```
+
+{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
+```json
+{
+    "test-trace-id": "16ec3446-48d6-422e-9926-8224853e84a7",
+    "instances": [
+    {
+        "data": "iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAw0lEQVR4nGNgGFggVVj4/y8Q2GOR83n+58/fP0DwcSqmpNN7oOTJw6f+/H2pjUU2JCSEk0EWqN0cl828e/FIxvz9/9cCh1zS5z9/G9mwyzl/+PNnKQ45nyNAr9ThMHQ/UG4tDofuB4bQIhz6fIBenMWJQ+7Vn7+zeLCbKXv6z59NOPQVgsIcW4QA9YFi6wNQLrKwsBebW/68DJ388Nun5XFocrqvIFH59+XhBAxThTfeB0r+vP/QHbuDCgr2JmOXoSsAAKK7bU3vISS4AAAAAElFTkSuQmCC"
+    }]
+}
+{
+    "predictions": [2] // result will be saved in this topic as well
+}
+```
+{{% /notice %}}
+
+- check **response result** in kafka topic `test-topic`
 ```shell
 kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
   'kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVER --consumer.config $CLIENT_CONFIG_FILE --topic test-topic --from-beginning'
