@@ -8,7 +8,7 @@ weight = 5
 
 > More Information about `Custom Transformer` service can be found 🔗[link](https://kserve.github.io/website/0.15/modelserving/v1beta1/transformer/torchserve_image_transformer/)
 
-1. Implement Custom Transformer using Kserve API
+1. Implement Custom Transformer `./model.py` using Kserve API
 
 {{< highlight lineNos="true" lineNoStart="1" type="py" hl_lines="41 85">}}
 import os
@@ -100,57 +100,113 @@ if __name__ == "__main__":
 
 {{< /highlight >}}
 
-1. modify `pyproject.toml`
-```text
-kserve
-torchvision==0.18.0
-pillow>=10.3.0,<11.0.0
+1. modify `./pyproject.toml`
+```toml
+[tool.poetry]
+name = "custom_transformer"
+version = "0.15.2"
+description = "Custom Transformer Examples. Not intended for use outside KServe Frameworks Images."
+authors = ["Dan Sun <dsun20@bloomberg.net>"]
+license = "Apache-2.0"
+packages = [
+    { include = "*.py" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+kserve = {path = "../kserve", develop = true}
+pillow = "^10.3.0"
+kafka-python = "^2.2.15"
+cloudevents = "^1.11.1"
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.4"
+mypy = "^0.991"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+black = { version = "~24.3.0", extras = ["colorama"] }
+
+[tool.poetry-version-plugin]
+source = "file"
+file_path = "../VERSION"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 ```
 
-1. create `Dockerfile`
+2. prepare `../custom_transformer.Dockerfile`
   
 {{< highlight type="dockerfile" >}}
-FROM m.daocloud.io/docker.io/library/python:3.11-slim
+ARG PYTHON_VERSION=3.11
+ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-bookworm
+ARG VENV_PATH=/prod_venv
 
-WORKDIR /app
+FROM ${BASE_IMAGE} AS builder
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir  -r requirements.txt 
+# Install Poetry
+ARG POETRY_HOME=/opt/poetry
+ARG POETRY_VERSION=1.8.3
 
-COPY model.py .
+RUN python3 -m venv ${POETRY_HOME} && ${POETRY_HOME}/bin/pip install poetry==${POETRY_VERSION}
+ENV PATH="$PATH:${POETRY_HOME}/bin"
 
-CMD ["python", "model.py", "--model_name=custom-model"]
+# Activate virtual env
+ARG VENV_PATH
+ENV VIRTUAL_ENV=${VENV_PATH}
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+COPY kserve/pyproject.toml kserve/poetry.lock kserve/
+RUN cd kserve && poetry install --no-root --no-interaction --no-cache
+COPY kserve kserve
+RUN cd kserve && poetry install --no-interaction --no-cache
+
+COPY custom_transformer/pyproject.toml custom_transformer/poetry.lock custom_transformer/
+RUN cd custom_transformer && poetry install --no-root --no-interaction --no-cache
+COPY custom_transformer custom_transformer
+RUN cd custom_transformer && poetry install --no-interaction --no-cache
+
+
+FROM ${BASE_IMAGE} AS prod
+
+COPY third_party third_party
+
+# Activate virtual env
+ARG VENV_PATH
+ENV VIRTUAL_ENV=${VENV_PATH}
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN useradd kserve -m -u 1000 -d /home/kserve
+
+COPY --from=builder --chown=kserve:kserve $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --from=builder kserve kserve
+COPY --from=builder custom_transformer custom_transformer
+
+USER 1000
+ENTRYPOINT ["python", "-m", "custom_transformer.model"]
 {{< /highlight >}}
+
+3. regenerate poetry.lock
+```shell
+poetry lock --no-update
+```
 
 4. build and push custom docker image
 ```bash
-docker build -t ay-custom-model .
-docker tag ddfd0186813e docker-registry.lab.zverse.space/ay/ay-custom-model:latest
-docker push docker-registry.lab.zverse.space/ay/ay-custom-model:latest
-```
+cd python
+podman build -t docker-registry.lab.zverse.space/data-and-computing/ay-dev/msg-transformer:dev9 -f custom_transformer.Dockerfile .
 
-5. create a namespace
-```bash
-kubectl create namespace kserve-test
+podman push docker-registry.lab.zverse.space/data-and-computing/ay-dev/msg-transformer:dev9
 ```
-
-6.  deploy a sample `custom-model` service
-```bash
-kubectl apply -n kserve-test -f - <<EOF
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: ay-custom-model
-spec:
-  predictor:
-    containers:
-      - name: kserve-container
-        image: docker-registry.lab.zverse.space/ay/ay-custom-model:latest
-EOF
-```
-
-7. Check `InferenceService` status
-```shell
-kubectl -n kserve-test get inferenceservices ay-custom-model
-```
-

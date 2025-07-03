@@ -115,6 +115,10 @@ prediction-and-sink-transformer-00001-deployment-76cccd867lksg9   2/2     Runnin
 ```
 {{% /notice %}}
 
+{{% notice style="important" title="Expectd Output" icon="check" expanded="true"%}}
+Source code of the  `docker-registry.lab.zverse.space/data-and-computing/ay-dev/msg-transformer:dev9` could be found 🔗[here](/Kubernetes/Serverless/kserve/serving/predictive/first_custom_transformer.md)
+{{% /notice %}}
+
 
 ### [[Optional]]() 5. Invoke InferenceService 
 - preparation
@@ -155,6 +159,8 @@ curl -v -H "Host: ${PLAIN_SERVICE_HOSTNAME}" -H "Content-Type: application/json"
 {"predictions":[2]}
 ```
 {{% /notice %}}
+
+
 
 ### 6. Invoke Broker
 - preparation
