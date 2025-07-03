@@ -48,8 +48,9 @@ weight = 31
   2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
   3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
   4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  5. Minio has installed, if not check 🔗<a href="/docs/software/storage/minio/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `cert-manager.yaml` </p>
+  <p> <b>1.prepare</b> `chart-museum-credentials` </p>
 
   {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
     {{% tab title="PVC" %}}
@@ -57,15 +58,21 @@ weight = 31
     kubectl -n basic-components create secret generic chart-museum-credentials \
         --from-literal=username=admin \
         --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
-        
+
     {{% /tab %}}
 
     {{% tab title="Minio" %}}
+    kubectl get namespaces basic-components > /dev/null 2>&1 || kubectl create namespace basic-components
+    kubectl -n basic-components create secret generic chart-museum-credentials \
+        --from-literal=username=admin \
+        --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+        --from-literal=aws_access_key_id=$(kubectl -n storage get secret minio-credentials -o jsonpath='{.data.rootUser}' | base64 -d) \
+        --from-literal=aws_secret_access_key=$(kubectl -n storage get secret minio-credentials -o jsonpath='{.data.rootPassword}' | base64 -d)
 
     {{% /tab %}}
   {{< /tabs >}}
 
-  <p> <b>1.prepare</b> `cert-manager.yaml` </p>
+  <p> <b>2.prepare</b> `chart-museum.yaml` </p>
 
   {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
     {{% tab title="PVC" %}}
@@ -88,6 +95,15 @@ weight = 31
             replicaCount: 1
             image:
               repository: ghcr.io/helm/chartmuseum
+            env:
+              open:
+                DISABLE_API: false
+                STORAGE: local
+                AUTH_ANONYMOUS_GET: true
+              existingSecret: "chart-museum-credentials"
+              existingSecretMappings:
+                BASIC_AUTH_USER: "username"
+                BASIC_AUTH_PASS: "password"
             persistence:
               enabled: false
               storageClass: ""
@@ -97,10 +113,14 @@ weight = 31
             ingress:
               enabled: true
               ingressClassName: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                nginx.ingress.kubernetes.io/rewrite-target: /$1
               hosts:
                 - name: chartmuseum.ay.dev
                   path: /?(.*)
                   tls: true
+                  tlsSecret: chartmuseum.ay.dev-tls
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components
@@ -126,6 +146,21 @@ weight = 31
             replicaCount: 1
             image:
               repository: ghcr.io/helm/chartmuseum
+            env:
+              open:
+                DISABLE_API: false
+                STORAGE: amazon
+                STORAGE_AMAZON_ENDPOINT: http://minio-api.ay.dev:32080
+                STORAGE_AMAZON_BUCKET: chart-museum
+                STORAGE_AMAZON_PREFIX: charts
+                STORAGE_AMAZON_REGION: us-east-1
+                AUTH_ANONYMOUS_GET: true
+              existingSecret: "chart-museum-credentials"
+              existingSecretMappings:
+                BASIC_AUTH_USER: "username"
+                BASIC_AUTH_PASS: "password"
+                AWS_ACCESS_KEY_ID: "aws_access_key_id"
+                AWS_SECRET_ACCESS_KEY: "aws_secret_access_key"
             persistence:
               enabled: false
               storageClass: ""
@@ -135,10 +170,14 @@ weight = 31
             ingress:
               enabled: true
               ingressClassName: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                nginx.ingress.kubernetes.io/rewrite-target: /$1
               hosts:
                 - name: chartmuseum.ay.dev
                   path: /?(.*)
                   tls: true
+                  tlsSecret: chartmuseum.ay.dev-tls
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components

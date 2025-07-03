@@ -95,7 +95,7 @@ weight = 130
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-console.dev.tech
+            hostname: minio-console.ay.dev
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations: 
@@ -106,7 +106,7 @@ weight = 130
           apiIngress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-api.dev.tech
+            hostname: minio-api.ay.dev
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations: 
