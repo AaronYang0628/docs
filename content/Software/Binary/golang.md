@@ -5,8 +5,9 @@ weight = 70
 +++
 
 ```shell
-wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz
+# sudo rm -rf /usr/local/go  # 删除旧版本
+wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.24.4.linux-amd64.tar.gz
 vim ~/.bashrc
 export PATH=$PATH:/usr/local/go/bin
 source ~/.bashrc
