@@ -10,7 +10,7 @@ weight = 30
 
 {{< tabs groupid="prometheus" style="primary" title="Install By" icon="thumbtack" >}}
 
-{{< tab title="Helm" style="transparent" >}}
+{{< tab title="Helm✅" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
@@ -42,7 +42,7 @@ weight = 30
 
 {{< /tab >}}
 
-{{< tab title="ArgoCD" style="transparent" >}}
+{{< tab title="ArgoCD✅" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
