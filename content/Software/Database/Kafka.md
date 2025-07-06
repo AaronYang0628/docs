@@ -10,17 +10,146 @@ weight = 110
 
 {{< tabs groupid="prometheus" style="primary" title="Install By" icon="thumbtack" >}}
 
-{{< tab title="Helm" style="transparent" >}}
+{{< tab title="Helm✔️" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
+  <p> <b>1.get helm repo </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  helm repo add bitnami oci://registry-1.docker.io/bitnamicharts/kafka
+  helm repo update
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.install chart </b></p>
+
+  {{< tabs groupid="kafka" >}}
+    {{% tab title="without zk" %}}
+    helm upgrade --create-namespace -n database kafka --install bitnami/kafka \
+      --set global.imageRegistry=m.daocloud.io/docker.io \
+      --set zookeeper.enabled=false \
+      --set controller.replicaCount=1 \
+      --set broker.replicaCount=1 \
+      --set persistance.enabled=false  \
+      --version 28.0.3
+    {{% /tab %}}
+
+    {{% tab title="use zk" %}}
+    helm upgrade --create-namespace -n database kafka --install bitnami/kafka \
+      --set global.imageRegistry=m.daocloud.io/docker.io \
+      --set zookeeper.enabled=false \
+      --set controller.replicaCount=1 \
+      --set broker.replicaCount=1 \
+      --set persistance.enabled=false  \
+      --version 28.0.3
+    {{% /tab %}}
+  {{< /tabs >}}
+
+
+  {{% notice style="transparent" %}}
+  ```shell
+  kubectl -n database \
+    create secret generic client-properties \
+    --from-literal=client.properties="$(printf "security.protocol=SASL_PLAINTEXT\nsasl.mechanism=SCRAM-SHA-256\nsasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"user1\" password=\"$(kubectl get secret kafka-user-passwords --namespace database -o jsonpath='{.data.client-passwords}' | base64 -d | cut -d , -f 1)\";\n")"
+  ```
+  {{% /notice %}}
+
+  {{% notice style="transparent" %}}
+  ```shell
+  kubectl -n database apply -f - << EOF
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: kafka-client-tools
+    labels:
+      app: kafka-client-tools
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: kafka-client-tools
+    template:
+      metadata:
+        labels:
+          app: kafka-client-tools
+      spec:
+        volumes:
+        - name: client-properties
+          secret:
+            secretName: client-properties
+        containers:
+        - name: kafka-client-tools
+          image: m.daocloud.io/docker.io/bitnami/kafka:3.6.2
+          volumeMounts:
+          - name: client-properties
+            mountPath: /bitnami/custom/client.properties
+            subPath: client.properties
+            readOnly: true
+          env:
+          - name: BOOTSTRAP_SERVER
+            value: kafka.database.svc.cluster.local:9092
+          - name: CLIENT_CONFIG_FILE
+            value: /bitnami/custom/client.properties
+          command:
+          - tail
+          - -f
+          - /etc/hosts
+          imagePullPolicy: IfNotPresent
+  EOF
+  ```
+  {{% /notice %}}
+
+  <p> <b>3.validate function </b></p> 
+
+- list topics
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+      'kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --command-config $CLIENT_CONFIG_FILE --list'
+  ```
+  {{% /notice %}}
+
+- create topic
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+    'kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --command-config $CLIENT_CONFIG_FILE --create --if-not-exists --topic test-topic'
+  ```
+  {{% /notice %}}
+
+- describe topic
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+    'kafka-topics.sh --bootstrap-server $BOOTSTRAP_SERVER --command-config $CLIENT_CONFIG_FILE --describe --topic test-topic'
+  ```
+  {{% /notice %}}
+
+- produce message
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+    'for message in $(seq 0 10); do echo $message | kafka-console-producer.sh --bootstrap-server $BOOTSTRAP_SERVER --producer.config $CLIENT_CONFIG_FILE --topic test-topic; done'
+  ```
+  {{% /notice %}}
+
+- consume message
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
+    'kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVER --consumer.config $CLIENT_CONFIG_FILE --topic test-topic --from-beginning'
+  ```
+  {{% /notice %}}
 {{< /tab >}}
 
-{{< tab title="ArgoCD" style="transparent">}}
+{{< tab title="ArgoCD✔️" style="transparent">}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare `deploy-kafka.yaml` </b></p>
 
@@ -47,30 +176,27 @@ spec:
         image:
           registry: m.daocloud.io/docker.io
         controller:
-          replicaCount: 0
+          replicaCount: 1
           persistence:
             enabled: false
           logPersistence:
             enabled: false
           extraConfig: |
             message.max.bytes=5242880
-            default.replication.factor=3
-            offsets.topic.replication.factor=3
-            transaction.state.log.replication.factor=3
+            default.replication.factor=1
+            offsets.topic.replication.factor=1
+            transaction.state.log.replication.factor=1
         broker:
           replicaCount: 1
-          minId: 0
           persistence:
             enabled: false
           logPersistence:
             enabled: false
           extraConfig: |
             message.max.bytes=5242880
-            default.replication.factor=3
-            offsets.topic.replication.factor=3
-            transaction.state.log.replication.factor=3
-            sasl.mechanism.inter.broker.protocol=SCRAM-SHA-256
-            sasl.enabled.mechanisms=SCRAM-SHA-256
+            default.replication.factor=1
+            offsets.topic.replication.factor=1
+            transaction.state.log.replication.factor=1
         externalAccess:
           enabled: false
           autoDiscovery:
@@ -93,30 +219,9 @@ spec:
         provisioning:
           enabled: false
         kraft:
-          enabled: false
-        zookeeper:
           enabled: true
-          image:
-            registry: m.daocloud.io/docker.io
-          replicaCount: 1
-          auth:
-            client:
-              enabled: false
-            quorum:
-              enabled: false
-          persistence:
-            enabled: false
-          volumePermissions:
-            enabled: false
-            image:
-              registry: m.daocloud.io/docker.io
-            metrics:
-              enabled: false
-          tls:
-            client:
-              enabled: false
-            quorum:
-              enabled: false
+        zookeeper:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: database
@@ -303,7 +408,7 @@ kubectl -n database \
   ```
   {{% /notice %}}
 
-  <p> <b>7.validate function </b></p> 
+  <p> <b>6.validate function </b></p> 
 
 - list topics
   {{% notice style="transparent" %}}
@@ -348,7 +453,7 @@ kubectl -n database \
 {{< /tab >}}
 
 
-{{< tab title="Docker Compose" style="default" >}}
+{{< tab title="Docker Compose✔️" style="default" >}}
   <p> <b>Preliminary </b></p>
   1. Docker has installed, if not check 🔗<a href="docs/software/container/docker/index.html" target="_blank">link</a> </p></br>
    
