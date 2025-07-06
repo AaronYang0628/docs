@@ -6,40 +6,26 @@ weight = 111
 
 ### Preliminary
 - Kind binary has installed, if not check 🔗[link](software/binary/kind/index.html)
+- Hardware Requirements:
+    1. At least **2 GB** of RAM per machine (minimum **1 GB**)
+    2. **2 CPUs** on the master node
+    3. Full network connectivity among all machines (public or private network)
+
+- Operating System:
+    1. Ubuntu 22.04/14.04, CentOS 7/8, or any other supported Linux distribution.
+
+- Network Requirements:
+    1. Unique hostname, MAC address, and product_uuid for each node.
+    2. Certain ports need to be open (e.g., 6443, 2379-2380, 10250, 10251, 10252, 10255, etc.)
 
 
 
+### Customize your cluster
 
-#### [[Optional]]() disable aegis service and reboot system for `Aliyun`
-
+Creating a Kubernetes cluster is as simple as `kind create cluster`
 ```shell
-sudo systemctl disable aegis && sudo reboot
+kind create cluster --name test
 ```
 
-#### [[Optional]]() customize your cluster
-```shell
-minikube start --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
-```
-{{% expand title="If you wanna use podman ..." %}}
-minikube start --driver=podman ...
-```shell
-minikube start --driver=podman --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
-```
-{{% /expand %}}
-
-#### [[Optional]]() restart minikube
-```shell
-minikube stop && minikube start
-```
-#### Add alias
-```shell
-alias kubectl="minikube kubectl --"
-```
-
-#### Forward
-```shell
-ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
-```
-
-and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
-
+### Reference
+and the you can visit [https://kind.sigs.k8s.io/docs/user/quick-start/](https://kind.sigs.k8s.io/docs/user/quick-start/) for mode detail.
