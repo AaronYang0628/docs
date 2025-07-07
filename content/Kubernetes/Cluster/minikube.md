@@ -28,7 +28,7 @@ sudo systemctl disable aegis && sudo reboot
 
 ### Customize your cluster
 ```shell
-minikube start --driver=podman --kubernetes-version=v1.27.10 --image-mirror-country=cn --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=24g --disk-size=100g
+minikube start --driver=podman  --image-mirror-country=cn --kubernetes-version=v1.33.1 --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers --cpus=6 --memory=20g --disk-size=50g --force
 ```
 
 ### Restart minikube
@@ -47,3 +47,40 @@ ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.
 
 and then you can visit [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/) for more detail.
 
+
+### FAQ
+
+{{% expand title="Q1: couldn't get resource list for external.metrics.k8s.io/v1beta1: the server is currently unable to handle..." %}}
+
+通常是由于 Metrics Server 未正确安装 或 External Metrics API 缺失 导致的
+
+```shell
+# 启用 Minikube 的 metrics-server 插件
+minikube addons enable metrics-server
+
+# 等待部署完成（约 1-2 分钟）
+kubectl wait --for=condition=available deployment/metrics-server -n kube-system --timeout=180s
+
+# 验证 Metrics Server 是否运行
+kubectl -n kube-system get pods  | grep metrics-server
+```
+
+> the possibilities are endless (almost - including other shortcodes may or may not work)
+{{% /expand %}}
+
+
+{{% expand title="Q2: Show me almost **endless** possibilities" %}}
+You can add standard markdown syntax:
+
+- multiple paragraphs
+- bullet point lists
+- _emphasized_, **bold** and even **_bold emphasized_** text
+- [links](https://example.com)
+- etc.
+
+```plaintext
+...and even source code
+```
+
+> the possibilities are endless (almost - including other shortcodes may or may not work)
+{{% /expand %}}

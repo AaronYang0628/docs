@@ -6,7 +6,7 @@ weight = 80
 
 ```shell
 ARCH_IN_FILE_NAME=linux-amd64
-FILE_NAME=helm-v3.13.3-${ARCH_IN_FILE_NAME}.tar.gz
+FILE_NAME=helm-v3.18.3-${ARCH_IN_FILE_NAME}.tar.gz
 curl -sSLo ${FILE_NAME} "https://files.m.daocloud.io/get.helm.sh/${FILE_NAME}"
 tar zxf ${FILE_NAME}
 mkdir -p ${HOME}/bin

@@ -27,6 +27,8 @@ podman container prune
 podman image prune
 ```
 
+sudo podman volume prune
+
 5. find ip address of a container
 ```shell
 podman inspect --format='{{.NetworkSettings.IPAddress}}' minio-server
