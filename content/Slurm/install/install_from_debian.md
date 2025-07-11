@@ -5,14 +5,16 @@ weight = 1
 +++
 
 ### Cluster Setting
-1 Manager, 1 Login Node and 2 Compute node：
+- 1 Manager
+- 1 Login Node
+- 2 Compute nodes
 
-|**hostname**|    **IP**      | **role**| **quota**|
-| ---------- | -------------- | ------- | -------- |
-| manage01   | 192.168.56.115 | manager | 2C4G     |
-| login01    | 192.168.56.116 |  login  | 2C4G     |
-| compute01  | 192.168.56.117 | compute | 2C4G     |
-| compute02  | 192.168.56.118 | compute | 2C4G     |
+|             **hostname**           |    **IP**      | **role**| **quota**|
+| ---------------------------------- | -------------- | ------- | -------- |
+| manage01 (**slurmctld, slurmdbd**) | 192.168.56.115 | manager | 2C4G     |
+| login01 (**login**)                | 192.168.56.116 |  login  | 2C4G     |
+| compute01 (**slurmd**)             | 192.168.56.117 | compute | 2C4G     |
+| compute02 (**slurmd**)             | 192.168.56.118 | compute | 2C4G     |
 
 Software Version:
 
@@ -21,20 +23,20 @@ Software Version:
 | os                 | Debian 12 bookworm |
 | slurm              |       24.05.2      |
 
+---
+
+> [!IMPORTANT]
+> 
+> when you see `(All Nodes)`, you need to run the following command on all nodes
+> 
+> when you see `(Manager Node)`, you only need to run the following command on manager node
+>
+> when you see `(Login Node)`, you only need to run the following command on login node
+
+
 ### Prepare Steps `(All Nodes)`
-1. Modify the `/etc/network/interfaces` file (if you cannot get ipv4 address)
-> Append the following lines to the file
-```text
-allow-hotplug enps08
-iface enps08 inet dhcp
-```
 
-restart the network
-```bash
-systemctl restart networking
-```
-
-2. Modify the `/etc/apt/sources.list` file
+1. Modify the `/etc/apt/sources.list` file
 Using tuna mirror
 ```bash
 cat > /etc/apt/sources.list << EOF
@@ -52,11 +54,25 @@ deb-src https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security 
 EOF
 ```
 
-3. update apt cache
+{{% expand title="if you cannot get ipv4 address"%}}
+Modify the `/etc/network/interfaces`
+```text
+allow-hotplug enps08
+iface enps08 inet dhcp
+```
+
+restart the network
+```bash
+systemctl restart networking
+```
+{{% /expand %}}
+
+2. Update apt cache
 ```bash
 apt clean all && apt update
 ```
-4. set hostname **on each node**
+
+3. Set hostname **on each node**
 
 {{< tabs groupid="main" style="primary" title="Node:" icon="thumbtack" >}}
 {{< tab title = "manage01" >}}
@@ -101,7 +117,7 @@ hostnamectl set-hostname compute02
 
 {{< /tabs >}}
 
-5. set hosts file
+4. Set hosts file
 ```bash
 cat >> /etc/hosts << EOF
 192.168.56.115 manage01
@@ -110,31 +126,36 @@ cat >> /etc/hosts << EOF
 192.168.56.118 compute02
 EOF
 ```
-6. disable firewall
+
+5. Disable firewall
 ```shell
 systemctl stop nftables && systemctl disable nftables
 ```
-7.  install packages `ntpdate`
+
+6. Install packages `ntpdate`
 ```bash
 apt-get -y install ntpdate
 ```
 
-sync server time
+7. Sync server time
 ```bash
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 echo 'Asia/Shanghai' >/etc/timezone
 ntpdate time.windows.com
 ```
-8.  add cron job to sync time
+
+8. Add cron job to sync time
 ```shell
 crontab -e
 */5 * * * * /usr/sbin/ntpdate time.windows.com
 ```
-9. create ssh key pair **on each node**
+
+9. Create ssh key pair on each node
 ```shell
 ssh-keygen -t rsa -b 4096 -C $HOSTNAME
 ```
-10.  ssh login without password [All Node]
+
+10.  Test ssh login other nodes without password 
 
 {{< tabs groupid="main" style="primary" title="Node:" icon="thumbtack" >}}
 {{< tab title = "manage01" >}}
@@ -538,24 +559,26 @@ systemctl enable slurmd
 
 {{< /tabs >}}
 
-- test slurm
-check cluster configuration
+### Test Your Slurm Cluster `(Login Node)`
+- check cluster configuration
 ```Bash
 scontrol show config
 ```
 
-check cluster status
+- check cluster status
 ```Bash
 sinfo
 scontrol show partition
 scontrol show node
 ```
-submit job
+
+- submit job
 ```bash
 srun -N2 hostname
 scontrol show jobs
 ```
 
+- check job status
 ```bash
 check job status
 squeue -a

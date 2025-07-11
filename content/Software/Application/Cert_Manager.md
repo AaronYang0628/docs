@@ -174,6 +174,20 @@ weight = 30
 
 {{< /tab >}}
 
+{{< tab title="CURL" style="transparent" >}}
+ <p> <b>Preliminary </b></p>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+
+  <p> <b>1.just run</b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
+
+
 
 {{< /tabs >}}
 
