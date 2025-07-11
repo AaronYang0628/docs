@@ -53,7 +53,14 @@ podman run -d --replace
 
 8. login registry
 ```shell
-podman login --tls-verify=false --username=ascm-org-1710208820455 cr.registry.res.cloud.zhejianglab.com -p 'xxxx'
+export ZJLAB_CR_PAT=ghp_xxxxxxxxxxxx
+echo $ZJLAB_CR_PAT | podman login --tls-verify=false cr.registry.res.cloud.zhejianglab.com -u ascm-org-1710208820455 --password-stdin
+
+export GITHUB_CR_PAT=ghp_xxxxxxxxxxxx
+echo $GITHUB_CR_PAT | podman login ghcr.io -u aaronyang0628 --password-stdin
+
+export DOCKER_CR_PAT=dckr_pat_bBN_Xkgz-xxxx
+echo $DOCKER_CR_PAT | podman login docker.io -u aaron666 --password-stdin
 ```
 
 9. tag image
