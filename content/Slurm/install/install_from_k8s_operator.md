@@ -5,18 +5,33 @@ weight = 5
 +++
 
 
+Despite the complex binary installation, using k8s operator is a better way to install slurm.
+> Source code could be found from [https://github.com/AaronYang0628/slurm-on-k8s](https://github.com/AaronYang0628/slurm-on-k8s)
 
-### push to dockerhub registry
-```shell
-export DOCKER_CR_PAT=dckr_pat_bBN_Xkgz-TRdxirM2B6EDYCjjrg
-echo $DOCKER_CR_PAT | podman login docker.io -u aaron666 --password-stdin
-podman push docker.io/aaronyang0628/slurm-operator:latest
-```
+### Prequisites
+1. Kubernetes has installed, if not check 🔗[link](../../Software/Binary/kubectl.md)
+2. Helm binary has installed, if not check 🔗[link](../../Software/Binary/helm.md)
 
+### Installation
+1. deploy slurm operator
+    ```shell
+    kubectl apply -f https://raw.githubusercontent.com/AaronYang0628/helm-chart-mirror/refs/heads/main/templates/slurm/operator_install.yaml
+    ```
 
-### push to github registry
-```shell
-export GITHUB_CR_PAT=ghp_xxxxxxxxxxxx
-echo $GITHUB_CR_PAT | podman login ghcr.io -u aaronyang0628 --password-stdin
-podman push ghcr.io/aaronyang0628/slurm-operator:latest
-```
+2. check operator status
+    ```shell
+    kubectl get slurmdeployment
+    # kubectl get slurmdep
+    # kubectl -n slurm get pods
+    ```
+
+3. apply CRD slurmdeployment 
+    ```shell
+    kubectl apply -f https://raw.githubusercontent.com/AaronYang0628/helm-chart-mirror/refs/heads/main/templates/slurm/slurmdeployment.values.yaml
+    ```
+
+4. check operator status
+    ```shell
+    kubectl -n slurm get pods
+    ```
+

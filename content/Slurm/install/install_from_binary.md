@@ -3,6 +3,8 @@ title = 'Install From Binary'
 date = 2024-08-07T15:00:59+08:00
 weight = 2
 +++
+
+
 > [!IMPORTANT]
 > 
 >`(All Nodes)` means all type nodes should install this component.
