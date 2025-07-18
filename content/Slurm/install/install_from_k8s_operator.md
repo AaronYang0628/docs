@@ -45,8 +45,8 @@ deployment.apps/slurm-operator-controller-manager created
     {{% notice style="tip" title="Expectd Output" icon="check" expanded="true"%}}
 ```shell
 [root@ay-zj-ecs operator]# kubectl -n slurm get pod
-NAME                                                READY   STATUS    RESTARTS   AGE
-slurm-operator-controller-manager-f8656c7c8-dqzrr   1/1     Running   0          27s
+NAME                                READY   STATUS    RESTARTS   AGE
+slurm-operator-controller-manager   1/1     Running   0          27s
 ```
     {{% /notice %}}
 
