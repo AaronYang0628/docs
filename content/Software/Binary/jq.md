@@ -4,7 +4,6 @@ date = 2024-04-07T15:00:59+08:00
 weight = 100
 +++
 
-## jq
 ```shell
 JQ_VERSION=1.7
 JQ_BINARY=jq-linux64
