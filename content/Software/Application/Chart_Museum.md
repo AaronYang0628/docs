@@ -76,6 +76,7 @@ weight = 31
 
   {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
     {{% tab title="PVC" %}}
+    kubectl apply -f - << EOF
     apiVersion: argoproj.io/v1alpha1
     kind: Application
     metadata:
@@ -94,7 +95,7 @@ weight = 31
           values: |
             replicaCount: 1
             image:
-              repository: ghcr.io/helm/chartmuseum
+              repository: m.daocloud.io/ghcr.io/helm/chartmuseum
             env:
               open:
                 DISABLE_API: false
@@ -124,9 +125,11 @@ weight = 31
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components
+    EOF
     {{% /tab %}}
 
     {{% tab title="Minio" %}}
+    kubectl apply -f - << EOF
     apiVersion: argoproj.io/v1alpha1
     kind: Application
     metadata:
@@ -145,7 +148,7 @@ weight = 31
           values: |
             replicaCount: 1
             image:
-              repository: ghcr.io/helm/chartmuseum
+              repository: m.daocloud.io/ghcr.io/helm/chartmuseum
             env:
               open:
                 DISABLE_API: false
@@ -181,7 +184,60 @@ weight = 31
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components
+    EOF
     {{% /tab %}}
+
+    {{% tab title="Plain" %}}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: chart-museum
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+      project: default
+      source:
+        repoURL: https://chartmuseum.github.io/charts
+        chart: chartmuseum
+        targetRevision: 3.10.3
+        helm:
+          releaseName: chart-museum
+          values: |
+            replicaCount: 1
+            image:
+              repository: m.daocloud.io/ghcr.io/helm/chartmuseum
+            env:
+              open:
+                DISABLE_API: false
+                STORAGE: local
+                AUTH_ANONYMOUS_GET: true
+              existingSecret: "chart-museum-credentials"
+              existingSecretMappings:
+                BASIC_AUTH_USER: "username"
+                BASIC_AUTH_PASS: "password"
+            persistence:
+              enabled: false
+              storageClass: ""
+            volumePermissions:
+              image:
+                registry: m.daocloud.io/docker.io
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              annotations:
+                cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                nginx.ingress.kubernetes.io/rewrite-target: /$1
+              hosts:
+                - name: chartmuseum.ay.dev
+                  path: /?(.*)
+                  tls: true
+                  tlsSecret: chartmuseum.ay.dev-tls
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: basic-components
+    {{% /tab %}}
+
   {{< /tabs >}}
 
 

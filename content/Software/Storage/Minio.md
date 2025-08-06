@@ -98,8 +98,10 @@ weight = 130
             hostname: minio-console.ay.dev
             path: /?(.*)
             pathType: ImplementationSpecific
-            annotations: 
+            annotations:
+              kubernetes.io/ingress.class: nginx
               nginx.ingress.kubernetes.io/rewrite-target: /$1
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
             tls: true
             selfSigned: true
             extraHosts: []
@@ -110,7 +112,12 @@ weight = 130
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations: 
+              kubernetes.io/ingress.class: nginx
               nginx.ingress.kubernetes.io/rewrite-target: /$1
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+            tls: true
+            selfSigned: true
+            extraHosts: []
           persistence:
             enabled: false
             storageClass: ""
@@ -166,9 +173,9 @@ weight = 130
 
   {{% notice style="note" title="Login Credentials" %}} 
 
-  add `$K8S_MASTER_IP minio-console.dev.tech` to `/etc/hosts`
+  add `$K8S_MASTER_IP minio-console.ay.dev` to `/etc/hosts`
 
-  address: 🔗[http://minio-console.dev.tech:32080/login](hhttp://minio-console.dev.tech:32080/login) 
+  address: 🔗[http://minio-console.ay.dev:32080/login](hhttp:/minio-console.ay.dev:32080/login) 
 
   > access key: `admin` 
 

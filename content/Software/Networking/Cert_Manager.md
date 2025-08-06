@@ -195,20 +195,16 @@ weight = 30
 
 ### FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: The browser doesn't trust this **self-signed** certificate" %}}
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+Basically, you need to import the certificate into your browser.
+```shell
+kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}' | base64 -d > cert-manager-self-signed-ca-secret.crt
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+And then import it into your browser.
+
+
 {{% /expand %}}
 
 
