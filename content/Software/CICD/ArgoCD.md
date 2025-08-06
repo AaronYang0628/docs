@@ -100,6 +100,7 @@ weight = 10
     {{< tabs groupid="tabs-example-language" >}}
       {{% tab title="yaml" %}}
   ```yaml
+  kubectl -n argocd apply -f - <<EOF
   apiVersion: v1
   kind: Service
   metadata:
@@ -121,6 +122,7 @@ weight = 10
       app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server
     type: NodePort
+  EOF
   ```
       {{% /tab%}}
     {{< /tabs >}}
@@ -130,6 +132,7 @@ weight = 10
       {{< tabs groupid="tabs-example-language" >}}
       {{% tab title="yaml" %}}
   ```yaml
+  kubectl -n argocd apply -f - <<EOF
   apiVersion: v1
   kind: Service
   metadata:
@@ -148,8 +151,10 @@ weight = 10
       targetPort: 8080
       nodePort: 30443
     selector:
+      app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server
     type: NodePort
+  EOF
   ```
       {{% /tab%}}
     {{< /tabs >}}

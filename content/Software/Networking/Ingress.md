@@ -18,7 +18,8 @@ weight = 90
   {{< tabs groupid="1111" >}}
     {{% tab title="1.get helm repo" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
   helm repo update
   ```
     {{% /tab %}}
@@ -27,7 +28,7 @@ weight = 90
   {{< tabs groupid="22222" >}}
     {{% tab title="2.install chart" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  helm install ingress-nginx/ingress-nginx --generate-name
   ```
     {{% /tab %}}
   {{< /tabs >}}
@@ -35,6 +36,10 @@ weight = 90
   {{< tabs groupid="tips" >}}
     {{% tab style="tip" %}}
   for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  ```shell
+
+    helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts && helm install ay-helm-mirror/ingress-nginx --generate-name --version 4.11.3
+  ```
     {{% /tab %}}
   {{< /tabs >}}
 

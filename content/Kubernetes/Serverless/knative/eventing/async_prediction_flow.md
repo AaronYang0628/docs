@@ -120,7 +120,7 @@ Source code of the  `docker-registry.lab.zverse.space/data-and-computing/ay-dev/
 {{% /notice %}}
 
 
-### [[Optional]]() 5. Invoke InferenceService 
+### [[Optional]]() 5. Invoke InferenceService Directly
 - preparation
 ```shell
 wget -O ./mnist-input.json https://raw.githubusercontent.com/kserve/kserve/refs/heads/master/docs/samples/v1beta1/torchserve/v1/imgconv/input.json
@@ -180,6 +180,7 @@ EOF
 ```shell
 export MASTER_IP=192.168.100.112
 export KAFKA_BROKER_INGRESS_PORT=$(kubectl -n knative-eventing get service kafka-broker-ingress -o jsonpath='{.spec.ports[?(@.name=="http-container")].nodePort}')
+
 curl -v "http://${MASTER_IP}:${KAFKA_BROKER_INGRESS_PORT}/kserve-test/isvc-broker" \
   -X POST \
   -H "Ce-Id: $(date +%s)" \
@@ -217,8 +218,7 @@ kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
   'kafka-console-consumer.sh --bootstrap-server $BOOTSTRAP_SERVER --consumer.config $CLIENT_CONFIG_FILE --topic test-topic --from-beginning'
 ```
 
-{{% notice style="tip" title="Expectd Output" icon="check" expanded="false"%}}
-```json
+{{< highlight type="json"  lineNos="true" wrap="true" hl_lines="14"  >}}
 {
     "specversion": "1.0",
     "id": "822e3115-0185-4752-9967-f408dda72004",
@@ -234,5 +234,5 @@ kubectl -n database exec -it deployment/kafka-client-tools -- bash -c \
     "kserve-isvc-namespace": "kserve-test",
     "test-trace-id": "16ec3446-48d6-422e-9926-8224853e84a7"
 }
-```
-{{% /notice %}}
+{{< /highlight >}}
+Using `test-trace-id` to grab the result.

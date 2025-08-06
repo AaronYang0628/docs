@@ -7,9 +7,33 @@ weight = 20
 
 
 ### Reference
-- you can directly  install docker engine from 🐳[docker official website](https://docs.docker.com/engine/install/).
+- you can directly  install docker engine from 🐶[buildah official website](https://buildah.io/).
 
+### Prerequisites
+- **Kernel Version Requirements**
+_To run Buildah on Red Hat Enterprise Linux or CentOS, version 7.4 or higher is required._ On other Linux distributions Buildah requires a kernel version that supports the OverlayFS and/or fuse-overlayfs filesystem -- you'll need to consult your distribution's documentation to determine a minimum version number.
 
+- **`runc` Requirement**
+Buildah uses [runc](https://github.com/opencontainers/runc) to run commands when buildah run is used, or when buildah build encounters a RUN instruction, so you'll also need to build and install a compatible version of runc for Buildah to call for those cases. If Buildah is installed via a package manager such as yum, dnf or apt-get, runc will be installed as part of that process.
+
+- **CNI Requirement**
+When Buildah uses runc to run commands, it defaults to running those commands in the host's network namespace. If the command is being run in a separate user namespace, though, for example when ID mapping is used, then the command will also be run in a separate network namespace.
+
+A newly-created network namespace starts with no network interfaces, so commands which are run in that namespace are effectively disconnected from the network unless additional setup is done. Buildah relies on the CNI library and plugins to set up interfaces and routing for network namespaces.
+
+{{% expand title="something wrong with CNI"%}}
+
+If Buildah is installed via a package manager such as yum, dnf or apt-get, a package containing CNI plugins may be available (in Fedora, the package is named containernetworking-cni). If not, they will need to be installed, for example using:
+
+```shell
+git clone https://github.com/containernetworking/plugins
+( cd ./plugins; ./build_linux.sh )
+sudo mkdir -p /opt/cni/bin
+sudo install -v ./plugins/bin/* /opt/cni/bin
+```
+The CNI library needs to be configured so that it will know which plugins to call to set up namespaces. Usually, this configuration takes the form of one or more configuration files in the /etc/cni/net.d directory. A set of example configuration files is included in the docs/cni-examples directory of this source tree.
+
+{{% /expand %}}
 ### Installation
 
 > [!CAUTION]
@@ -19,22 +43,18 @@ weight = 20
 {{% tab title="fedora" %}}
 ```shell
 sudo dnf update -y 
-sudo dnf config-manager --add-repo=https://download.docker.com/linux/fedora/docker-ce.repo
-sudo dnf install docker-ce docker-ce-cli containerd.io 
+sudo dnf -y install buildah
 ```
-Once the installation is complete, start the Docker service
+Once the installation is complete, The `buildah images` command will list all the images:
 
 ```shell
-sudo systemctl enable docker
-sudo systemctl start docker
+buildah images
 ```
 
 {{% /tab %}}
 {{% tab title="centos" %}}
 ```shell
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
-sudo yum install docker-ce --nobest --allowerasing -y
+sudo yum -y install buildah
 ```
 Once the installation is complete, start the Docker service
 ```shell
@@ -46,36 +66,13 @@ sudo systemctl start docker
 {{% tab title="ubuntu✅" %}}
 1. Set up Docker's apt repository.
 ```shell
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \ sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+sudo apt-get -y update
+sudo apt-get -y install buildah
 ```
-
-2. Install the Docker packages.
-  > latest version
-  ```shell
-  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  ```
-
-  > specific version
-  ```shell
-   apt-cache madison docker-ce | awk '{ print $3 }'
-   echo $DOCKER_VERSION=5:28.2.1-1~XXXXX
-   sudo apt-get install docker-ce=$DOCKER_VERSION docker-ce-cli=$DOCKER_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
-  ```
 
 3. Verify that the installation is successful by running the hello-world image: 
 ```shell
-sudo docker run hello-world
+sudo buildah run hello-world
 ```
 
 {{% /tab %}}
