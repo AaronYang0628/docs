@@ -15,7 +15,7 @@ weight = 60
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. Cert-manager has installed and the clusterissuer has a named <b>self-signed-ca-issuer</b> service, , if not check 🔗<a href="/docs/software/application/cert_manager/index.html" target="_blank">link</a> </p></br>
+  3. Cert-manager has installed, if not check 🔗<a href="/docs/software/application/cert_manager/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 

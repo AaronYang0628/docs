@@ -22,7 +22,7 @@ Despite the complex binary installation, helm chart is a better way to install s
 
     ```shell
     # wget -O slurm.values.yaml https://raw.githubusercontent.com/AaronYang0628/slurm-on-k8s/refs/heads/main/chart/values.yaml
-    helm install slurm ay-helm-mirror/chart -f slurm.values.yaml --version 1.0.9
+    helm install slurm ay-helm-mirror/chart -f slurm.values.yaml --version 1.0.10
     ```
     Or you can get template values.yaml from [https://raw.githubusercontent.com/AaronYang0628/helm-chart-mirror/refs/heads/main/templates/slurm/slurm.values.yaml](https://raw.githubusercontent.com/AaronYang0628/helm-chart-mirror/refs/heads/main/templates/slurm/slurm.values.yaml)
 

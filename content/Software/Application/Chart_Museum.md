@@ -253,18 +253,6 @@ weight = 31
 {{< /tab >}}
 
 
-{{< tab title="Docker Compose" style="default" >}}
-  install based on docker
-  {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="shell" %}}
-  ```bash
-  echo  "start from head is important"
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
-
-{{< /tab >}}
-
 {{< /tabs >}}
 
 
