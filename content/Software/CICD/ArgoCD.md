@@ -154,6 +154,10 @@ weight = 10
       app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server
     type: NodePort
+
+  ---
+
+  
   EOF
   ```
       {{% /tab%}}
@@ -167,12 +171,94 @@ weight = 10
 kubectl -n argocd apply -f argocd-server-external.yaml
 ```
 
-### 6. get argocd initialized password
+
+
+### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
+{{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
+  {{< tab title="Helm" >}}
+    {{< tabs groupid="tabs-example-language" >}}
+      {{% tab title="yaml" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: argocd-server-ingress
+    annotations:
+      cert-manager.io/cluster-issuer: self-signed-ca-issuer
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+  spec:
+    ingressClassName: nginx
+    tls:
+    - hosts:
+        - argo-cd.ay.dev
+      secretName: argo-cd-tls
+    rules:
+    - http:
+        paths:
+        - path: /?(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: argocd-server-external
+              port:
+                name: https
+  EOF
+  ```
+      {{% /tab%}}
+    {{< /tabs >}}
+  {{< /tab >}}
+
+  {{< tab title="File/URL" style="default" color="darkorchid" >}}
+      {{< tabs groupid="tabs-example-language" >}}
+      {{% tab title="yaml" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server-external
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.8.4
+    name: argocd-server-external
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30443
+    selector:
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server
+    type: NodePort
+
+  ---
+
+  
+  EOF
+  ```
+      {{% /tab%}}
+    {{< /tabs >}}
+  {{< /tab >}}
+{{< /tabs >}}
+
+
+### 7. [[Optional]]() create external service
+```shell
+kubectl -n argocd apply -f argocd-server-external.yaml
+```
+
+
+### 8. get argocd initialized password
 ```shell
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
-### 7. login argocd
+### 9. login argocd
 
 {{< tabs >}}
 {{% tab title="argocd-cli" %}}

@@ -11,6 +11,8 @@ weight = 11
 
 ### 1. prepare `argo-workflows.yaml`
 
+{{< tabs title="content" >}}
+{{% tab title="yaml" %}}
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -56,13 +58,13 @@ spec:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
             hosts:
-              - argo-workflows.dev.geekcity.tech
+              - argo-workflows.ay.dev
             paths:
               - /?(.*)
             tls:
               - secretName: argo-workflows-tls
                 hosts:
-                  - argo-workflows.dev.geekcity.tech
+                  - argo-workflows.ay.dev
           authModes:
             - server
           sso:
@@ -71,6 +73,74 @@ spec:
     server: https://kubernetes.default.svc
     namespace: workflows
 ```
+{{% /tab %}}
+{{% tab title="shortcut" %}}
+```yaml
+kubectl apply -f - << EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-workflows
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+  project: default
+  source:
+    repoURL: https://argoproj.github.io/argo-helm
+    chart: argo-workflows
+    targetRevision: 0.40.11
+    helm:
+      releaseName: argo-workflows
+      values: |
+        crds:
+          install: true
+          keep: false
+        singleNamespace: false
+        controller:
+          image:
+            registry: m.daocloud.io/quay.io
+          workflowNamespaces:
+            - business-workflows
+        executor:
+          image:
+            registry: m.daocloud.io/quay.io
+        workflow:
+          serviceAccount:
+            create: true
+          rbac:
+            create: true
+        server:
+          enabled: true
+          image:
+            registry: m.daocloud.io/quay.io
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+            hosts:
+              - argo-workflows.ay.dev
+            paths:
+              - /?(.*)
+            tls:
+              - secretName: argo-workflows-tls
+                hosts:
+                  - argo-workflows.ay.dev
+          authModes:
+            - server
+          sso:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: workflows
+EOF
+```
+{{% /tab %}}
+{{< /tabs >}}
+
+
 
 ### 2. install argo workflow binary
 
