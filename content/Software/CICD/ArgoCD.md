@@ -195,7 +195,7 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
     tls:
     - hosts:
         - argo-cd.ay.dev
-      secretName: argo-cd-tls
+      secretName: argo-cd.ay.dev-tls
     rules:
     - host: argo-cd.ay.dev
       http:

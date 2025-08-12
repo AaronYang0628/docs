@@ -87,9 +87,9 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    repoURL: https://argoproj.github.io/argo-helm
     chart: argo-workflows
-    targetRevision: 0.40.11
+    targetRevision: 0.45.11
     helm:
       releaseName: argo-workflows
       values: |
@@ -120,16 +120,18 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
+              nginx.ingress.kubernetes.io/use-regex: "true"
             hosts:
               - argo-workflows.ay.dev
             paths:
               - /?(.*)
             tls:
-              - secretName: argo-workflows-tls
+              - secretName: argo-workflows.ay.dev-tls
                 hosts:
                   - argo-workflows.ay.dev
           authModes:
             - server
+            - client
           sso:
             enabled: false
   destination:
