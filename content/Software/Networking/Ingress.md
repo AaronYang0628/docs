@@ -15,33 +15,30 @@ weight = 90
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
-  {{< tabs groupid="1111" >}}
-    {{% tab title="1.get helm repo" %}}
+  <p> <b>1.get helm repo </b></p>
+
+  {{% notice style="transparent" %}}
   ```bash
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-
   helm repo update
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
-  {{< tabs groupid="22222" >}}
-    {{% tab title="2.install chart" %}}
+  <p> <b>2.install chart </b></p>
+
+  {{% notice style="transparent" %}}
   ```bash
   helm install ingress-nginx/ingress-nginx --generate-name
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
-  {{< tabs groupid="tips" >}}
-    {{% tab style="tip" %}}
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  {{% notice style="important" title="Using Mirror" %}} 
   ```shell
-
-    helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts && helm install ay-helm-mirror/ingress-nginx --generate-name --version 4.11.3
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts &&
+    helm install ay-helm-mirror/ingress-nginx --generate-name --version 4.11.3
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
+  {{% /notice %}}
 
 {{< /tab >}}
 
@@ -50,87 +47,78 @@ weight = 90
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
-  {{< tabs groupid="2222" >}}
-    {{% tab title="2.prepare `ingress-nginx.yaml`" %}}
-    apiVersion: argoproj.io/v1alpha1
-    kind: Application
-    metadata:
-      name: ingress-nginx
-    spec:
-      syncPolicy:
-        syncOptions:
-        - CreateNamespace=true
-      project: default
-      source:
-        repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
-        chart: ingress-nginx
-        targetRevision: 4.11.3
-        helm:
-          releaseName: ingress-nginx
-          values: |
-            controller:
-              image:
-                registry: m.daocloud.io
-                image: registry.k8s.io/ingress-nginx/controller
-                tag: "v1.9.5"
-                pullPolicy: IfNotPresent
-              service:
+  <p> <b>1.prepare</b> `ingress-nginx.yaml` </p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: ingress-nginx
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: ingress-nginx
+      targetRevision: 4.11.3
+      helm:
+        releaseName: ingress-nginx
+        values: |
+          controller:
+            image:
+              registry: m.daocloud.io
+              image: registry.k8s.io/ingress-nginx/controller
+              tag: "v1.9.5"
+              pullPolicy: IfNotPresent
+            service:
+              enabled: true
+              type: NodePort
+              nodePorts:
+                http: 32080
+                https: 32443
+                tcp:
+                  8080: 32808
+            admissionWebhooks:
+              enabled: true
+              patch:
                 enabled: true
-                type: NodePort
-                nodePorts:
-                  http: 32080
-                  https: 32443
-                  tcp:
-                    8080: 32808
-              admissionWebhooks:
-                enabled: true
-                patch:
-                  enabled: true
-                  image:
-                    registry: m.daocloud.io
-                    image: registry.k8s.io/ingress-nginx/kube-webhook-certgen
-                    tag: v20231011-8b53cabe0
-                    pullPolicy: IfNotPresent
-            defaultBackend:
-              enabled: false
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: basic-components
-    {{% /tab %}}
-  {{< /tabs >}}
-
-
-  {{< tabs groupid="3333" >}}
-    {{% tab title="3.apply to k8s " %}}
-  ```bash
-    kubectl -n argocd apply -f ingress-nginx.yaml
+                image:
+                  registry: m.daocloud.io
+                  image: registry.k8s.io/ingress-nginx/kube-webhook-certgen
+                  tag: v20231011-8b53cabe0
+                  pullPolicy: IfNotPresent
+          defaultBackend:
+            enabled: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: basic-components
+  EOF
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+  {{% /notice %}}
 
-  {{< tabs groupid="4444" >}}
-    {{% tab title="4.sync by argocd" %}}
+
+  <p> <b><a>[Optional]</a> 2.apply to k8s</b></p>
+
+  {{% notice style="transparent" %}}
   ```bash
-    argocd app sync argocd/ingress-nginx
+  kubectl -n argocd apply -f ingress-nginx.yaml
   ```
-    {{% /tab %}}
-  {{< /tabs >}}
+ {{% /notice %}}
 
+  <p> <b>3.sync by argocd</b></p>
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/ingress-nginx
+  ```
+ {{% /notice %}}
 
 {{< /tab >}}
 
 
-{{< tab title="Docker Compose" style="default" >}}
-  install based on docker
-  {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="shell" %}}
-  ```bash
-  echo  "start from head is important"
-  ```
-    {{% /tab %}}
-  {{< /tabs >}}
-
-{{< /tab >}}
 
 {{< /tabs >}}
 
@@ -138,17 +126,13 @@ weight = 90
 
 ### FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: Using minikube, cannot access to the website" %}}
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
 
 ```plaintext
-...and even source code
+ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
+ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:32443:0.0.0.0:32443' -N -f
+ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:32080:0.0.0.0:32080' -N -f
 ```
 
 > the possibilities are endless (almost - including other shortcodes may or may not work)

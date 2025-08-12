@@ -24,7 +24,7 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://argoproj.github.io/argo-helm
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
     chart: argo-workflows
     targetRevision: 0.40.11
     helm:
@@ -76,7 +76,7 @@ spec:
 {{% /tab %}}
 {{% tab title="shortcut" %}}
 ```yaml
-kubectl apply -f - << EOF
+kubectl -n argocd apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -87,7 +87,7 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://argoproj.github.io/argo-helm
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
     chart: argo-workflows
     targetRevision: 0.40.11
     helm:

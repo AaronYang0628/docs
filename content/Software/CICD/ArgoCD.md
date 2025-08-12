@@ -174,6 +174,9 @@ kubectl -n argocd apply -f argocd-server-external.yaml
 
 
 ### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
+
+Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](software/networking/cert_manager.html)
+
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}
     {{< tabs groupid="tabs-example-language" >}}
@@ -183,7 +186,7 @@ kubectl -n argocd apply -f argocd-server-external.yaml
   apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
-    name: argocd-server-ingress
+    name: argo-cd-argocd-server
     annotations:
       cert-manager.io/cluster-issuer: self-signed-ca-issuer
       nginx.ingress.kubernetes.io/rewrite-target: /$1
@@ -194,15 +197,16 @@ kubectl -n argocd apply -f argocd-server-external.yaml
         - argo-cd.ay.dev
       secretName: argo-cd-tls
     rules:
-    - http:
+    - host: argo-cd.ay.dev
+      http:
         paths:
         - path: /?(.*)
-          pathType: Prefix
+          pathType: ImplementationSpecific
           backend:
             service:
-              name: argocd-server-external
+              name: argo-cd-argocd-server
               port:
-                name: https
+                number: 80
   EOF
   ```
       {{% /tab%}}
@@ -213,33 +217,30 @@ kubectl -n argocd apply -f argocd-server-external.yaml
       {{< tabs groupid="tabs-example-language" >}}
       {{% tab title="yaml" %}}
   ```yaml
-  kubectl -n argocd apply -f - <<EOF
-  apiVersion: v1
-  kind: Service
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
   metadata:
-    labels:
-      app.kubernetes.io/component: server
-      app.kubernetes.io/instance: argo-cd
-      app.kubernetes.io/name: argocd-server-external
-      app.kubernetes.io/part-of: argocd
-      app.kubernetes.io/version: v2.8.4
-    name: argocd-server-external
+    name: argo-cd-argocd-server
+    annotations:
+      cert-manager.io/cluster-issuer: self-signed-ca-issuer
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
   spec:
-    ports:
-    - name: https
-      port: 443
-      protocol: TCP
-      targetPort: 8080
-      nodePort: 30443
-    selector:
-      app.kubernetes.io/instance: argo-cd
-      app.kubernetes.io/name: argocd-server
-    type: NodePort
-
-  ---
-
-  
-  EOF
+    ingressClassName: nginx
+    tls:
+    - hosts:
+        - argo-cd.ay.dev
+      secretName: argo-cd-tls
+    rules:
+    - host: argo-cd.ay.dev
+      http:
+        paths:
+        - path: /?(.*)
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: argo-cd-argocd-server
+              port:
+                number: 80
   ```
       {{% /tab%}}
     {{< /tabs >}}
@@ -269,9 +270,23 @@ argocd login --insecure --username admin $MASTER_IP:30443 --password $ARGOCD_PAS
 ```
 {{% /tab  %}}
 
-{{% tab title="web browser" %}}
+{{% tab title="using port" %}}
+if you deploy argocd in minikube, you might need to forward this port
+```shell
+ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
+```
 ```text
-open https://<$local_ip:localhost>:30443
+open https://$(minikube ip):30443
+```
+{{% /tab  %}}
+
+{{% tab title="using ingress" %}}
+if you use ingress, you might need to configure your browser to allow insecure connection
+```shell
+kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}' | base64 -d > cert-manager-self-signed-ca-secret.crt
+```
+```text
+open https://argo-cd.ay.dev
 ```
 {{% /tab  %}}
 {{< /tabs >}}
