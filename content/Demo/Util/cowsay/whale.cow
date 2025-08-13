@@ -1,5 +1,5 @@
 ##
-## Whale for cowsay (替代 whalesay 的 ASCII 艺术)
+## Whale for cowsay
 ##
 $the_cow = <<EOC;
   $thoughts
