@@ -96,7 +96,9 @@ weight = 71
               registry: m.daocloud.io/docker.io
             service:
               http:
-                type: ClusterIP
+                type: NodePort
+                port: 3000
+                nodePort: 30300
               ssh:
                 type: NodePort
                 port: 22
