@@ -200,3 +200,10 @@ undo rollout
 ```shell
 kubectl -n <$namespace> rollout undo deploy <$deploy_resource_id>  --to-revision=1
 ```
+
+
+## Patch
+clean those who won't managed by k8s
+```shell
+kubectl -n metadata patch flinkingest ingest-table-or-fits-from-oss -p '{"metadata":{"finalizers":[]}}' --type=merge
+```
