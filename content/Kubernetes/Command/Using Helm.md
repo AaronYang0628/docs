@@ -24,3 +24,12 @@ helm show values bitnami/wordpress
 ```shell
 helm package --dependency-update --destination /tmp/ /root/metadata-operator/environments/helm/metadata-environment/charts
 ```
+
+### Uninstall Chart
+```shell
+helm uninstall -n warehouse warehouse
+```
+when failed, you can try
+```shell
+helm uninstall -n warehouse warehouse --no-hooks --cascade=foreground
+```
