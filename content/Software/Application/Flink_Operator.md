@@ -31,7 +31,7 @@ weight = 60
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --set image.repository=apache/flink-kubernetes-operator --set webhook.create=false
+  helm install --create-namespace -n flink flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --set image.repository=m.lab.zverse.space/ghcr.io/apache/flink-kubernetes-operator --set image.tag=1.11.0 --set webhook.create=false
   ```
   {{% /notice %}}
 

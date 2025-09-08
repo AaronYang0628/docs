@@ -62,13 +62,25 @@ weight = 10
   <b>2. Install argoCD </b><br/>
 
   {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="shell" %}}
+    {{% tab title="ay mirror" %}}
 
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 5.46.7 \
+      --version 8.1.2 \
       --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
+      --values argocd.values.yaml \
+      --atomic
+
+    {{% /tab%}}
+
+    {{% tab title="original" %}}
+
+    helm install argo-cd argo-cd \
+      --namespace argocd \
+      --create-namespace \
+      --version 8.1.2 \
+      --repo https://argoproj.github.io/argo-helm \
       --values argocd.values.yaml \
       --atomic
 
