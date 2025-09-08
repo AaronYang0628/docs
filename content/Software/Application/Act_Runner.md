@@ -14,7 +14,7 @@ weight = 11
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
-  3. CertManager has installed, if not check 🔗<a href="/docs/software/networking/cert-manager/index.html" target="_blank">link</a> </p></br>
+  3. CertManager has installed, if not check 🔗<a href="/docs/software/networking/cert_manager/index.html" target="_blank">link</a> </p></br>
   4. Ingress has installed, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
@@ -54,7 +54,7 @@ weight = 11
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl create secret generic act-runner-secret \
+  kubectl -n application create secret generic act-runner-secret \
     --from-literal=act-runner-token=4w3Sx0Hwe6VFevl473ZZ4nFVDvFvhKcEUBvpJ09L
   ```
   {{% /notice %}}
@@ -90,7 +90,7 @@ weight = 11
           values: |
             image:
               name: gitea/act_runner
-              tag: "0.2.11"
+              tag: "0.2.13"
               repository: m.daocloud.io/docker.io
             runner:
               instanceURL: http://10.200.60.64:30300  # https://gitea.ay.dev:32443
@@ -154,7 +154,7 @@ weight = 11
           values: |
             image:
               name: gitea/act_runner
-              tag: "0.2.11"
+              tag: "0.2.13"
               repository: m.daocloud.io/docker.io
             runner:
               instanceURL: http://10.200.60.64:30300  # https://gitea.ay.dev:32443
@@ -169,9 +169,9 @@ weight = 11
                     level: info
                   runner:
                     labels:
-                      - ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
-                      - ubuntu-22.04:docker://docker.gitea.com/runner-images:ubuntu-22.04
-                      - ubuntu-20.04:docker://docker.gitea.com/runner-images:ubuntu-20.04
+                      - ubuntu-latest:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-latest
+                      - ubuntu-22.04:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-22.04
+                      - ubuntu-20.04:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-20.04
                   container:
                     force_pull: true
             persistence:
@@ -199,15 +199,6 @@ weight = 11
     {{% /tab %}}
   {{< /tabs >}}
 
-
-  <p> <b>3.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f act-runner.yaml
-  ```
-  {{% /notice %}}
-
   <p> <b>4.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
@@ -223,7 +214,50 @@ weight = 11
 
   To enable it, go to the settings page of your repository like `your_gitea.com/<owner>/repo/settings` and enable Enable Repository Actions.
 
-  ![act_runner_token](../../../images/content/gitea/act_runner_token.png)
+  ![act_runner_token](../../../images/content/gitea/enable_action.png)
+  {{% /notice %}}
+
+{{< /tab >}}
+
+{{< tab title="Docker" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Docker 
+  2. Podman has installed, and the `podman` command is available in your PATH.
+
+  <p> <b>1.prepare data and config dir </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  mkdir -p /opt/gitea_act_runner/{data,config} \
+  && chown -R 1000:1000 /opt/gitea_act_runner \
+  && chmod -R 755 /opt/gitea_act_runner
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.run container </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  podman run -it \
+  --name gitea_act_runner \
+  --rm \
+  --privileged \
+  --network=host \
+  -v /opt/gitea_act_runner/data:/data \
+  -v /opt/gitea_act_runner/config:/config \
+  -v /var/run/podman/podman.sock:/var/run/docker.sock \
+  -e GITEA_INSTANCE_URL="http://10.200.60.64:30300" \
+  -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
+  m.daocloud.io/docker.io/gitea/act_runner:latest-dind-rootless
+  ```
+  {{% /notice %}}
+
+  {{% notice style="important" title="Using Mirror" %}} 
+  ```shell
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
+    && helm install ay-helm-mirror/act-runner --generate-name --version 0.2.0
+  ```
+  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
   {{% /notice %}}
 
 {{< /tab >}}

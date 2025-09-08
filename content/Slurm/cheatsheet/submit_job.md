@@ -18,6 +18,10 @@ weight = 10
     ```shell
     srun -N1 test.sh
     ```
+    3. exec into slurmd node
+    ```shell
+    srun -w slurm-lensing-slurm-slurmd-cpu-2 --pty /bin/bash
+    ```
 - `sbatch`
      is used to submit a job script for later execution. The script will typically contain one or more srun commands to launch parallel tasks.
     * [Example]()
@@ -87,3 +91,6 @@ weight = 10
       scancel <$job_id>
       ```
       when you exit the job, the resources will be released.
+
+
+
