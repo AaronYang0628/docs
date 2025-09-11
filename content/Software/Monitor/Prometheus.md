@@ -80,7 +80,7 @@ weight = 160
       source:
         repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
         chart: kube-prometheus-stack
-        targetRevision: 72.6.2
+        targetRevision: 72.9.1
         helm:
           releaseName: prometheus-stack
           values: |
