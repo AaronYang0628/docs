@@ -99,7 +99,7 @@ weight = 11
                   name: "act-runner-secret"
                   key: "act-runner-token"
               config:
-                enabled: false
+                enabled: true
                 data: |
                   log:
                     level: info
@@ -120,8 +120,17 @@ weight = 11
               minReplicas: 1
               maxReplicas: 100
             replicas: 1  
-            securityContext: 
+            securityContext:
               privileged: true
+              runAsUser: 0
+              runAsGroup: 0
+              fsGroup: 0
+              capabilities:
+                add: ["NET_ADMIN", "SYS_ADMIN"]
+            podSecurityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              fsGroup: 0
             resources: 
               requests:
                 cpu: 200m
@@ -163,7 +172,7 @@ weight = 11
                   name: "act-runner-secret"
                   key: "act-runner-token"
               config:
-                enabled: false
+                enabled: true
                 data: |
                   log:
                     level: info
@@ -184,8 +193,17 @@ weight = 11
               minReplicas: 1
               maxReplicas: 100
             replicas: 1  
-            securityContext: 
+            securityContext:
               privileged: true
+              runAsUser: 0
+              runAsGroup: 0
+              fsGroup: 0
+              capabilities:
+                add: ["NET_ADMIN", "SYS_ADMIN"]
+            podSecurityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              fsGroup: 0
             resources: 
               requests:
                 cpu: 200m
