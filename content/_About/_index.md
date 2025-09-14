@@ -1,6 +1,6 @@
 +++
 title = 'About'
-date = 2024-03-07T15:00:59+08:00
+date = 2025-09-14T15:00:59+08:00
 weight = 10
 draft = true
 +++
@@ -9,21 +9,23 @@ draft = true
 # 杨博 <font size="9">(Aaron)</font>
 
 ### <span>&#127919;</span>求职意向
-__希望作为<u>JAVA高级工程师 </u> 为团队做出贡献__
+__希望作为<u>云原生Devops工程师 </u> 为团队做出贡献__
 
 ### <span>&#128170;</span>擅长技能
 
 
+__1. 熟悉CICD流程，能够编写Image、Helm Chart、Operator, 在k8s上对常见资源进行运维部署, 掌握Argo-CD, Git-action的开发和使用__
 
-__1. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建,运行和优化__
+__2. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建,运行和优化__
 
-__2. 熟悉CICD流程，能够编写Helm Chart使用k8s对常见资源进行运维部署, 掌握argoCD, argo-workflow等软件使用__
 
-__3. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，了解<span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, Minio等框架和中间件的使用__
+__3. 能够使用<span><img src="assets/icons/flink.png" height="15" width="30"> Flink</span>对海量数据进行实时处理，了解<span><img src="assets/icons/calcite.png" height="15" width="16"> Apache Calcite</span>等框架和Minio等中间件的开发和使用__
 
 __4. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
 
-__5. 使用过<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型的创建和应用</span>__
+__5. 使用过<span><img src="assets/icons/n8n.png" height="18" width="16"> n8n、<img src="assets/icons/dify.jpg" height="18" width="16"> dify平台对常见AI-Pipleline进行创建和应用</span>__
+
+__6. 使用过<span><img src="assets/icons/tensorflow.png" height="18" width="16"> Tensorflow2 对常见深度学习模型，进行创建和应用</span>__
 
 ### <span>&#128084;</span>工作经验
 
