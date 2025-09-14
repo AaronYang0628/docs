@@ -42,6 +42,13 @@ vim /etc/NetworkManager/NetworkManager.conf
 vim /etc/NetworkManager/NetworkManager.conf
 ```
 {{% /tab %}}
+{{% tab title="Ubuntu" %}}
+```shell
+sudo systemctl is-active systemd-resolved
+sudo resolvectl flush-caches
+# or sudo systemd-resolve --flush-caches
+```
+{{% /tab %}}
 {{< /tabs >}}
 
 

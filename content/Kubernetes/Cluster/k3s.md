@@ -39,3 +39,12 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 mkdir -p $HOME/.kube
 cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
 ```
+
+### Uninstall K3s
+```shell
+# 在 server 节点上运行
+/usr/local/bin/k3s-uninstall.sh
+
+# 在 agent 节点上运行
+/usr/local/bin/k3s-agent-uninstall.sh
+```
