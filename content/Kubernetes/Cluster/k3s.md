@@ -40,11 +40,11 @@ mkdir -p $HOME/.kube
 cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
 ```
 
-### Uninstall K3s
+### Uninstall k3s
 ```shell
-# 在 server 节点上运行
+# exec on server
 /usr/local/bin/k3s-uninstall.sh
 
-# 在 agent 节点上运行
+# exec on agent 
 /usr/local/bin/k3s-agent-uninstall.sh
 ```

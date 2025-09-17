@@ -67,7 +67,15 @@ weight = 11
   ![act_runner_token](../../../images/content/gitea/act_runner_token.png)
   {{% /expand %}}
 
-  <p> <b>2.prepare</b> `act-runner.yaml` </p>
+  <p> 
+    <b>2.prepare</b> 
+    <span class="copy-to-clipboard" dir="auto">
+      <code class="copy-to-clipboard-code highlight" data-code="act-runner.yaml">act-runner.yaml</code> 
+      <button class="inline-copy-to-clipboard-button" title="Copy to clipboard"><i class="far fa-copy"></i></button> 
+    </span> 
+  </p>
+  
+
 
   {{< tabs groupid="2222" title="Storage In " icon="thumbtack" >}}
     {{% tab title="PVC" %}}
@@ -92,12 +100,17 @@ weight = 11
               name: gitea/act_runner
               tag: "0.2.13"
               repository: m.daocloud.io/docker.io
+            podAnnotations:
+              container.apparmor.security.beta.kubernetes.io/dind: unconfined
             runner:
               instanceURL: http://10.200.60.64:30300  # https://gitea.ay.dev:32443
               token:
                 fromSecret:
                   name: "act-runner-secret"
                   key: "act-runner-token"
+              dockerDind:
+                enabled: true
+                image: docker:23.0.6-dind
               config:
                 enabled: true
                 data: |
@@ -106,8 +119,6 @@ weight = 11
                   runner:
                     labels:
                       - ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
-                      - ubuntu-22.04:docker://docker.gitea.com/runner-images:ubuntu-22.04
-                      - ubuntu-20.04:docker://docker.gitea.com/runner-images:ubuntu-20.04
                   container:
                     force_pull: true
             persistence:
@@ -237,7 +248,7 @@ weight = 11
 
 {{< /tab >}}
 
-{{< tab title="Docker" style="transparent" >}}
+{{< tab title="Podman" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Docker 
   2. Podman has installed, and the `podman` command is available in your PATH.
@@ -267,6 +278,48 @@ weight = 11
   -e GITEA_INSTANCE_URL="http://10.200.60.64:30300" \
   -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
   m.daocloud.io/docker.io/gitea/act_runner:latest-dind-rootless
+  ```
+  {{% /notice %}}
+
+  {{% notice style="important" title="Using Mirror" %}} 
+  ```shell
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
+    && helm install ay-helm-mirror/act-runner --generate-name --version 0.2.0
+  ```
+  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
+  {{% /notice %}}
+
+{{< /tab >}}
+
+{{< tab title="Docker" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Docker 
+  2. Podman has installed, and the `podman` command is available in your PATH.
+
+  <p> <b>1.prepare data and config dir </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  mkdir -p /opt/gitea_act_runner/{data,config} \
+  && chown -R 1000:1000 /opt/gitea_act_runner \
+  && chmod -R 755 /opt/gitea_act_runner
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.run container </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  docker run -it \
+  --name gitea_act_runner \
+  --rm \
+  --privileged \
+  --network=host \
+  -v /opt/gitea_act_runner/data:/data \
+  -v /opt/gitea_act_runner/config:/config \
+  -e GITEA_INSTANCE_URL="http://192.168.100.125:30300" \
+  -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
+  m.daocloud.io/docker.io/gitea/act_runner:latest-dind
   ```
   {{% /notice %}}
 
