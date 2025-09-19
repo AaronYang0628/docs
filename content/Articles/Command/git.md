@@ -75,6 +75,11 @@ git config --global credential.helper store
 git remote prune origin
 ```
 
+### Add a new remote repo
+```shell
+git remote add dev https://xxxxxxxxxxx.git
+```
+
 ### Update remote repo
 ```shell
 git remote set-url origin http://xxxxx.git
