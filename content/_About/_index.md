@@ -2,7 +2,8 @@
 title = 'About'
 date = 2025-09-14T15:00:59+08:00
 weight = 10
-draft = true
+[params]
+  hidden = true
 +++
 
 
@@ -14,7 +15,7 @@ __希望作为<u>云原生Devops工程师 </u> 为团队做出贡献__
 ### <span>&#128170;</span>擅长技能
 
 
-__1. 熟悉CICD流程，能够编写Image、Helm Chart、Operator, 在k8s上对常见资源进行运维部署, 掌握Argo-CD, Git-action的开发和使用__
+__1. 熟悉CICD流程，能够编写Image、Helm Chart、Operator, 在k8s上对常见资源进行开发运维部署, 掌握Argo-CD, Git-Action的开发和使用__
 
 __2. 熟悉 <span><img src="assets/icons/java.png" height="15" width="16"> Java </span>服务端开发 以及 <span><img src="assets/icons/springboot.png" height="15" width="16"> SpringBoot</span> 框架下WEB应用后台项目的搭建,运行和优化__
 
@@ -35,14 +36,15 @@ _高级研究专员_<br><br>
 
 主要负责天文中心数据存储和计算调度能力的基础设施保障；完成包括资源上云，开发改造平台及中间件，提高软件易用性。
 - 完成项目: 
-    - [__CSST科研工作台__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层TB级数据存储索引服务和实时计算处理支持。
-    - [__相场望远镜（宇宙触角）__](../Demo/cosmic-antenna.md): 新一代宇宙射频探测装置，完成软件DEMO部分，接受处理224个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
-    - [Arcyl Datahub](https://datahubproject.io/): 使用此开源元数据管理+数据血缘平台管理800+TB天文数据，并向开源社区贡献包括grafana-dashboard，自定义数据扫描扩展等相关代码内容
-    - [SchedMD Slurm](https://slurm.schedmd.com/): 维护改造开源超算集群，累计向开源社区及北大超算[SCOW](https://github.com/PKUHPC/SCOW)项目贡献包括helm chart及虚拟机安装文档优化等内容
+    - [__CSST科研工作台__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层PB级数据存储索引服务和实时计算处理支持。
+    - [__Slurm On K8s__](../Slurm/install/_index.md): 开发云化HPC超算集群，在k8s上，使用helm chart 或者 operator方式一键部署规格可配置的slurm集群。
+    - [相场望远镜（宇宙触角）](../Demo/cosmic-antenna.md): 为新一代宇宙射频探测装置，完成软件DEMO部分，接受处理224个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量800Gb/s
+    - [Arcyl Datahub](https://datahubproject.io/): 使用此开源元数据管理+数据血缘平台管理800+TB天文数据，并作为贡献者向开源社区贡献包括grafana-dashboard，自定义数据扫描扩展等相关代码内容
+    - [SchedMD Slurm](https://slurm.schedmd.com/): 维护改造开源超算集群，累计向开源社区及北大超算[SCOW](https://github.com/PKUHPC/SCOW)项目贡献包括helm chart包及虚拟机安装文档优化等内容
     - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件完成join/union。
 
 - 熟练掌握以下工具: 
-    - <span><img src="assets/icons/java.png" height="17" width="17">Java</span>, <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>, <span><img src="assets/icons/helm.png" height="15" width="16">Helm</span>, <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>
+    - <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/java.png" height="17" width="17">Java</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>, <span><img src="assets/icons/helm.png" height="15" width="16">Helm</span>, <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>
 <br>
 
 [__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
@@ -51,16 +53,17 @@ _工程专员_<br><br>
 
 主要负责团队大数据分析平台的优化和开发，保证数据处理，任务调度的高效稳定运行。对多源异构数据处理以及联邦查询服务有相关了解。
 - 完成项目: 
-    - [__见微可视分析平台__](https://gitee.com/zhijiangtianshu/nebula): 开源通用数据处理平台， 平台提供了一种以低代码拖拽方式来构建数据处理流程的可能，<br>用户将上传后的数据通过ETL节点、机器学习算子和数据清洗操作的处理之后，使用可视化组件渲染数据处理结果。
+    - [__见微可视分析平台__](https://gitee.com/zhijiangtianshu/nebula): 开发开源通用数据处理平台， 平台提供了一种以低代码拖拽方式来构建数据处理流程的可能，<br>用户将上传后的数据通过ETL节点、机器学习算子和数据清洗操作的处理之后，使用可视化组件渲染数据处理结果。
     - [__自研爬虫框架__](https://gitea-ops.lab.zjvis.net/bee/crawler): 开源爬虫框架，通过解析开发者提供的YAML描述文件，使得数据爬取任务转化成责任链模式数据流转，生成的爬虫任务高度灵活可定制。<br>累计帮助团队节省数据获取费用200W以上。
 - 熟练掌握以下工具: 
     - <span><img src="assets/icons/springboot.png" height="15" width="16">SpringBoot 2.5</span>, <span><img src="assets/icons/postgresql.png" height="15" width="16">Postgres</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, <span><img src="assets/icons/mysql.png" height="20" width="30">Mysql</span>, <span><img src="assets/icons/neo4j.png" height="18" width="40"/> Neo4J</span>,<span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>
 <br>
 
 [__银江股份有限公司-中央研究院, 杭州, 中国__]()  `2017.01 - 2018.04`
+
 _Java Web 后台开发工程师_<br><br>
 
-主要负责公司大数据产品以及研究课题项目的服务器接口API开发，>熟悉前后端分离开发协作模式, <br> 精通Springboot快速开发框架和SwaggerAPI文档接口应用。对主流关系型数据库Oracle以及常用格式JSON、XML有相关了解。
+主要负责公司大数据产品以及研究课题项目的服务器接口API开发，熟悉前后端分离开发协作模式, <br> 精通Springboot快速开发框架和SwaggerAPI文档接口应用。对主流关系型数据库Oracle以及常用格式JSON、XML有相关了解。
 - 完成项目: 
     - [__上海司法行政数据服务网__](https://credit.sfj.sh.gov.cn/): 一个司法主题的数据服务网站，该站的主要功能是整合司法局、监狱局、法院、公证处、<br>调解办等职能机构数据资源，构建信息数据可视化平台，帮助市民处理相关司法程序更便捷。
     - [__Enloop-iEx信息交换平台__](): 企业内部的一个信息交换平台，交换平台可以将各地分散的信息系统的数据整合汇聚，并使用自研工具生成接口API；<br>将收集到的接口内的数据进行清洗和脱敏，以rest服务的方式提供给需要的用户群体。
@@ -107,7 +110,10 @@ _Java Web 后台开发工程师_<br><br>
 ### <span>&#128240;</span>专利 和 证书
 
 [__之江实验室, 作为主要作者__]()
-- 基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2022` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
+- 一种基于概念对齐的多源异构天文数据归档查询方法及系统，专利号 [No. XX] `06/2025` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
+- 一种基于Healpix分区与列式存储的大规模星表管理方法，专利号 [No. XXX] `06/2025` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
+- 一种基于多源存储的跨平台虚拟文件系统及其访问方法，专利号 [No. XXX] `06/2025` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
+- 一种基于SQL的多源异构数据交互分析引擎及方法, 专利号 [No. CN114756629B] `06/2024` [[PDF](assets/patent/ZL-2022-1-00568.pdf)] <br> 
 - 一种页面区块的懒加载方法、装置、存储介质及设备, 专利号 [No. CN202310982912.2] `08/2023` [[PDF]()] <br>
 - 一种多源异构数据关联查询加速方法、装置及设备, 专利号 [No. CN117056316B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00906.pdf)] <br>
 - 一种基于知识图谱同概念下实体数据可视化配置方法与装置, 专利号 [No. CN117033420B] `10/2023` [[PDF](assets/patent/ZL-2023-1-00846.pdf)] <br>
@@ -120,3 +126,4 @@ _Java Web 后台开发工程师_<br><br>
 
 [__软件设计师(中级), 中国__]()
 - 全国计算机技术与软件专业技术中级资格证书, No. 1750500462. `02/2018` [[PDF](assets/nptq.png)]
+- 全国计算机技术与软件专业技术高级资格证书, No. 25505xxxx. `11/2025` [[PDF](assets/nptq.png)]
