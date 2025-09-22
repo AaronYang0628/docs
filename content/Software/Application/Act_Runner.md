@@ -14,8 +14,6 @@ weight = 11
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
-  3. CertManager has installed, if not check 🔗<a href="/docs/software/networking/cert_manager/index.html" target="_blank">link</a> </p></br>
-  4. Ingress has installed, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -250,8 +248,7 @@ weight = 11
 
 {{< tab title="Podman" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Docker 
-  2. Podman has installed, and the `podman` command is available in your PATH.
+  1. Podman has installed, and the `podman` command is available in your PATH.</p></br>
 
   <p> <b>1.prepare data and config dir </b></p>
 
@@ -282,11 +279,7 @@ weight = 11
   {{% /notice %}}
 
   {{% notice style="important" title="Using Mirror" %}} 
-  ```shell
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
-    && helm install ay-helm-mirror/act-runner --generate-name --version 0.2.0
-  ```
-  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
+  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](kubernetes/proxy/daocloud/index.html)
   {{% /notice %}}
 
 {{< /tab >}}
@@ -324,11 +317,7 @@ weight = 11
   {{% /notice %}}
 
   {{% notice style="important" title="Using Mirror" %}} 
-  ```shell
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
-    && helm install ay-helm-mirror/act-runner --generate-name --version 0.2.0
-  ```
-  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
+  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](kubernetes/proxy/daocloud/index.html)
   {{% /notice %}}
 
 {{< /tab >}}

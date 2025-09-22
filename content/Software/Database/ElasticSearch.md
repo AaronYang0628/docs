@@ -175,8 +175,8 @@ weight = 50
   1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/software/container/index.html" target="_blank">link</a> </p></br>
   
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
+  {{% notice style="important" title="Using Mirror" %}} 
+  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](kubernetes/proxy/daocloud/index.html)
   {{% /notice %}}
 
 
