@@ -19,26 +19,43 @@ weight = 11
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add gringolito https://gringolito.github.io/helm-charts
+helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
   helm repo update
   ```
   {{% /notice %}}
 
-  <p> <b>2.install chart </b></p>
+  <p> <b>2.prepare</b> `act-runner-secret` </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install act-runner gringolito/act-runner --generate-name
+  kubectl -n application create secret generic act-runner-secret \
+    --from-literal=act-runner-token=4w3Sx0Hwe6VFevl473ZZ4nFVDvFvhKcEUBvpJ09L
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Mirror" %}} 
-  ```shell
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
-    && helm install ay-helm-mirror/act-runner --generate-name --version 0.2.0
+  <p> <b>3.prepare values </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  echo "
+  replicas: 1
+  runner:
+    instanceURL: http://192.168.100.125:30300
+    token:
+      fromSecret:
+        name: "act-runner-secret"
+        key: "act-runner-token"" > act-runner-values.yaml
   ```
-  for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
   {{% /notice %}}
+
+  <p> <b>4.install chart </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  helm upgrade  --create-namespace -n application --install -f ./act-runner-values.yaml act-runner ay-helm-mirror/act-runner
+  ```
+  {{% /notice %}}
+
 
 {{< /tab >}}
 
@@ -88,27 +105,22 @@ weight = 11
         - CreateNamespace=true
       project: default
       source:
-        repoURL: https://gringolito.github.io/helm-charts
+        repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
         chart: act-runner
-        targetRevision: 0.2.0
+        targetRevision: 0.2.2
         helm:
           releaseName: act-runner
           values: |
             image:
-              name: gitea/act_runner
-              tag: "0.2.13"
+              name: vegardit/gitea-act-runner
+              tag: "dind-0.2.13"
               repository: m.daocloud.io/docker.io
-            podAnnotations:
-              container.apparmor.security.beta.kubernetes.io/dind: unconfined
             runner:
-              instanceURL: http://10.200.60.64:30300  # https://gitea.ay.dev:32443
+              instanceURL: https://192.168.100.125:30300
               token:
                 fromSecret:
                   name: "act-runner-secret"
                   key: "act-runner-token"
-              dockerDind:
-                enabled: true
-                image: docker:23.0.6-dind
               config:
                 enabled: true
                 data: |
@@ -116,18 +128,18 @@ weight = 11
                     level: info
                   runner:
                     labels:
-                      - ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
+                      - ubuntu-latest:docker://m.daocloud.io/docker.gitea.com/runner-images:ubuntu-latest
                   container:
                     force_pull: true
             persistence:
               enabled: true
               storageClassName: ""
               accessModes: ReadWriteOnce
-              size: 1Gi
+              size: 10Gi
             autoscaling:
-              enabled: false
+              enabled: true
               minReplicas: 1
-              maxReplicas: 100
+              maxReplicas: 3
             replicas: 1  
             securityContext:
               privileged: true
@@ -151,78 +163,6 @@ weight = 11
         server: https://kubernetes.default.svc
         namespace: application
     EOF
-    {{% /tab %}}
-
-    {{% tab title="Plain" %}}
-    apiVersion: argoproj.io/v1alpha1
-    kind: Application
-    metadata:
-      name: act-runner
-    spec:
-      syncPolicy:
-        syncOptions:
-        - CreateNamespace=true
-      project: default
-      source:
-        repoURL: https://gringolito.github.io/helm-charts
-        chart: act-runner
-        targetRevision: 0.2.0
-        helm:
-          releaseName: act-runner
-          values: |
-            image:
-              name: gitea/act_runner
-              tag: "0.2.13"
-              repository: m.daocloud.io/docker.io
-            runner:
-              instanceURL: http://10.200.60.64:30300  # https://gitea.ay.dev:32443
-              token:
-                fromSecret:
-                  name: "act-runner-secret"
-                  key: "act-runner-token"
-              config:
-                enabled: true
-                data: |
-                  log:
-                    level: info
-                  runner:
-                    labels:
-                      - ubuntu-latest:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-latest
-                      - ubuntu-22.04:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-22.04
-                      - ubuntu-20.04:docker://m.daocloud.io/docker.io/gitea/runner-images:ubuntu-20.04
-                  container:
-                    force_pull: true
-            persistence:
-              enabled: true
-              storageClassName: ""
-              accessModes: ReadWriteOnce
-              size: 1Gi
-            autoscaling:
-              enabled: false
-              minReplicas: 1
-              maxReplicas: 100
-            replicas: 1  
-            securityContext:
-              privileged: true
-              runAsUser: 0
-              runAsGroup: 0
-              fsGroup: 0
-              capabilities:
-                add: ["NET_ADMIN", "SYS_ADMIN"]
-            podSecurityContext:
-              runAsUser: 0
-              runAsGroup: 0
-              fsGroup: 0
-            resources: 
-              requests:
-                cpu: 200m
-                memory: 512Mi
-              limits:
-                cpu: 1000m
-                memory: 2048Mi
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: application
     {{% /tab %}}
   {{< /tabs >}}
 
@@ -265,16 +205,16 @@ weight = 11
   {{% notice style="transparent" %}}
   ```bash
   podman run -it \
-  --name gitea_act_runner \
-  --rm \
-  --privileged \
-  --network=host \
-  -v /opt/gitea_act_runner/data:/data \
-  -v /opt/gitea_act_runner/config:/config \
-  -v /var/run/podman/podman.sock:/var/run/docker.sock \
-  -e GITEA_INSTANCE_URL="http://10.200.60.64:30300" \
-  -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
-  m.daocloud.io/docker.io/gitea/act_runner:latest-dind-rootless
+    --name gitea_act_runner \
+    --rm \
+    --privileged \
+    --network=host \
+    -v /opt/gitea_act_runner/data:/data \
+    -v /opt/gitea_act_runner/config:/config \
+    -v /var/run/podman/podman.sock:/var/run/docker.sock \
+    -e GITEA_INSTANCE_URL="http://10.200.60.64:30300" \
+    -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
+    m.daocloud.io/docker.io/gitea/act_runner:latest-dind-rootless
   ```
   {{% /notice %}}
 
@@ -304,15 +244,15 @@ weight = 11
   {{% notice style="transparent" %}}
   ```bash
   docker run -it \
-  --name gitea_act_runner \
-  --rm \
-  --privileged \
-  --network=host \
-  -v /opt/gitea_act_runner/data:/data \
-  -v /opt/gitea_act_runner/config:/config \
-  -e GITEA_INSTANCE_URL="http://192.168.100.125:30300" \
-  -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
-  m.daocloud.io/docker.io/gitea/act_runner:latest-dind
+    --name gitea_act_runner \
+    --rm \
+    --privileged \
+    --network=host \
+    -v /opt/gitea_act_runner/data:/data \
+    -v /opt/gitea_act_runner/config:/config \
+    -e GITEA_INSTANCE_URL="http://192.168.100.125:30300" \
+    -e GITEA_RUNNER_REGISTRATION_TOKEN="5lgsrOzfKz3RiqeMWxxUb9RmUPEWNnZ6hTTZV0DL" \
+    m.daocloud.io/docker.io/gitea/act_runner:latest-dind
   ```
   {{% /notice %}}
 
