@@ -22,7 +22,7 @@ __3. 理解业界发布上线规则，能够使用 Knative 以及 Kserve 完成 
 
 __4. 理解Agent, MCP工作原理（智能体有深入了解，对MCP生态有实践经验）__
 
-__5. vLLM、SGLang.RouteLLM等技术的学习或实践经验者优先:参与过开源项目更佳;__
+__5. vLLM、SGLang、RouteLLM等技术的学习或实践经验者优先:参与过开源项目更佳;__
 
 __6. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系统等__
 
@@ -36,17 +36,17 @@ __6. 理解常用数据挖掘算法和机器学习算法，如聚类，推荐系
 
 _高级研究专员_<br><br>
 
-主要负责天文中心数据存储和计算调度能力的基础设施保障；完成包括资源上云，开发改造平台及中间件，提高软件易用性。
+主要负责天文中心PB级数据存储和千核计算调度能力的基础设施保障；完成包括资源上云，开发改造数据平台及中间件，提高软件易用性。
 - 完成项目: 
-    - [__CSST科研工作台__](http://www.bao.ac.cn/csst/): 为中国空间站工程巡天望远镜，提供底层PB级数据存储索引服务和实时计算处理支持。
-    - [__Slurm On K8s__](../Slurm/install/_index.md): 开发云化HPC超算集群，在k8s上，使用helm chart 或者 operator方式一键部署规格可配置的slurm集群。
-    - [相场望远镜（宇宙触角）](../Demo/cosmic-antenna.md): 为新一代宇宙射频探测装置，完成软件DEMO部分，接受处理224个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量80Gb/s
-    - [Arcyl Datahub](https://datahubproject.io/): 使用此开源元数据管理+数据血缘平台管理800+TB天文数据，并作为贡献者向开源社区贡献包括grafana-dashboard，自定义数据扫描扩展等相关代码内容
-    - [SchedMD Slurm](https://slurm.schedmd.com/): 维护改造开源超算集群，累计向开源社区及北大超算[SCOW](https://github.com/PKUHPC/SCOW)项目贡献包括helm chart包及虚拟机安装文档优化等内容
-    - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件完成join/union。
+    - [__CSST科研工作台-元数据管理系统__](http://www.bao.ac.cn/csst/): 开发天文元数据管理系统，为中国空间站工程巡天望远镜，提供PB级数据存储索引服务和实时计算处理支持。
+    - [__Slurm On K8s__](../Slurm/install/_index.md): 开发云化HPC超算集群，在k8s上，提供了helm chart 或 operator方式一键部署规格可配置的slurm集群。
+    - [相场望远镜（宇宙触角）](../Demo/Stream/cosmic-antenna.md): 为新一代宇宙射频探测装置，完成软件DEMO部分，接受处理224个FPGA单元发送的UDP包，实时处理相关业务数据，分流调用不同天文学算法，推进科学发现，设计流量80Gb/s
+    - [Arcyl Datahub](https://datahubproject.io/): 作为贡献者向此开源元数据管理系统社区贡献包括grafana-dashboard，自定义数据扫描扩展 等相关代码内容 [Link..](https://github.com/datahub-project/datahub/pull/11208)
+    - [SchedMD Slurm](https://slurm.schedmd.com/): 曾维护改造开源超算集群，累计向开源社区及北大超算[SCOW](https://github.com/PKUHPC/SCOW)项目贡献包括helm chart包及虚拟机安装文档优化等内容 [Link..](https://github.com/PKUHPC/OpenSCOW/pull/1403)
+    - [flink-s3-fs-multiple](https://aaronyang2333.gitlab.io/docs/demo/flink-s3-f3-multiple/): 扩展flink-filesystem下插件`flink-s3-fs-hadoop`功能，支持在同一job内，同时操作多个对象存储中的文件完成join/union
 
 - 熟练掌握以下工具: 
-    - <span><img src="assets/icons/kubernets.png" height="17" width="17">Kubernetes</span>, <span><img src="assets/icons/java.png" height="17" width="17">Java</span>, <span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20">ArgoCD</span>, <span><img src="assets/icons/helm.png" height="15" width="16">Helm</span>, <span><img src="assets/icons/flink.png" height="15" width="15">Flink</span>
+    - <span><img src="assets/icons/kubernetes.png" height="17" width="17"> Kubernetes</span>, <span><img src="assets/icons/argoCD.png" height="20" width="20"> ArgoCD</span>,  <span><img src="assets/icons/helm.png" height="15" width="16">  Helm</span>, <span><img src="assets/icons/java.png" height="17" width="17"> Java</span>,  <span><img src="assets/icons/minio.png" height="15" width="16"> Minio</span>, <span><img src="assets/icons/flink.png" height="15" width="15"> Flink</span> 
 <br>
 
 [__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
@@ -61,17 +61,16 @@ _工程专员_<br><br>
     - <span><img src="assets/icons/springboot.png" height="15" width="16">SpringBoot 2.5</span>, <span><img src="assets/icons/postgresql.png" height="15" width="16">Postgres</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, <span><img src="assets/icons/mysql.png" height="20" width="30">Mysql</span>, <span><img src="assets/icons/neo4j.png" height="18" width="40"/> Neo4J</span>,<span><img src="assets/icons/minio.png" height="15" width="16">Minio</span>
 <br>
 
-[__银江股份有限公司-中央研究院, 杭州, 中国__]()  `2017.01 - 2018.04`
+[__之江实验室-大数据智能研究中心, 杭州, 中国__]()  `2021.06 - 2023.12`
 
-_Java Web 后台开发工程师_<br><br>
+_工程专员_<br><br>
 
-主要负责公司大数据产品以及研究课题项目的服务器接口API开发，熟悉前后端分离开发协作模式, <br> 精通Springboot快速开发框架和SwaggerAPI文档接口应用。对主流关系型数据库Oracle以及常用格式JSON、XML有相关了解。
+主要负责团队大数据分析平台的优化和开发，保证数据处理，任务调度的高效稳定运行。对多源异构数据处理以及联邦查询服务有相关了解。
 - 完成项目: 
-    - [__上海司法行政数据服务网__](https://credit.sfj.sh.gov.cn/): 一个司法主题的数据服务网站，该站的主要功能是整合司法局、监狱局、法院、公证处、<br>调解办等职能机构数据资源，构建信息数据可视化平台，帮助市民处理相关司法程序更便捷。
-    - [__Enloop-iEx信息交换平台__](): 企业内部的一个信息交换平台，交换平台可以将各地分散的信息系统的数据整合汇聚，并使用自研工具生成接口API；<br>将收集到的接口内的数据进行清洗和脱敏，以rest服务的方式提供给需要的用户群体。
-    - [__杭州市卡口流量分析研判平台__](): 省级课题项目，该程序可以分析道路交通中摄像机图像数据，对市内外交通流量进行<br>分析和预测，为交管部门提供可视化信息，并可以实现对套牌车，冒牌车的定位等功能。
+    - [__见微可视分析平台__](https://gitee.com/zhijiangtianshu/nebula): 自研开源通用数据处理平台， 平台提供了一种以低代码拖拽方式来构建数据处理流程的可能，用户将上传后的数据通过ETL节点、机器学习算子和数据清洗操作的处理之后，使用可视化组件渲染数据处理结果。
+    - [__自研爬虫框架__](https://gitea-ops.lab.zjvis.net/bee/crawler): 自研开源爬虫框架，通过解析开发者提供的YAML描述文件，使得数据爬取任务转化成责任链模式数据流转，生成的爬虫任务高度灵活可定制。累计帮助团队节省数据获取费用200W以上。
 - 熟练掌握以下工具: 
-    - <span><img src="assets/icons/springboot.png" height="15" width="16">SpringBoot 1.5</span>, <span><img src="https://img.icons8.com/color/14/000000/hadoop-distributed-file-system.png"  height="15" width="16">Hadoop2</span>, <span><img src="assets/icons/mybatis.png" height="15" width="16">Mybatis 3</span>, <span><img src="assets/icons/oracle.png" height="15" width="16">Oracle</span>, <span><img src = "assets/icons/swagger.png" height="15" width="15"> Swagger</span>
+    - <span><img src="assets/icons/springboot.png" height="15" width="16">SpringBoot 2.5</span>, <span><img src="assets/icons/postgresql.png" height="15" width="16">Postgres</span>, <span><img src="assets/icons/calcite.png" height="15" width="16">Apache Calcite</span>, <span><img src="assets/icons/mysql.png" height="20" width="30">Mysql</span>, <span><img src="assets/icons/neo4j.png" height="18" width="40"/> Neo4J</span>, <span><img src="assets/icons/minio.png" height="15" width="16"> Minio</span>
 <br>
 
 ### <span>&#127891;</span>教育经历 
