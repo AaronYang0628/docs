@@ -3,7 +3,34 @@ title = 'Aaron`s Dev Path'
 date = 2024-03-07T15:00:59+08:00
 +++
 
+### About Me
 
+{{< cards >}}
+{{% card title="Aaron Yang" image="./images/mona.jpg" %}}
+- {{% icon icon="fa-brands fa-github" %}} &ensp;[Github Repo](https://github.com/AaronYang0628)
+- {{% icon icon="heart" color="red" %}} Found My Lovly Wife
+- {{% icon icon="fa-solid fa-heart-pulse" color="purple" %}} Live to **100** years old first
+{{% /card %}}
+{{% card title="Tools"%}}
+- OS: [Linux](Linux/_index.md)
+- Language: Java, Python, Go
+- CI/CD: Git, Argo, Action
+- Operator: [Slurm](Slurm\install\install_from_k8s_operator.md), Warehouse
+- Middleware: [Calcite](./Calcite/_index.md), Kafka, [Flink](./Flink/_index.md)
+- MLOps: kubeflow, mlflow
+- 推荐系统: 
+- Agent:
+- RAG:
+- Prompt:
+{{% /card %}}
+{{% card title="Highlights"%}}
+- CSST
+- Slurm
+- cnSRC
+{{% /card %}}
+{{< /cards >}}
+
+### Dev Path
 
 ```mermaid
 gitGraph:

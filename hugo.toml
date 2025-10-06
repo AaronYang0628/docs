@@ -42,6 +42,8 @@ theme = 'hugo-theme-relearn'
     lineNumbersInTable = false
     noClasses = false
   [markup.goldmark]
+    [markup.goldmark.renderer]
+    unsafe= true
     [markup.goldmark.extensions]
       typographer = true
       delte = true
@@ -94,7 +96,7 @@ theme = 'hugo-theme-relearn'
     dir = ':cacheDir/modules'
     maxAge = -1
 [[menu.shortcuts]]
-name = " <i class='fas fa-book'></i>  Hugo Theme"
+name = " <i class='fa-brands fa-github'></i>  Hugo Theme"
 identifier = "relearn"
 url = "https://mcshelby.github.io/hugo-theme-relearn/"
 weight = 14
