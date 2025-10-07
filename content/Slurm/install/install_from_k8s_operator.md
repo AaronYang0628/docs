@@ -1,6 +1,7 @@
 +++
 title = 'Install From K8s Operator'
 date = 2024-08-07T15:00:59+08:00
+description = 'Install Slurm from K8s Operator'
 weight = 5
 +++
 

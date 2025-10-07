@@ -1,6 +1,7 @@
 +++
 title = 'Install On Debian'
 date = 2024-08-07T15:00:59+08:00
+description = 'Install Slurm from Debian'
 weight = 1
 +++
 
