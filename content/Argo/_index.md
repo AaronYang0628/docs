@@ -9,19 +9,9 @@ weight = 11
 
 
 ### CheatSheets
-- decode passd
-```shell
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-```
 
-- relogin
-```shell
-ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-MASTER_IP=$(kubectl get nodes --selector=node-role.kubernetes.io/control-plane -o jsonpath='{$.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-argocd login --insecure --username admin $MASTER_IP:30443 --password $ARGOCD_PASS
-```
+#### argoCD
+{{% include "argo-cd/cheatsheets.md" %}}
 
-- force delete
-```shell
-argocd app terminate-op <$>
-```
+#### argo Workflow
+{{% include "argo-workflow/cheatsheets.md" %}}

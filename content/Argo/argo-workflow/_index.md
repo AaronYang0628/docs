@@ -13,6 +13,7 @@ weight = 11
 * Run CI/CD pipelines natively on Kubernetes without configuring complex software development products.
 
 
+### Installation
 - **Install Argo Workflow** 
     > Install Argo Workflow, you can refer to [Argo Workflow Installation](Software/CICD/ArgoWorkflow/index.md).
 

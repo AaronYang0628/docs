@@ -5,4 +5,4 @@ weight = 1
 +++
 
 
-{{% children containerstyle="div" style="h4" depth="1" description="false" %}}
+{{% children type="card" depth="1" description="true" %}}

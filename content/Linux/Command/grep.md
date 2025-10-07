@@ -1,7 +1,7 @@
 +++
 title = 'Grep'
 date = 2025-09-07T19:58:45+08:00
-weight = 4
+weight = 7
 tags = ["Linux", "Interview"]
 +++
 

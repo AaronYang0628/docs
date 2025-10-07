@@ -4,7 +4,7 @@ date = 2025-03-12T15:00:59+08:00
 +++
 
 ### Cannot push to your own branch
-![mvc](../../../../images/content/article/git/403.png)
+![mvc](../../../images/content/article/git/403.png)
 
 1. Edit `.git/config` file under your repo directory.
 2. Find `url`=entry under section `[remote "origin"]`.

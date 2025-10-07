@@ -4,8 +4,6 @@ date = 2024-03-24T15:00:59+08:00
 weight = 3
 +++
 
-Ali version of `Minio`(https://min.io/)
-
 ### download ossutil
 first, you need to download `ossutil` first
 {{< tabs title="OS:" >}}
@@ -33,7 +31,7 @@ curl -o ossutil-v1.7.19-windows-386.zip https://gosspublic.alicdn.com/ossutil/1.
 | stsToken        |  token for sts service                                 | could be empty           |
 
 {{% notice style="info" %}}
-and you can also modify `/home/<$user>/.ossutilconfig` file directly to change the configuration.
+you can also modify `/home/<$user>/.ossutilconfig` file directly to change the configuration.
 {{% /notice %}}
 ### list files
 ```shell
