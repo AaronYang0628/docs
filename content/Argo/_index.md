@@ -15,3 +15,6 @@ weight = 11
 
 #### argo Workflow
 {{% include "argo-workflow/cheatsheets.md" %}}
+
+#### argo Rollouts
+{{% include "argo-rollouts/cheatsheets.md" %}}
