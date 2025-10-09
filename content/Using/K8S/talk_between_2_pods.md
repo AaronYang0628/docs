@@ -115,3 +115,204 @@ Calico 通常不使用隧道，而是利用 **BGP 协议** 和 **纯三层路由
 | **数据包** | 外层Node IP，内层Pod IP | 始终是Pod IP |
 
 无论采用哪种方式，Kubernetes 和 CNI 插件共同协作，最终实现了一个对应用开发者**透明**的、扁平的 Pod 网络。开发者只需关心 Pod IP 和 Service，而无需理解底层复杂的跨节点通信机制。
+
+
+
+### 如果pod之间访问不通怎么排查？
+
+核心排查思路：从 Pod 内部到外部，从简单到复杂
+
+整个排查过程可以遵循下图所示的路径，逐步深入：
+
+```mermaid
+flowchart TD
+    A[Pod 之间访问不通] --> B[确认基础连通性<br>ping & telnet]
+
+    B --> C{ping 是否通?}
+    C -- 通 --> D[telnet 端口是否通?]
+    C -- 不通 --> E[检查 NetworkPolicy<br>kubectl get networkpolicy]
+
+    D -- 通 --> F[检查应用日志与配置]
+    D -- 不通 --> G[检查 Service 与 Endpoints<br>kubectl describe svc]
+
+    E --> H[检查 CNI 插件状态<br>kubectl get pods -n kube-system]
+    
+    subgraph G_ [Service排查路径]
+        G --> G1[Endpoints 是否为空?]
+        G1 -- 是 --> G2[检查 Pod 标签与 Selector]
+        G1 -- 否 --> G3[检查 kube-proxy 与 iptables]
+    end
+
+    F --> Z[问题解决]
+    H --> Z
+    G2 --> Z
+    G3 --> Z
+```
+
+### 第一阶段：基础信息收集与初步检查
+
+1.  **获取双方 Pod 信息**
+    ```bash
+    kubectl get pods -o wide
+    ```
+    *   确认两个 Pod 都处于 `Running` 状态。
+    *   记录下它们的 **IP 地址** 和 **所在节点**。
+    *   确认它们不在同一个节点上（如果是，排查方法会略有不同）。
+
+2.  **明确访问方式**
+    *   **直接通过 Pod IP 访问**？ (`ping <pod-ip>` 或 `curl <pod-ip>:<port>`)
+    *   **通过 Service 名称访问**？ (`ping <service-name>` 或 `curl <service-name>:<port>`)
+    *   这个问题决定了后续的排查方向。
+
+---
+
+### 第二阶段：按访问路径深入排查
+
+#### 场景一：直接通过 Pod IP 访问不通（跨节点）
+
+这通常是**底层网络插件（CNI）** 的问题。
+
+1.  **检查 Pod 内部网络**
+    *   进入源 Pod，检查其网络配置：
+    ```bash
+    kubectl exec -it <source-pod> -- sh
+    # 在 Pod 内部执行：
+    ip addr show eth0 # 查看 IP 是否正确
+    ip route # 查看路由表
+    ping <destination-pod-ip> # 测试连通性
+    ```
+    *   如果 `ping` 不通，继续下一步。
+
+2.  **检查目标 Pod 的端口监听**
+    *   进入目标 Pod，确认应用在正确端口上监听：
+    ```bash
+    kubectl exec -it <destination-pod> -- netstat -tulpn | grep LISTEN
+    # 或者用 ss 命令
+    kubectl exec -it <destination-pod> -- ss -tulpn | grep LISTEN
+    ```
+    *   **如果这里没监听，是应用自身问题**，检查应用日志和配置。
+
+3.  **检查 NetworkPolicy（网络策略）**
+    *   这是 Kubernetes 的“防火墙”，很可能阻止了访问。
+    ```bash
+    kubectl get networkpolicies -A
+    kubectl describe networkpolicy <policy-name> -n <namespace>
+    ```
+    *   查看是否有策略限制了源 Pod 或目标 Pod 的流量。**特别注意 `ingress` 规则**。
+
+4.  **检查 CNI 插件状态**
+    *   CNI 插件（如 Calico、Flannel）的异常会导致跨节点网络瘫痪。
+    ```bash
+    kubectl get pods -n kube-system | grep -e calico -e flannel -e weave
+    ```
+    *   确认所有 CNI 相关的 Pod 都在运行。如果有 CrashLoopBackOff 等状态，查看其日志。
+
+5.  **节点层面排查**
+    *   如果以上都正常，问题可能出现在节点网络层面。
+    *   **登录到源 Pod 所在节点**，尝试 `ping` 目标 Pod IP。
+    *   **检查节点路由表**：
+        ```bash
+        # 在节点上执行
+        ip route
+        ```
+        *   对于 Flannel，你应该能看到到其他节点 Pod 网段的路由。
+        *   对于 Calico，你应该能看到到每个其他节点 Pod 网段的精确路由。
+    *   **检查节点防火墙**：在某些环境中（如安全组、iptables 规则）可能阻止了 VXLAN（8472端口）或节点间 Pod IP 的通信。
+        ```bash
+        # 检查 iptables 规则
+        sudo iptables-save | grep <pod-ip>
+        ```
+
+#### 场景二：通过 Service 名称访问不通
+
+这通常是 **Kubernetes 服务发现** 或 **kube-proxy** 的问题。
+
+1.  **检查 Service 和 Endpoints**
+    ```bash
+    kubectl get svc <service-name>
+    kubectl describe svc <service-name> # 查看 Selector 和 Port 映射
+    kubectl get endpoints <service-name> # 这是关键！检查是否有健康的 Endpoints
+    ```
+    *   **如果 `ENDPOINTS` 列为空**：说明 Service 的 Label Selector 没有匹配到任何健康的 Pod。请检查：
+        *   Pod 的 `labels` 是否与 Service 的 `selector` 匹配。
+        *   Pod 的 `readinessProbe` 是否通过。
+
+2.  **检查 DNS 解析**
+    *   进入源 Pod，测试是否能解析 Service 名称：
+    ```bash
+    kubectl exec -it <source-pod> -- nslookup <service-name>
+    # 或者
+    kubectl exec -it <source-pod> -- cat /etc/resolv.conf
+    ```
+    *   如果解析失败，检查 `kube-dns` 或 `coredns` Pod 是否正常。
+    ```bash
+    kubectl get pods -n kube-system | grep -e coredns -e kube-dns
+    ```
+
+3.  **检查 kube-proxy**
+    *   `kube-proxy` 负责实现 Service 的负载均衡规则（通常是 iptables 或 ipvs）。
+    ```bash
+    kubectl get pods -n kube-system | grep kube-proxy
+    ```
+    *   确认所有 `kube-proxy` Pod 都在运行。
+    *   可以登录到节点，检查是否有对应的 iptables 规则：
+        ```bash
+        sudo iptables-save | grep <service-name>
+        # 或者查看 ipvs 规则（如果使用 ipvs 模式）
+        sudo ipvsadm -ln
+        ```
+
+---
+
+### 第三阶段：高级调试技巧
+
+如果上述步骤仍未解决问题，可以尝试以下方法：
+
+1.  **使用网络调试镜像**
+    *   部署一个包含网络工具的临时 Pod（如 `nicolaka/netshoot`）来进行高级调试。
+    ```bash
+    kubectl run -it --rm debug-pod --image=nicolaka/netshoot -- /bin/bash
+    ```
+    *   在这个 Pod 里，你可以使用 `tcpdump`, `tracepath`, `dig` 等强大工具。
+    *   例如，在目标 Pod 的节点上抓包：
+        ```bash
+        # 在节点上执行，监听 Pod 网络对应的接口
+        sudo tcpdump -i any -n host <source-pod-ip> and host <destination-pod-ip>
+        ```
+
+2.  **检查节点网络连接**
+    *   确认两个节点之间网络是通的（通过节点 IP）。
+    *   确认 CNI 所需的端口（如 Flannel 的 VXLAN 端口 8472）在节点间是开放的。
+
+---
+
+### 总结与排查命令清单
+
+当 Pod 间访问不通时，按顺序执行以下命令：
+
+```bash
+# 1. 基本信息
+kubectl get pods -o wide
+kubectl get svc,ep -o wide
+
+# 2. 检查 NetworkPolicy
+kubectl get networkpolicies -A
+
+# 3. 检查核心插件
+kubectl get pods -n kube-system | grep -e coredns -e kube-proxy -e calico -e flannel
+
+# 4. 进入 Pod 测试
+kubectl exec -it <source-pod> -- ping <destination-pod-ip>
+kubectl exec -it <source-pod> -- nslookup <service-name>
+
+# 5. 检查目标 Pod 应用
+kubectl exec -it <destination-pod> -- netstat -tulpn
+kubectl logs <destination-pod>
+
+# 6. 节点层面检查
+# 在节点上执行
+ip route
+sudo iptables-save | grep <relevant-ip>
+```
+
+记住，**90% 的 Pod 网络不通问题源于 NetworkPolicy 配置、Service Endpoints 为空，或 CNI 插件故障**。按照这个路径排查，绝大多数问题都能被定位和解决。
