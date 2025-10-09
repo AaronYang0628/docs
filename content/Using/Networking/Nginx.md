@@ -1,7 +1,7 @@
 +++
-title = ' Nginx 性能优化'
+title = 'Nginx 性能优化'
 date = 2024-10-07T19:58:45+08:00
-tags = ["Nginx"]
+tags = ["Nginx", "Interview"]
 weight = 6
 +++
 

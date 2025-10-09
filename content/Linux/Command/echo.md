@@ -49,5 +49,3 @@ fs.writeFileSync('filename.txt', '这是要写入的内容\n');
 // 追加内容
 fs.appendFileSync('filename.txt', '这是要追加的内容\n');
 ```
-
-你想在哪种环境中使用呢？我可以提供更具体的示例。
