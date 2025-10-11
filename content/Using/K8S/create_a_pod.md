@@ -1,7 +1,7 @@
 +++
 title = 'Creating A Pod'
 date = 2024-03-07T15:00:59+08:00
-weight = 30
+weight = 32
 +++
 
 描述 Kubernetes 中一个 Pod 的创建过程，可以清晰地展示了 K8s 各个核心组件是如何协同工作的。

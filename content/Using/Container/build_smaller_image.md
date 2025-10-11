@@ -1,3 +1,8 @@
++++
+title = 'Build Smaller Image'
+date = 2024-03-07T15:00:59+08:00
+weight = 20
++++
 
 
 # 减小 Dockerfile 生成镜像体积的方法

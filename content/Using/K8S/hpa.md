@@ -1,3 +1,8 @@
++++
+title = 'HPA'
+date = 2024-03-07T15:00:59+08:00
+weight = 72
++++
 
 HPA（Horizontal Pod Autoscaler）是 Kubernetes 中实现自动水平扩缩容的核心组件。它的实现涉及多个 Kubernetes 组件和复杂的控制逻辑。
 

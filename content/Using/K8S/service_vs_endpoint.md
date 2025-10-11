@@ -1,7 +1,7 @@
 +++
 title = 'Service VS Endpoint'
 date = 2024-03-07T15:00:59+08:00
-weight = 140
+weight = 192
 +++
 
 Service 和 Endpoint/EndpointSlice 在 Kubernetes 中有明确的功能分工，它们共同构成了服务发现和负载均衡的基础。以下是详细的区别分析：

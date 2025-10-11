@@ -1,7 +1,7 @@
 +++
-title = '不同node上的Pod之间的通信过程'
+title = 'Talk between 2 pods in different nodes'
 date = 2024-03-07T15:00:59+08:00
-weight = 30
+weight = 200
 +++
 
 

@@ -1,7 +1,7 @@
 +++
 title = 'Pod在K8S中DNS解析流程和顺序'
 date = 2024-03-07T15:00:59+08:00
-weight = 140
+weight = 161
 +++
 
 

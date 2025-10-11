@@ -1,4 +1,8 @@
-
++++
+title = 'Endpoint VS EndpointSlice'
+date = 2024-03-07T15:00:59+08:00
+weight = 50
++++
 
 `Endpoint` 和 `EndpointSlice` 都是 Kubernetes 中用于管理服务后端端点的资源，但 `EndpointSlice` 是更现代、更高效的解决方案。以下是它们的详细区别：
 

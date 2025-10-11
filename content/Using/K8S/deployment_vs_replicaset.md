@@ -1,6 +1,9 @@
++++
+title = 'Deployment VS ReplicaSet'
+date = 2024-03-07T15:00:59+08:00
+weight = 41
++++
 
-
-非常专业的问题 👍——这个问题看似基础，但要**理解 Kubernetes 的设计原理和控制器模式（Controller Pattern）**，就必须真正搞清楚 Deployment 和 ReplicaSet 背后的实现机制。
 
 下面我会从 **架构、工作流、控制循环、数据结构与事件链** 等层面详细说明它们是怎么工作的。
 
