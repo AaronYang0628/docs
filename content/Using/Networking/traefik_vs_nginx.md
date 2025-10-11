@@ -1,7 +1,7 @@
 +++
 title = 'Traefik VS Nginx'
 date = 2024-03-07T15:00:59+08:00
-weight = 140
+weight = 200
 +++
 
 好的，这是一个非常经典的问题。Traefik 和 Nginx Ingress 都是 Kubernetes 生态中顶级的 Ingress Controller，但它们的设计哲学、使用体验和侧重点有显著不同。

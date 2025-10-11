@@ -1,7 +1,7 @@
 +++
 title = 'Flannel VS Calico'
 date = 2024-03-07T15:00:59+08:00
-weight = 140
+weight = 60
 +++
 
 Calico 和 Flannel 是 Kubernetes 中最著名和最常见的两种网络插件（CNI），但它们的设计哲学、实现方式和能力有显著区别。
