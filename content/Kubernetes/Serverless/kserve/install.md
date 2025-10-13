@@ -6,7 +6,7 @@ weight = 1
 
 ## Preliminary
 - v 1.30 + Kubernetes has installed, if not check 🔗[link](kubernetes/cluster/index.html)
-- Helm has installed, if not check 🔗[link](software/binary/helm/index.html)
+- Helm has installed, if not check 🔗[link](Installation/binary/helm/index.html)
 
 
 ### Installation
@@ -16,7 +16,7 @@ weight = 1
 {{< tab title="Shell" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.install from script directly</b></p>
 
@@ -139,8 +139,8 @@ weight = 1
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd//index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd//index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.install gateway API CRDs </b></p>
 
@@ -154,13 +154,13 @@ weight = 1
   <p> <b>2.install cert manager </b></p>
   
   {{% notice style="important" title="Reference" %}} 
-  following 🔗[link](/docs/software/application/cert_manager/index.html) to install cert manager
+  following 🔗[link](/docs/Installation/application/cert_manager/index.html) to install cert manager
   {{% /notice %}}
 
   <p> <b>3.install istio system </b></p>
 
   {{% notice style="important" title="Reference" %}} 
-  following 🔗[link](/docs/software/networking/istio/index.html) to install three istio components (istio-base, istiod, istio-ingressgateway)
+  following 🔗[link](/docs/Installation/networking/istio/index.html) to install three istio components (istio-base, istiod, istio-ingressgateway)
   {{% /notice %}}
 
   <p> <b>4.install Knative Operator </b></p>

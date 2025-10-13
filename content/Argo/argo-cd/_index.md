@@ -7,7 +7,7 @@ weight = 10
 
 ### Installation
 - **Install ArgoCD** 
-    > Install ArgoCD, you can refer to [ArgoCD Installation](Software/CICD/ArgoCD/index.md).
+    > Install ArgoCD, you can refer to [ArgoCD Installation](Installation/CICD/ArgoCD/index.md).
 
 ### Content
 {{%children depth="999" description="false" showhidden="true" %}}

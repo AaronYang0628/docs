@@ -11,7 +11,7 @@ weight = 180
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/software/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -39,7 +39,7 @@ weight = 180
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/software/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
   3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `deploy-xxxxx.yaml` </p>
@@ -98,7 +98,7 @@ weight = 180
 
 {{< tab title="Docker" style="transparent" >}}
  <p> <b>Preliminary </b></p>
-  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/software/container/index.html" target="_blank">link</a> </p></br>
+  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
   
 
   {{% notice style="important" title="Using Proxy" %}} 
@@ -136,10 +136,10 @@ weight = 180
 {{< tab title="Argo Workflow" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/software/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
   3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   4. Argo Workflow has installed, if not check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
-  5. Minio artifact repository has been configured, if not check 🔗<a href="/docs/software/storage/minio/index.html" target="_blank">link</a> </p></br>
+  5. Minio artifact repository has been configured, if not check 🔗<a href="/docs/Installation/storage/minio/index.html" target="_blank">link</a> </p></br>
   - endpoint: minio.storage:9000
 
 

@@ -33,7 +33,7 @@ weight = 2
     echo "192.aa.bb.cc (manager|auth|computeXX)" >> /etc/hosts
     ```
 3. disable firewall, selinux, dnsmasq, swap `(All Nodes)`. more detail [here](../../Articles/CheatSheet/Linux/disable_service/index.html)
-4. [NFS Server](../../Software/Storage/NFS/index.html) `(Manager Node)`. NFS is used as the default file system for the Slurm accounting database. 
+4. [NFS Server](../../Installation/Storage/NFS/index.html) `(Manager Node)`. NFS is used as the default file system for the Slurm accounting database. 
 5. [NFS Client] `(All Nodes)`. all node should mount the NFS share
 {{% expand title="Install NFS Client" %}}
 ```shell

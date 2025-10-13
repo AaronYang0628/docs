@@ -123,7 +123,7 @@ ssh -o 'UserKnownHostsFile /dev/null' $USER@$MACHINE_IP_ADDRESS -L "*:8443:$MINI
 ### Useful Command
 
   {{% notice style="important" title="Install Kubectl" %}} 
-  for more information, you can check 🔗[link](/docs/software/binary/kubectl/index.html) to install kubectl
+  for more information, you can check 🔗[link](/docs/Installation/binary/kubectl/index.html) to install kubectl
   {{% /notice %}}
 
 - How to use it in devpod

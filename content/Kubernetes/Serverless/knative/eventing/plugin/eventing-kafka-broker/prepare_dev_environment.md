@@ -7,7 +7,7 @@ weight = 1
 
 
 1. update go -> 1.24
-{{% include file="Content\Software\Binary\golang.md" %}}
+{{% include file="Content\Installation\Binary\golang.md" %}}
 
 2. install `ko` -> 1.8.0
 ```shell

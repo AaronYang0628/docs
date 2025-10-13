@@ -8,7 +8,7 @@ date = 2024-03-07T15:00:59+08:00
 
 - 1. download and install `krew`
 
-{{% include file="Content\Software\Binary\krew.md" %}}
+{{% include file="Content\Installation\Binary\krew.md" %}}
 
 - 2. Add the $HOME/.krew/bin directory to your PATH environment variable. 
 ```shell

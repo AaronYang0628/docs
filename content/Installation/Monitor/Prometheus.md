@@ -46,9 +46,9 @@ weight = 160
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/software/cicd/argocd/index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
-  4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/software/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `chart-museum-credentials` </p>
 

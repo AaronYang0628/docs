@@ -15,7 +15,7 @@ weight = 11
 
 ### Installation
 - **Install Argo Workflow** 
-    > Install Argo Workflow, you can refer to [Argo Workflow Installation](Software/CICD/ArgoWorkflow/index.md).
+    > Install Argo Workflow, you can refer to [Argo Workflow Installation](Installation/CICD/ArgoWorkflow/index.md).
 
 ### Content
 {{%children depth="999" description="false" showhidden="true" %}}

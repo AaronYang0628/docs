@@ -6,13 +6,13 @@ weight = 10
 
 ### Preliminary
 - Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
-- Helm binary has installed, if not check 🔗[link](software/binary/helm/index.html)
+- Helm binary has installed, if not check 🔗[link](Installation/binary/helm/index.html)
 
 
 
 ### 1. install argoCD binary
 
-{{% include file="Content\Software\Binary\argocd.md" %}}
+{{% include file="Content\Installation\Binary\argocd.md" %}}
 
 ### 2. install components
 
@@ -67,7 +67,7 @@ weight = 10
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.1.2 \
+      --version 8.3.5 \
       --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
       --values argocd.values.yaml \
       --atomic
@@ -79,7 +79,7 @@ weight = 10
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.1.2 \
+      --version 8.3.5 \
       --repo https://argoproj.github.io/argo-helm \
       --values argocd.values.yaml \
       --atomic
@@ -187,7 +187,7 @@ kubectl -n argocd apply -f argocd-server-external.yaml
 
 ### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
 
-Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](software/networking/cert_manager.html)
+Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
 
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}

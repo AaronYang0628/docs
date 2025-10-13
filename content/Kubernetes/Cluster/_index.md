@@ -11,7 +11,7 @@ Building a K8s Cluster, you can choose one of the following methods.
 
 ### Install Kuberctl
 
-{{% include file="Content\Software\Binary\kubectl.md" %}}
+{{% include file="Content\Installation\Binary\kubectl.md" %}}
 
 ### Build Cluster
 

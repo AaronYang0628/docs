@@ -93,7 +93,7 @@ weight = 140
 
 {{< tab title="Docker" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Docker has installed, if not check 🔗<a href="docs/software/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Docker has installed, if not check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
 
 {{% notice style="important" title="Using Proxy" %}} 
   you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
