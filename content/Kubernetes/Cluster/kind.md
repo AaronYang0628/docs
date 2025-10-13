@@ -5,7 +5,7 @@ weight = 111
 +++
 
 ### Preliminary
-- Kind binary has installed, if not check 🔗[link](software/binary/kind/index.html)
+- Kind binary has installed, if not check 🔗[link](Installation/binary/kind/index.html)
 - Hardware Requirements:
     1. At least **2 GB** of RAM per machine (minimum **1 GB**)
     2. **2 CPUs** on the master node

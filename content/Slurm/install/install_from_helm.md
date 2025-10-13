@@ -9,8 +9,8 @@ Despite the complex binary installation, helm chart is a better way to install s
 > Source code could be found from [https://github.com/AaronYang0628/slurm-on-k8s](https://github.com/AaronYang0628/slurm-on-k8s)
 
 ### Prequisites
-1. Kubernetes has installed, if not check 🔗[link](../../Software/Binary/kubectl.md)
-2. Helm binary has installed, if not check 🔗[link](../../Software/Binary/helm.md)
+1. Kubernetes has installed, if not check 🔗[link](../../Installation/Binary/kubectl.md)
+2. Helm binary has installed, if not check 🔗[link](../../Installation/Binary/helm.md)
 
 ### Installation
 1.  get helm repo and update

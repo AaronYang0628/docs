@@ -13,7 +13,7 @@ weight = 110
 {{< tab title="Helm✔️" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -149,7 +149,7 @@ weight = 110
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/software/binary/helm/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare `deploy-kafka.yaml` </b></p>
 
@@ -455,7 +455,7 @@ kubectl -n database \
 
 {{< tab title="Docker Compose✔️" style="default" >}}
   <p> <b>Preliminary </b></p>
-  1. Docker has installed, if not check 🔗<a href="docs/software/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Docker has installed, if not check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
    
 
   {{% notice style="important" title="Using Proxy" %}} 

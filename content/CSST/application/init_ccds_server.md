@@ -8,7 +8,7 @@ weight = 32
 - MariaDB has installed though argo-workflow, if not [check link](argo/argo-workflow/database/mariadb/index.html)
 - Redis has installed though argo-workflow, if not [check link](argo/argo-workflow/database/redis/index.html)
 - And init mariadb has finished, if not [check link](../import/mariadb_import_data//index.html)
-- `nfs-external-nas` nas server has initialized as somewhere, if not [check link](kubernetes/conatiner/software/nfs/index.html)
+- `nfs-external-nas` nas server has initialized as somewhere, if not [check link](kubernetes/conatiner/Installation/nfs/index.html)
 
 ### Steps
 

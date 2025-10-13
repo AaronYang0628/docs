@@ -5,7 +5,7 @@ weight = 130
 +++
 
 ### Preliminary
-- Minikube binary has installed, if not check 🔗[link](software/binary/minikube/index.html)
+- Minikube binary has installed, if not check 🔗[link](Installation/binary/minikube/index.html)
 - Hardware Requirements:
 
     1. At least 2 GB of RAM per machine (minimum 1 GB)
@@ -69,18 +69,9 @@ kubectl -n kube-system get pods  | grep metrics-server
 {{% /expand %}}
 
 
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q2: Export minikube to local" %}}
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+```shell
+minikube start --driver=podman  --image-mirror-country=cn --kubernetes-version=v1.33.1 --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers  --listen-address=0.0.0.0 --cpus=6 --memory=20g --disk-size=50g --force
 ```
-
-> the possibilities are endless (almost - including other shortcodes may or may not work)
 {{% /expand %}}
