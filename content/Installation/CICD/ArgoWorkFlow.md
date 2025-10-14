@@ -61,6 +61,7 @@ spec:
               - argo-workflows.ay.dev
             paths:
               - /?(.*)
+            pathType: ImplementationSpecific
             tls:
               - secretName: argo-workflows-tls
                 hosts:
@@ -125,6 +126,7 @@ spec:
               - argo-workflows.ay.dev
             paths:
               - /?(.*)
+            pathType: ImplementationSpecific
             tls:
               - secretName: argo-workflows.ay.dev-tls
                 hosts:

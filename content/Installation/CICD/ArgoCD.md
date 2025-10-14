@@ -25,6 +25,7 @@ weight = 10
       install: true
       keep: false
     global:
+      domain: argo-cd.ay.dev
       revisionHistoryLimit: 3
       image:
         repository: m.daocloud.io/quay.io/argoproj/argocd
@@ -56,6 +57,18 @@ weight = 10
       enabled: true
       image:
         repository: m.daocloud.io/ghcr.io/dexidp/dex
+    server:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+          cert-manager.io/cluster-issuer: self-signed-ca-issuer
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        hostname: argo-cd.ay.dev
+        path: /
+        pathType: Prefix
+        tls: true
     {{% /tab%}}
   {{< /tabs >}}
 
@@ -64,7 +77,7 @@ weight = 10
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="ay mirror" %}}
 
-    helm install argo-cd argo-cd \
+    helm upgrade --install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
       --version 8.3.5 \
@@ -121,7 +134,6 @@ weight = 10
       app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server-external
       app.kubernetes.io/part-of: argocd
-      app.kubernetes.io/version: v2.8.4
     name: argocd-server-external
   spec:
     ports:
@@ -166,10 +178,6 @@ weight = 10
       app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server
     type: NodePort
-
-  ---
-
-  
   EOF
   ```
       {{% /tab%}}
@@ -198,27 +206,29 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
   apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
-    name: argo-cd-argocd-server
     annotations:
       cert-manager.io/cluster-issuer: self-signed-ca-issuer
-      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    name: argo-cd-argocd-server
+    namespace: argocd
   spec:
     ingressClassName: nginx
-    tls:
-    - hosts:
-        - argo-cd.ay.dev
-      secretName: argo-cd.ay.dev-tls
     rules:
     - host: argo-cd.ay.dev
       http:
         paths:
-        - path: /?(.*)
-          pathType: ImplementationSpecific
-          backend:
+        - backend:
             service:
               name: argo-cd-argocd-server
               port:
-                number: 80
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - argo-cd.ay.dev
+      secretName: argo-cd.ay.dev-tls
   EOF
   ```
       {{% /tab%}}
@@ -232,27 +242,29 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
   apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
-    name: argo-cd-argocd-server
     annotations:
       cert-manager.io/cluster-issuer: self-signed-ca-issuer
-      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    name: argo-cd-argocd-server
+    namespace: argocd
   spec:
     ingressClassName: nginx
-    tls:
-    - hosts:
-        - argo-cd.ay.dev
-      secretName: argo-cd-tls
     rules:
     - host: argo-cd.ay.dev
       http:
         paths:
-        - path: /?(.*)
-          pathType: ImplementationSpecific
-          backend:
+        - backend:
             service:
               name: argo-cd-argocd-server
               port:
-                number: 80
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - argo-cd.ay.dev
+      secretName: argo-cd.ay.dev-tls
   ```
       {{% /tab%}}
     {{< /tabs >}}
