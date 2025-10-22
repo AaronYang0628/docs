@@ -6,4 +6,4 @@ draft = true
 +++
 
 
-{{% children containerstyle="div" style="h4" depth="1" description="false" %}}
+{{% children type=list style="h4" depth="1" description="false" %}}
