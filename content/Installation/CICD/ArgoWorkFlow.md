@@ -9,6 +9,11 @@ weight = 11
 - Argo CD has installed, if not check 🔗[link](Installation/cicd/argocd.html)
 - cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗[link](Installation/application/cert_manager.html)
 
+### 0. create workflow related namespace
+```yaml
+kubectl get namespace business-workflows > /dev/null 2>&1 || kubectl create namespace business-workflows
+```
+
 ### 1. prepare `argo-workflows.yaml`
 
 {{< tabs title="content" >}}
@@ -24,9 +29,9 @@ spec:
     - CreateNamespace=true
   project: default
   source:
-    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    repoURL: https://argoproj.github.io/argo-helm
     chart: argo-workflows
-    targetRevision: 0.40.11
+    targetRevision: 0.45.27
     helm:
       releaseName: argo-workflows
       values: |
@@ -57,17 +62,19 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
+              nginx.ingress.kubernetes.io/use-regex: "true"
             hosts:
               - argo-workflows.ay.dev
             paths:
               - /?(.*)
             pathType: ImplementationSpecific
             tls:
-              - secretName: argo-workflows-tls
+              - secretName: argo-workflows.ay.dev-tls
                 hosts:
                   - argo-workflows.ay.dev
           authModes:
             - server
+            - client
           sso:
             enabled: false
   destination:
@@ -90,7 +97,7 @@ spec:
   source:
     repoURL: https://argoproj.github.io/argo-helm
     chart: argo-workflows
-    targetRevision: 0.45.11
+    targetRevision: 0.45.27
     helm:
       releaseName: argo-workflows
       values: |
@@ -150,20 +157,20 @@ EOF
 
 {{% include file="Content\Installation\Binary\argo.md" %}}
 
-### 3. create workflow related namespace
-```yaml
-kubectl get namespace business-workflows > /dev/null 2>&1 || kubectl create namespace business-workflows
-```
 
-
-### 4. apply to k8s
+### 3. [[Optional]]() apply to k8s
 ```shell
 kubectl -n argocd apply -f argo-workflows.yaml
 ```
 
-### 5. sync by argocd
+### 4. sync by argocd
 ```shell
 argocd app sync argocd/argo-workflows
+```
+
+### 5. submit a test workflow
+```shell
+argo -n business-workflows submit https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml --serviceaccount=argo-workflow
 ```
 
 ### 6. check workflow status
