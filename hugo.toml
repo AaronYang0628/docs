@@ -100,7 +100,7 @@ identifier = "relearn"
 url = "https://mcshelby.github.io/hugo-theme-relearn/"
 weight = 14
 [[menu.shortcuts]]
-name = " <i class='fa-brands fa-github'></i>  Fontawesome"
+name = " <i class='fa-solid fa-font-awesome'></i>  Fontawesome"
 identifier = "Fontawesome"
 url = "https://fontawesome.com/v6/search?ic=free&o=r"
 weight = 15
