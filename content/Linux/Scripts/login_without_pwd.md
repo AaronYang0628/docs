@@ -8,7 +8,7 @@ date = 2024-03-14T15:00:59+08:00
 yum install sshpass -y
 mkdir -p /extend/shell
 
-cat >>/extend/shell/fenfa_pub.sh<< EOF
+cat >>/extend/shell/distribute_pub.sh<< EOF
 #!/bin/bash
 ROOT_PASS=root123
 ssh-keygen -t rsa -f ~/.ssh/id_rsa -P ''
@@ -19,7 +19,7 @@ done
 EOF
 
 cd /extend/shell
-chmod +x fenfa_pub.sh
+chmod +x distribute_pub.sh
 
-./fenfa_pub.sh
+./distribute_pub.sh
 ```

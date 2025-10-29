@@ -5,7 +5,7 @@ weight = 3
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
+- Kubernetes has installed, if not check [link](kubernetes/cluster/index.html)
 - argoCD has installed, if not check [link](/argo/argo-cd/argocd/index.html)
 - Elasticsearch has installed, if not check [link](/argo/argo-cd/application/elasticsearch/index.html)
 - MariaDB has installed, if not check [link](/argo/argo-cd/database/mariadb//index.html)
