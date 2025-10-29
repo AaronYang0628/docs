@@ -95,7 +95,7 @@ weight = 130
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-console.ay.dev
+            hostname: minio-console.ay.online
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations:
@@ -108,7 +108,7 @@ weight = 130
           apiIngress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-api.ay.dev
+            hostname: minio-api.ay.online
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations: 
@@ -173,9 +173,9 @@ weight = 130
 
   {{% notice style="note" title="Login Credentials" %}} 
 
-  add `$K8S_MASTER_IP minio-console.ay.dev` to `/etc/hosts`
+  add `$K8S_MASTER_IP minio-console.ay.online` to `/etc/hosts`
 
-  address: 🔗[http://minio-console.ay.dev:32080/login](hhttp:/minio-console.ay.dev:32080/login) 
+  address: 🔗[http://minio-console.ay.online:32080/login](hhttp:/minio-console.ay.online:32080/login) 
 
   > access key: `admin` 
 
