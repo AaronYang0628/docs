@@ -7,20 +7,21 @@ date = 2024-03-07T15:00:59+08:00
 
 {{< cards >}}
 {{% card title="Aaron Yang" image="./images/mona.jpg" %}}
-- {{% icon icon="fa-brands fa-github" %}} &ensp;[Github Repo](https://github.com/AaronYang0628)
-- {{% icon icon="heart" color="red" %}} Found My Lovly Wife
-- {{% icon icon="fa-solid fa-heart-pulse" color="purple" %}} Live to **100** years old first
+- {{% icon icon="fa-brands fa-github" %}} [Github Repo](https://github.com/AaronYang0628)
+- {{% icon icon="fa-brands fa-git-alt" %}} [Gitee Mirror Repo](https://gitee.com/aaron2333)
+- {{% icon icon="fa-solid fa-cloud" %}} [Aliyun Console](https://home.console.aliyun.com/)
+- {{% icon icon="fa-brands fa-cloudflare" %}} [Cloudflare](https://gitee.com/aaron2333)
 {{% /card %}}
 {{% card title="Tools"%}}
 - OS: [Linux](Linux/_index.md)
-- Language: Java, Python, Go
-- CI/CD: Git, Argo, Action
+- Language: [Java](Language/Java/_index.md), [Python](Language/Python/_index.md), [Go](Language/Python/_index.md)
+- CI/CD: [Git](Git/_index.md), [Argo](Argo/_index.md), [Action](Git/Action/_index.md)
 - Operator: [Slurm](Slurm\install\install_from_k8s_operator.md), Warehouse
-- Middleware: [Calcite](./Calcite/_index.md), Kafka, [Flink](./Flink/_index.md)
-- MLOps: kubeflow, mlflow
+- Middleware: [Calcite](./Calcite/_index.md), [Kafka](), [Flink](./Flink/_index.md)
+- MLOps: Kubeflow, MLflow
 - 推荐系统: 
-- Agent:
-- RAG:
+- Agent: 
+- RAG: [Milvus](http://rag.demo.72602.online)
 - Prompt:
 {{% /card %}}
 {{% card title="Highlights"%}}
