@@ -42,54 +42,112 @@ weight = 180
   2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
   3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `deploy-xxxxx.yaml` </p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-
-  ```
-  {{% /notice %}}
-
-  <p> <b>2.apply to k8s</b></p>
+  <p> <b>1.prepare `redis-credentials` </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl -n argocd apply -f xxxx.yaml
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic redis-credentials \
+  --from-literal=redis-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
   ```
   {{% /notice %}}
+
+  <p> <b>2.apply</b> `deploy-redis.yaml` </p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << 'EOF'
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: redis
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://charts.bitnami.com/bitnami
+      chart: redis
+      targetRevision: 18.16.0
+      helm:
+        releaseName: redis
+        values: |
+          architecture: replication
+          auth:
+            enabled: true
+            sentinel: false
+            existingSecret: redis-credentials
+          master:
+            count: 1
+            resources:
+              requests:
+                memory: 512Mi
+                cpu: 512m
+              limits:
+                memory: 1024Mi
+                cpu: 1024m
+            disableCommands:
+              - FLUSHDB
+              - FLUSHALL
+            persistence:
+              enabled: true
+              storageClass: ""
+              accessModes:
+              - ReadWriteOnce
+              size: 8Gi
+          replica:
+            replicaCount: 1
+            resources:
+              requests:
+                memory: 512Mi
+                cpu: 512m
+              limits:
+                memory: 1024Mi
+                cpu: 1024m
+            disableCommands:
+              - FLUSHDB
+              - FLUSHALL
+            persistence:
+              enabled: true
+              storageClass: ""
+              accessModes:
+              - ReadWriteOnce
+              size: 8Gi
+          image:
+            registry: m.daocloud.io/docker.io
+            pullPolicy: IfNotPresent
+          sentinel:
+            enabled: false
+          metrics:
+            enabled: false
+          volumePermissions:
+            enabled: false
+          sysctl:
+            enabled: false
+          extraDeploy: []
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: storage
+  EOF
+  ```
+  {{% /notice %}}
+
 
   <p> <b>3.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/redis
   ```
   {{% /notice %}}
 
-  <p> <b>4.prepare yaml-content.yaml</b></p>
+  <p> <b>4.test redis connection</b></p>
 
   {{% notice style="transparent" %}}
-  ```yaml
-  
-
-  ```
-  {{% /notice %}}
-
-  <p> <b>5.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f xxxx.yaml
-  ```
-  {{% /notice %}}
-
-  <p> <b>6.apply xxxx.yaml directly</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f - <<EOF
-  
-  EOF
+  ```shell
+  kubectl -n storage run test --rm -it --image=m.daocloud.io/docker.io/library/redis:7 -- \
+  redis-cli -h redis-master -p 6379 -a uItmVGpX5PShHc8j ping
   ```
   {{% /notice %}}
 
@@ -114,11 +172,12 @@ weight = 180
   podman run --rm \
       --name redis \
       -p 6379:6379 \
+      -v $(pwd)/redis/data:/data \
       -d docker.io/library/redis:7.2.4-alpine
   ```
   {{% /notice %}}
 
-  <p> <b>1.use internal client </b></p> 
+  <p> <b>2.use internal client </b></p> 
 
   {{% notice style="transparent" %}}
   ```bash
