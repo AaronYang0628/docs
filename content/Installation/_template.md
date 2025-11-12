@@ -1,26 +1,24 @@
 +++
-tags = ["Template"]
-title = 'Template'
+tags = ["SNIPPET"]
+title = 'Install MD SNIPPET'
 date = 2024-06-07T15:00:59+08:00
 draft = true
 weight = 270
 +++
 
 
-### Installation
+### 🚀Installation
 
-{{< tabs groupid="prometheus" style="primary" title="Install By" icon="thumbtack" >}}
+{{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
 
-{{< tab title="Helm" style="transparent" >}}
-  <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+{{< tab title="📦Helm" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_helm_preliminary.md" %}}
 
   <p> <b>1.get helm repo </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add xxxxx https://xxxx
   helm repo update
   ```
   {{% /notice %}}
@@ -29,23 +27,20 @@ weight = 270
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  helm install xxxxx/chart-name --generate-name --version a.b.c
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  {{% notice style="important" title="Using AY Helm Mirror" %}} 
+  {{% include "content\Installation\CICD\_helm_chart_mirror.md" %}}
   {{% /notice %}}
 
 {{< /tab >}}
 
-{{< tab title="ArgoCD" style="transparent" >}}
-  <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
-  3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+{{< tab title="🐙ArgoCD" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
 
-  <p> <b>1.prepare</b> `deploy-xxxxx.yaml` </p>
+  <p> <b>1.prepare</b> `xxxxx-credientials.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -53,11 +48,22 @@ weight = 270
   ```
   {{% /notice %}}
 
-  <p> <b>2.apply to k8s</b></p>
+  <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
 
   {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f xxxx.yaml
+  ```yaml
+  kubectl -n argocd apply -f -<< EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: xxxx
+  spec:
+    project: default
+    source:
+      repoURL: https://xxxxx
+      chart: xxxx
+      targetRevision: a.b.c
+  EOF
   ```
   {{% /notice %}}
 
@@ -69,45 +75,21 @@ weight = 270
   ```
   {{% /notice %}}
 
-  <p> <b>4.prepare yaml-content.yaml</b></p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-  
-
-  ```
+  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_helm_chart_mirror.md" %}}
   {{% /notice %}}
-
-  <p> <b>5.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f xxxx.yaml
-  ```
+  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
   {{% /notice %}}
-
-  <p> <b>6.apply xxxx.yaml directly</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f - <<EOF
-  
-  EOF
-  ```
+  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
   {{% /notice %}}
 
 {{< /tab >}}
 
 
-{{< tab title="Docker" style="transparent" >}}
- <p> <b>Preliminary </b></p>
-  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
-  
-
-  {{% notice style="important" title="Using Proxy" %}} 
-  you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
-  {{% /notice %}}
-
+{{< tab title="🐳Docker" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_container_preliminary.md" %}}
 
   <p> <b>1.init server </b></p> 
 
@@ -116,17 +98,19 @@ weight = 270
 
   ```
   {{% /notice %}}
+  
+  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
+  {{% /notice %}}
+  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
+  {{% /notice %}}
 
 {{< /tab >}}
 
 
-{{< tab title="Argo Workflow" style="transparent" >}}
-  <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
-  3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  4. Argo Workflow has installed, if not check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
-
+{{< tab title="♻️Argo Workflow" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_argo_wf_preliminary.md" %}}
 
   <p> <b>1.prepare `argocd-login-credentials` </b></p>
 
@@ -140,59 +124,7 @@ weight = 270
   <p> <b>2.apply rolebinding to k8s </b></p>
 
   {{% notice style="transparent" %}}
-  ```yaml
-  kubectl apply -f - <<EOF
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: ClusterRole
-  metadata:
-    name: application-administrator
-  rules:
-    - apiGroups:
-        - argoproj.io
-      resources:
-        - applications
-      verbs:
-        - '*'
-    - apiGroups:
-        - apps
-      resources:
-        - deployments
-      verbs:
-        - '*'
-
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: RoleBinding
-  metadata:
-    name: application-administration
-    namespace: argocd
-  roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: application-administrator
-  subjects:
-    - kind: ServiceAccount
-      name: argo-workflow
-      namespace: business-workflows
-
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: RoleBinding
-  metadata:
-    name: application-administration
-    namespace: application
-  roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: application-administrator
-  subjects:
-    - kind: ServiceAccount
-      name: argo-workflow
-      namespace: business-workflows
-  EOF
-  ```
-  
+  {{% include "content\Installation\SNIPPET\_argo_wf_rbac.md" %}}
   {{% /notice %}}
 
   <p> <b>4.prepare `deploy-xxxx-flow.yaml` </b></p>
@@ -204,7 +136,7 @@ weight = 270
   {{% /notice %}}
 
 
-  <p> <b>6.subimit to argo workflow client</b></p> 
+  <p> <b>5.subimit to argo workflow client</b></p> 
 
   {{% notice style="transparent" %}}
   ```bash
@@ -221,6 +153,25 @@ weight = 270
   ```
   {{% /notice %}}
 
+{{< /tab >}}
+
+{{< tab title="📑manifests" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_manifests_preliminary.md" %}}
+
+  <p> <b>1.init server </b></p> 
+
+  {{% notice style="transparent" %}}
+  ```bash
+
+  ```
+  {{% /notice %}}
+  
+  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
+  {{% /notice %}}
+  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
+  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
+  {{% /notice %}}
 
 {{< /tab >}}
 
@@ -229,7 +180,7 @@ weight = 270
 
 
 
-### FAQ
+### 🛎️FAQ
 
 {{% expand title="Q1: Show me almost **endless** possibilities" %}}
 You can add standard markdown syntax:
