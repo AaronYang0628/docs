@@ -92,7 +92,7 @@ weight = 180
               - FLUSHALL
             persistence:
               enabled: true
-              storageClass: ""
+              storageClass: "local-path"
               accessModes:
               - ReadWriteOnce
               size: 8Gi
@@ -110,7 +110,7 @@ weight = 180
               - FLUSHALL
             persistence:
               enabled: true
-              storageClass: ""
+              storageClass: "local-path"
               accessModes:
               - ReadWriteOnce
               size: 8Gi
@@ -125,7 +125,20 @@ weight = 180
             enabled: false
           sysctl:
             enabled: false
-          extraDeploy: []
+          extraDeploy:
+          - apiVersion: traefik.io/v1alpha1
+            kind: IngressRouteTCP
+            metadata:
+              name: redis-tcp
+              namespace: storage
+            spec:
+              entryPoints:
+                - redis
+              routes:
+              - match: HostSNI(`*`)
+                services:
+                - name: redis-master
+                  port: 6379
     destination:
       server: https://kubernetes.default.svc
       namespace: storage

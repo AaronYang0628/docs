@@ -45,7 +45,16 @@ alias kubectl="minikube kubectl --"
 minikube stop && minikube delete --all --purge
 ```
 
-### Forward
+### Forward 
+```shell
+# execute on your local machine
+        Remote                                                  Local⬇️
+   __________________                               ________________________________   
+  ╱                  ╲╲         wire/wifi          ╱ [ Minikube ] 17.100.x.y        ╲╲
+ ╱                   ╱╱   --------------------    ╱                                 ╱╱
+╱ telnet 192.168.a.b ╱                           ╱  > execute ssh... at 192.168.a.b ╱ 
+╲___________________╱  IP: 10.45.m.n             ╲_________________________________╱ IP: 192.168.a.b
+```               
 ```shell
 ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
 ```
@@ -74,7 +83,7 @@ kubectl -n kube-system get pods  | grep metrics-server
 {{% /expand %}}
 
 
-{{% expand title="Q2: Export minikube to local" %}}
+{{% expand title="Q2: Export minikube to local directly" %}}
 
 ```shell
 minikube start --driver=podman  --image-mirror-country=cn --kubernetes-version=v1.33.1 --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers  --listen-address=0.0.0.0 --cpus=6 --memory=20g --disk-size=100g --force

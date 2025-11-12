@@ -4,11 +4,16 @@ date = 2024-03-07T19:58:45+08:00
 weight = 3
 +++
 
-### Init global config
+### List config
 ```shell
 git config --list
+```
+
+### Init global config
+```shell
 git config --global user.name "AaronYang"
 git config --global user.email aaron19940628@gmail.com
+git config --global user.email byang628@alumni.usc.edu
 git config --global pager.branch false
 git config --global pull.ff only
 git --no-pager diff
@@ -16,8 +21,10 @@ git --no-pager diff
 
 ### change user and email (locally)
 ```shell
-git config user.name ""
-git config user.email ""
+# git config user.name ""
+# git config user.email ""
+git config user.name "AaronYang"
+git config user.email byang628@alumni.usc.edu
 ```
 
 ### list all remote repo
@@ -27,8 +34,20 @@ git remote -v
 {{% expand title="modify remote repo"%}}
 ```shell
 git remote set-url origin git@github.com:<$user>/<$repo>.git
+# git remote set-url origin http://xxxxxxxxxxx.git
 ```
 {{% /expand %}}
+
+{{% expand title="add a new remote repo"%}}
+```shell
+git remote add dev https://xxxxxxxxxxx.git
+```
+{{% /expand %}}
+
+### Clone specific branch
+```shell
+git clone -b slurm-23.02 --single-branch --depth=1 https://github.com/SchedMD/slurm.git
+```
 
 ### Get specific file from remote
 ```shell
@@ -40,10 +59,6 @@ git archive --remote=git@github.com:AaronYang2333/LOL_Overlay_Assistant_Tool.git
 ```
 {{% /expand %}}
 
-### Clone specific branch
-```shell
-git clone -b slurm-23.02 --single-branch --depth=1 https://github.com/SchedMD/slurm.git
-```
 ### Update submodule
 > git submodule add --depth 1 https://github.com/xxx/xxxx a/b/c
 ```shell
@@ -75,12 +90,3 @@ git config --global credential.helper store
 git remote prune origin
 ```
 
-### Add a new remote repo
-```shell
-git remote add dev https://xxxxxxxxxxx.git
-```
-
-### Update remote repo
-```shell
-git remote set-url origin http://xxxxx.git
-```
