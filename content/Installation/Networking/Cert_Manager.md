@@ -104,51 +104,6 @@ weight = 30
   ```
   {{% /notice %}}
 
-  <p> <b>4.prepare self-signed.yaml</b></p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-  kubectl apply  -f - <<EOF
-  ---
-  apiVersion: cert-manager.io/v1
-  kind: Issuer
-  metadata:
-    namespace: basic-components
-    name: self-signed-issuer
-  spec:
-    selfSigned: {}
-
-  ---
-  apiVersion: cert-manager.io/v1
-  kind: Certificate
-  metadata:
-    namespace: basic-components
-    name: my-self-signed-ca
-  spec:
-    isCA: true
-    commonName: my-self-signed-ca
-    secretName: root-secret
-    privateKey:
-      algorithm: ECDSA
-      size: 256
-    issuerRef:
-      name: self-signed-issuer
-      kind: Issuer
-      group: cert-manager.io
-
-  ---
-  apiVersion: cert-manager.io/v1
-  kind: ClusterIssuer
-  metadata:
-    name: self-signed-ca-issuer
-  spec:
-    ca:
-      secretName: root-secret
-  EOF
-  ```
-  {{% /notice %}}
-
-
 {{< /tab >}}
 
 
@@ -188,7 +143,73 @@ weight = 30
 {{< /tab >}}
 
 
+{{< /tabs >}}
 
+
+### Prepare Certificate Issuer
+
+{{< tabs >}}
+{{% tab title="self-signed" %}}
+```yaml
+kubectl apply  -f - <<EOF
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  namespace: basic-components
+  name: self-signed-issuer
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  namespace: basic-components
+  name: my-self-signed-ca
+spec:
+  isCA: true
+  commonName: my-self-signed-ca
+  secretName: root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: self-signed-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: self-signed-ca-issuer
+spec:
+  ca:
+    secretName: root-secret
+EOF
+```
+{{% /tab %}}
+{{% tab title="let's encrypt" %}}
+```yaml
+kubectl -n kube-system apply -f - << EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    email: aaron19940628@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+EOF
+```
+{{% /tab %}}
 {{< /tabs >}}
 
 
