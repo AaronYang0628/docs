@@ -1,6 +1,6 @@
 +++
-tags = ["SNIPPET"]
-title = 'Install MD SNIPPET'
+tags = ["TEMPLATE"]
+title = 'Install MD TEMPLATE'
 date = 2024-06-07T15:00:59+08:00
 draft = true
 weight = 270
