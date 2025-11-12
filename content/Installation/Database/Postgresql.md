@@ -11,13 +11,13 @@ weight = 160
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add bitnami https://charts.bitnami.com/bitnami
   helm repo update
   ```
   {{% /notice %}}
@@ -26,12 +26,17 @@ weight = 160
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  helm install bitnami/postgresql --generate-name --version 18.1.8
   ```
   {{% /notice %}}
 
   {{% notice style="important" title="Using Proxy" %}} 
   for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  ```shell
+  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo update
+  helm install my-postgresql ay-helm-mirror/postgresql --version 18.1.8
+  ```
   {{% /notice %}}
 
 {{< /tab >}}
@@ -39,22 +44,112 @@ weight = 160
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
-  3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-
-  <p> <b>1.prepare</b> `deploy-xxxxx.yaml` </p>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  3. ArgoCD has installed, if not check 🔗<a href="/docs/installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+   
+  <p> <b>1.prepare</b> `postgresql-credentials` </p>
 
   {{% notice style="transparent" %}}
-  ```yaml
-
+  ```shell
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic postgresql-credentials \
+      --from-literal=postgres-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
   ```
   {{% /notice %}}
 
-  <p> <b>2.apply to k8s</b></p>
+  <p> <b>2.prepare</b> `deploy-postgresql.yaml` </p>
 
   {{% notice style="transparent" %}}
-  ```bash
-  kubectl -n argocd apply -f xxxx.yaml
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: postgresql
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: postgresql
+      targetRevision: 18.1.8
+      helm:
+        releaseName: postgresql
+        values: |
+          global:
+            security:
+              allowInsecureImages: true
+          architecture: standalone
+          auth:
+            database: n8n
+            username: n8n
+            existingSecret: postgresql-credentials
+          primary:
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+          readReplicas:
+            replicaCount: 1
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+          backup:
+            enabled: false
+          image:
+            registry: m.daocloud.io/registry-1.docker.io
+            pullPolicy: IfNotPresent
+          volumePermissions:
+            enabled: false
+            image:
+              registry: m.daocloud.io/registry-1.docker.io
+              pullPolicy: IfNotPresent
+          metrics:
+            enabled: false
+            image:
+              registry: m.daocloud.io/registry-1.docker.io
+              pullPolicy: IfNotPresent
+      extraDeploy:
+      - apiVersion: traefik.io/v1alpha1
+        kind: IngressRouteTCP
+        metadata:
+          name: postgres-tcp
+          namespace: database
+        spec:
+          entryPoints:
+            - postgres
+          routes:
+          - match: HostSNI(`*`)
+            services:
+            - name: postgresql
+              port: 5432
+      - apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        metadata:
+          name: postgres-tcp-ingress
+          annotations:
+            kubernetes.io/ingress.class: nginx
+        spec:
+          rules:
+          - host: postgres.ay.dev
+            http:
+              paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: postgresql
+                    port:
+                      number: 5342
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: database
+  EOF
   ```
   {{% /notice %}}
 
@@ -62,7 +157,7 @@ weight = 160
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/postgresql
   ```
   {{% /notice %}}
 
