@@ -24,7 +24,7 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```yaml
-  kubectl -n argocd apply -f - <<EOF
+  kubectl -n argocd apply -f - << EOF
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
@@ -148,6 +148,100 @@ weight = 14
               requests:
                 cpu: 200m
                 memory: 256Mi
+              limits:
+                cpu: 512m
+                memory: 512Mi
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ApplyOutOfSyncOnly=true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: n8n
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: n8n
+      targetRevision: 1.16.1
+      helm:
+        releaseName: n8n
+        values: |
+          image:
+            repository: m.daocloud.io/docker.io/n8nio/n8n
+            tag: 1.119.1-amd64
+          log:
+            level: info
+          encryptionKey: 72602-aaron
+          db:
+            type: postgresdb
+          externalPostgresql:
+            host: postgresql.database.svc.cluster.local
+            port: 5432
+            username: "postgres.kconxfeltufjzqtjznfb"
+            database: "postgres"
+            existingSecret: "n8n-middleware-credential"
+          main:
+            count: 1
+            persistence:
+              enabled: true
+              accessMode: ReadWriteOnce
+              storageClass: "local-path"
+              size: 5Gi
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 512m
+                memory: 512Mi
+          worker:
+            mode: queue
+            count: 2
+            waitMainNodeReady:
+              enabled: true
+            persistence:
+              enabled: true
+              accessMode: ReadWriteOnce
+              storageClass: "local-path"
+              size: 5Gi
+            resources:
+              requests:
+                cpu: 500m
+                memory: 250Mi
+              limits:
+                cpu: 1000m
+                memory: 1024Mi
+          externalRedis:
+            host: redis.72602.online
+            port: 30679
+            existingSecret: n8n-middleware-credential
+          ingress:
+            enabled: true
+            className: nginx
+            annotations:
+              kubernetes.io/ingress.class: nginx
+              cert-manager.io/cluster-issuer: letsencrypt
+            hosts:
+              - host: n8n.72602.online
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+            - hosts:
+              - n8n.72602.online
+              secretName: n8n.72602.online-tls
+          webhook:
+            mode: queue
+            url: "https://webhook.72602.online"
+            autoscaling:
+              enabled: false
+            waitMainNodeReady:
+              enabled: true
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
               limits:
                 cpu: 512m
                 memory: 512Mi
