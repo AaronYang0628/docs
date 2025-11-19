@@ -5,4 +5,4 @@ weight = 190
 +++
 
 
-{{%children depth="999" description="false" showhidden="true" %}}
+{{%children depth="999" description="false" showhidden="false" %}}
