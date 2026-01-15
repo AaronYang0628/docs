@@ -8,7 +8,7 @@ weight = 11
 {{%children depth="999" description="false" showhidden="true" %}}
 
 
-### CheatSheets
+### ShortCuts
 
 #### argoCD
 {{% include "argo-cd/cheatsheets.md" %}}

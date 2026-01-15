@@ -12,7 +12,7 @@ weight = 10
 
 ### 1. install argoCD binary
 
-{{% include file="Content\Installation\Binary\argocd.md" %}}
+{{% include file="/Installation/Binary/argocd.md" %}}
 
 ### 2. install components
 
@@ -20,7 +20,57 @@ weight = 10
 {{< tab title="Helm" >}}
   <b>1. Prepare argocd.values.yaml</b><br/>
   {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="`argocd.values.yaml`" %}}
+    {{% tab title="`argocd.zj.values.yaml`" %}}
+    crds:
+      install: true
+      keep: false
+    global:
+      domain: argo-cd.ay.dev
+      revisionHistoryLimit: 3
+      image:
+        repository: m.daocloud.io/quay.io/argoproj/argocd
+        imagePullPolicy: IfNotPresent
+    redis:
+      enabled: true
+      image:
+        repository: m.daocloud.io/docker.io/library/redis
+      exporter:
+        enabled: false
+        image:
+          repository: m.daocloud.io/bitnami/redis-exporter
+      metrics:
+        enabled: false
+    redis-ha:
+      enabled: false
+      image:
+        repository: m.daocloud.io/docker.io/library/redis
+      configmapTest:
+        repository: m.daocloud.io/docker.io/koalaman/shellcheck
+      haproxy:
+        enabled: false
+        image:
+          repository: m.daocloud.io/docker.io/library/haproxy
+      exporter:
+        enabled: false
+        image: m.daocloud.io/docker.io/oliver006/redis_exporter
+    dex:
+      enabled: true
+      image:
+        repository: m.daocloud.io/ghcr.io/dexidp/dex
+    server:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+          cert-manager.io/cluster-issuer: self-signed-ca-issuer
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        hostname: argo-cd.ay.dev
+        path: /
+        pathType: Prefix
+        tls: true
+    {{% /tab%}}
+    {{% tab title="`argocd.72602.values.yaml`" %}}
     crds:
       install: true
       keep: false
@@ -72,29 +122,69 @@ weight = 10
     {{% /tab%}}
   {{< /tabs >}}
 
-  <b>2. Install argoCD </b><br/>
+  <b>2. Prepare Values.yaml file </b><br/>
+  
+  {{< tabs groupid="tabs-example-language" >}}
+    {{% tab title="argocd.zj.values.yaml" %}}
+    vim argocd.zj.values.yaml
+    {{% /tab%}}
+
+    {{% tab title="argocd.72602.values.yaml" %}}
+    vim argocd.72602.values.yaml
+    {{% /tab%}}
+  {{< /tabs >}}
+
+  <b>3. Install argoCD From Mirror</b><br/>
 
   {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="ay mirror" %}}
+    {{% tab title="argocd.zj.values.yaml" %}}
 
     helm upgrade --install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
       --version 8.3.5 \
       --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
-      --values argocd.values.yaml \
+      --values argocd.zj.values.yaml \
       --atomic
 
     {{% /tab%}}
 
-    {{% tab title="original" %}}
+    {{% tab title="argocd.72602.values.yaml" %}}
+
+    helm install argo-cd argo-cd \
+      --namespace argocd \
+      --create-namespace \
+      --version 8.3.5 \
+      --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
+      --values argocd.72602.values.yaml \
+      --atomic
+
+    {{% /tab%}}
+  {{< /tabs >}}
+
+  <b>[Optional]() 4. Install argoCD From Original</b><br/>
+
+  {{< tabs groupid="tabs-example-language" >}}
+    {{% tab title="argocd.zj.values.yaml" %}}
+
+    helm upgrade --install argo-cd argo-cd \
+      --namespace argocd \
+      --create-namespace \
+      --version 8.3.5 \
+      --repo https://argoproj.github.io/argo-helm \
+      --values argocd.zj.values.yaml \
+      --atomic
+
+    {{% /tab%}}
+
+    {{% tab title="argocd.72602.values.yaml" %}}
 
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
       --version 8.3.5 \
       --repo https://argoproj.github.io/argo-helm \
-      --values argocd.values.yaml \
+      --values argocd.72602.values.yaml \
       --atomic
 
     {{% /tab%}}
