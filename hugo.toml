@@ -88,9 +88,6 @@ theme = 'hugo-theme-relearn'
   [caches.images]
     dir = ':resourceDir/_gen'
     maxAge = -1
-  [caches.misc]
-    dir = ':cacheDir/:project'
-    maxAge = -1
   [caches.modules]
     dir = ':cacheDir/modules'
     maxAge = -1

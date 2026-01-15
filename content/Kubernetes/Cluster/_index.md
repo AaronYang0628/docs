@@ -19,7 +19,7 @@ Building a K8s Cluster, you can choose one of the following methods.
 {{% tab title="kind" %}}
 {{< tabs >}}
     {{% tab title="content" %}}
-    {{% include file="Content\Kubernetes\Cluster\kind.md" %}}
+    {{% include file="/Kubernetes/Cluster/kind.md" %}}
     {{% /tab %}}
 {{< /tabs >}}
 {{% /tab %}}
@@ -28,7 +28,7 @@ Building a K8s Cluster, you can choose one of the following methods.
 {{% tab title="minikube✅" %}}
 {{< tabs >}}
     {{% tab title="content" %}}
-    {{% include file="Content\Kubernetes\Cluster\minikube.md" %}}
+    {{% include file="/Kubernetes/Cluster/minikube.md" %}}
     {{% /tab %}}
 {{< /tabs >}}
 {{% /tab %}}
