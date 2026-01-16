@@ -9,18 +9,23 @@ weight = 14
 {{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
 
 
-{{< tab title="🐙ArgoCD" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
+{{< tab title="🐙ArgoCD (ZJ)" style="transparent" >}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
+  4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `xxxxx-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `n8n-middleware-credientials.yaml` </p>
+  
 
   {{% notice style="transparent" %}}
-  ```yaml
-
+  ```shell
+  kubectl get namespaces n8n > /dev/null 2>&1 || kubectl create namespace n8n
+  N8N_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.password}' | base64 -d)
+  kubectl -n n8n create secret generic n8n-middleware-credential \
+  --from-literal=postgres-password="${N8N_PASSWORD}"
   ```
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
+  <p> <b>2.prepare</b> `deploy-n8n.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -32,9 +37,9 @@ weight = 14
   spec:
     project: default
     source:
-      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      repoURL: https://community-charts.github.io/helm-charts
       chart: n8n
-      targetRevision: 1.16.1
+      targetRevision: 1.16.22
       helm:
         releaseName: n8n
         values: |
@@ -42,11 +47,10 @@ weight = 14
             security:
               allowInsecureImages: true
           image:
-            repository: m.daocloud.io/docker.io/n8nio/n8n
-            tag: 1.119.1-amd64
+            repository: n8nio/n8n
           log:
             level: info
-          encryptionKey: "72602-n8n"
+          encryptionKey: "ay-dev-n8n"
           timezone: Asia/Shanghai
           db:
             type: postgresdb
@@ -65,16 +69,19 @@ weight = 14
               "DB_POSTGRESDB_POOL_SIZE": "10"
               "CACHE_ENABLED": "true"
               "N8N_CONCURRENCY_PRODUCTION_LIMIT": "5"
+              "NODE_TLS_REJECT_UNAUTHORIZED": "0"
               "N8N_SECURE_COOKIE": "false"
-              "WEBHOOK_URL": "https://webhook.72602.online"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "30000"
-              "N8N_COMMUNITY_PACKAGES_ENABLED": "false"
+              "WEBHOOK_URL": "https://webhook.n8n.ay.dev"
+              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
+              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
               "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
+              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
+              "N8N_LICENSE_RENEW_ON_INIT": "true"
             persistence:
               enabled: true
               accessMode: ReadWriteOnce
               storageClass: "local-path"
-              size: 5Gi
+              size: 50Gi
             resources:
               requests:
                 cpu: 1000m
@@ -91,13 +98,16 @@ weight = 14
               "EXECUTIONS_TIMEOUT": "300"
               "EXECUTIONS_TIMEOUT_MAX": "600"
               "DB_POSTGRESDB_POOL_SIZE": "5"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "30000"
+              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
+              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
               "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
+              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
+              "N8N_LICENSE_RENEW_ON_INIT": "true"
             persistence:
               enabled: true
               accessMode: ReadWriteOnce
               storageClass: "local-path"
-              size: 5Gi
+              size: 50Gi
             resources:
               requests:
                 cpu: 500m
@@ -105,23 +115,37 @@ weight = 14
               limits:
                 cpu: 1000m
                 memory: 2048Mi
+          nodes:
+            builtin:
+              enabled: true
+              modules:
+                - crypto
+                - fs
+            external:
+              allowAll: true
+              packages:
+                - n8n-nodes-globals
+          npmRegistry:
+            enabled: true
+            url: http://mirrors.cloud.tencent.com/npm/
           redis:
             enabled: true
             image:
               registry: m.daocloud.io/docker.io
               repository: bitnamilegacy/redis
             master:
+              resourcesPreset: "small"
               persistence:
                 enabled: true
                 accessMode: ReadWriteOnce
                 storageClass: "local-path"
-                size: 2Gi
+                size: 10Gi
           ingress:
             enabled: true
             className: nginx
             annotations:
               kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: letsencrypt
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
@@ -129,17 +153,17 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
             hosts:
-              - host: n8n.72602.online
+              - host: n8n.ay.dev
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
             - hosts:
-              - n8n.72602.online
-              secretName: n8n.72602.online-tls
+              - n8n.ay.dev
+              secretName: n8n.ay.dev-tls
           webhook:
             mode: queue
-            url: "https://webhook.72602.online"
+            url: "https://webhook.n8n.ay.dev"
             autoscaling:
               enabled: false
             waitMainNodeReady:
@@ -152,106 +176,9 @@ weight = 14
                 cpu: 512m
                 memory: 512Mi
     syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
       syncOptions:
         - CreateNamespace=true
-        - ApplyOutOfSyncOnly=true
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: n8n
-      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
-      chart: n8n
-      targetRevision: 1.16.1
-      helm:
-        releaseName: n8n
-        values: |
-          image:
-            repository: m.daocloud.io/docker.io/n8nio/n8n
-            tag: 1.119.1-amd64
-          log:
-            level: info
-          encryptionKey: 72602-aaron
-          db:
-            type: postgresdb
-          externalPostgresql:
-            host: postgresql.database.svc.cluster.local
-            port: 5432
-            username: "postgres.kconxfeltufjzqtjznfb"
-            database: "postgres"
-            existingSecret: "n8n-middleware-credential"
-          main:
-            count: 1
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 5Gi
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
-                cpu: 512m
-                memory: 512Mi
-          worker:
-            mode: queue
-            count: 2
-            waitMainNodeReady:
-              enabled: true
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 5Gi
-            resources:
-              requests:
-                cpu: 500m
-                memory: 250Mi
-              limits:
-                cpu: 1000m
-                memory: 1024Mi
-          externalRedis:
-            host: redis.72602.online
-            port: 30679
-            existingSecret: n8n-middleware-credential
-          ingress:
-            enabled: true
-            className: nginx
-            annotations:
-              kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: letsencrypt
-            hosts:
-              - host: n8n.72602.online
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-            - hosts:
-              - n8n.72602.online
-              secretName: n8n.72602.online-tls
-          webhook:
-            mode: queue
-            url: "https://webhook.72602.online"
-            autoscaling:
-              enabled: false
-            waitMainNodeReady:
-              enabled: true
-            resources:
-              requests:
-                cpu: 100m
-                memory: 128Mi
-              limits:
-                cpu: 512m
-                memory: 512Mi
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
-        - ApplyOutOfSyncOnly=true
+        - ApplyOutOfSyncOnly=false
     destination:
       server: https://kubernetes.default.svc
       namespace: n8n
@@ -263,12 +190,12 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/n8n
   ```
   {{% /notice %}}
 
   {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_helm_chart_mirror.md" %}}
+  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
   {{% /notice %}}
   {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
   {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}

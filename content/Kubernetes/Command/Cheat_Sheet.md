@@ -165,6 +165,11 @@ kubectl delete jobs -n <$namespace> --field-selector status.successful=1
 ```
 
 ## Nodes
+- list taint
+```shell
+kubectl describe nodes | grep -i taint
+## kubectl describe node <节点名称> | grep Taints
+```
 -  add taint
 ```shell
 kubectl taint nodes <$node_ip> <key:value>
@@ -174,9 +179,9 @@ kubectl taint nodes <$node_ip> <key:value>
 kubectl taint nodes node1 dedicated:NoSchedule
 ```
 {{% /expand %}}
--  remove taint
+-  remove taint [使用 kubectl taint 命令并在 taint 键名后加上 - 符号]()
 ```shell
-kubectl remove taint
+kubectl taint nodes <节点名称> <taint-key>-
 ```
 {{% expand title="for example"%}}
 ```shell

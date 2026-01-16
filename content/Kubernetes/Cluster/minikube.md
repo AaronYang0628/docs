@@ -49,11 +49,11 @@ minikube stop && minikube delete --all --purge
 ```shell
 # execute on your local machine
         Remote                                                  Local⬇️
-   __________________                               ________________________________   
-  ╱                  ╲╲         wire/wifi          ╱ [ Minikube ] 17.100.x.y        ╲╲
- ╱                   ╱╱   --------------------    ╱                                 ╱╱
-╱ telnet 192.168.a.b ╱                           ╱  > execute ssh... at 192.168.a.b ╱ 
-╲___________________╱  IP: 10.45.m.n             ╲_________________________________╱ IP: 192.168.a.b
+   __________________                          ________________________________   
+  ╱                  ╲╲      wire/wifi        ╱ [ Minikube ] 17.100.x.y        ╲╲
+ ╱                   ╱╱   <------------->    ╱                                 ╱╱
+╱ telnet 192.168.a.b ╱                      ╱  > execute ssh... at 192.168.a.b ╱ 
+╲___________________╱  IP: 10.45.m.n        ╲_________________________________╱ IP: 192.168.a.b
 ```               
 ```shell
 ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f

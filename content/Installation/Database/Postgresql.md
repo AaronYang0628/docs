@@ -41,7 +41,7 @@ weight = 160
 
 {{< /tab >}}
 
-{{< tab title="ArgoCD" style="transparent" >}}
+{{< tab title="ArgoCD (ZJ)" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
@@ -89,6 +89,13 @@ weight = 160
             username: n8n
             existingSecret: postgresql-credentials
           primary:
+            resources:
+              requests:
+                cpu: 1
+                memory: 512Mi
+              limits:
+                cpu: 2
+                memory: 1024Mi
             persistence:
               enabled: true
               storageClass: local-path
@@ -115,19 +122,6 @@ weight = 160
               registry: m.daocloud.io/registry-1.docker.io
               pullPolicy: IfNotPresent
       extraDeploy:
-      - apiVersion: traefik.io/v1alpha1
-        kind: IngressRouteTCP
-        metadata:
-          name: postgres-tcp
-          namespace: database
-        spec:
-          entryPoints:
-            - postgres
-          routes:
-          - match: HostSNI(`*`)
-            services:
-            - name: postgresql
-              port: 5432
       - apiVersion: networking.k8s.io/v1
         kind: Ingress
         metadata:
@@ -161,32 +155,123 @@ weight = 160
   ```
   {{% /notice %}}
 
-  <p> <b>4.prepare yaml-content.yaml</b></p>
+
+{{< /tab >}}
+
+{{< tab title="ArgoCD (72602)" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  3. ArgoCD has installed, if not check 🔗<a href="/docs/installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+   
+  <p> <b>1.prepare</b> `postgresql-credentials` </p>
+
+  {{% notice style="transparent" %}}
+  ```shell
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  kubectl -n database create secret generic postgresql-credentials \
+      --from-literal=postgres-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16) \
+      --from-literal=replication-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.prepare</b> `deploy-postgresql.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
-  
-
-  ```
-  {{% /notice %}}
-
-  <p> <b>5.apply to k8s</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f xxxx.yaml
-  ```
-  {{% /notice %}}
-
-  <p> <b>6.apply xxxx.yaml directly</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl apply -f - <<EOF
-  
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: postgresql
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      chart: postgresql
+      targetRevision: 18.1.8
+      helm:
+        releaseName: postgresql
+        values: |
+          global:
+            security:
+              allowInsecureImages: true
+          architecture: standalone
+          auth:
+            database: n8n
+            username: n8n
+            existingSecret: postgresql-credentials
+          primary:
+            resources:
+              requests:
+                cpu: 1
+                memory: 512Mi
+              limits:
+                cpu: 2
+                memory: 1024Mi
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+          readReplicas:
+            replicaCount: 1
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+          backup:
+            enabled: false
+          image:
+            registry: m.daocloud.io/registry-1.docker.io
+            pullPolicy: IfNotPresent
+          volumePermissions:
+            enabled: false
+            image:
+              registry: m.daocloud.io/registry-1.docker.io
+              pullPolicy: IfNotPresent
+          metrics:
+            enabled: false
+            image:
+              registry: m.daocloud.io/registry-1.docker.io
+              pullPolicy: IfNotPresent
+      extraDeploy:
+      - apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        metadata:
+          name: postgres-tcp-ingress
+          annotations:
+            kubernetes.io/ingress.class: nginx
+        spec:
+          rules:
+          - host: postgres.72602.online
+            http:
+              paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: postgresql
+                    port:
+                      number: 5342
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: database
   EOF
   ```
   {{% /notice %}}
+
+  <p> <b>3.sync by argocd</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/postgresql
+  ```
+  {{% /notice %}}
+
 
 {{< /tab >}}
 
@@ -628,20 +713,21 @@ weight = 160
 
 ### FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: How to connect to the postgres" %}}
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+```shell
+POSTGRES_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d)
+podman run --rm \
+    --env PGPASSWORD=${POSTGRES_PASSWORD} \
+    --entrypoint psql \
+    -it m.daocloud.io/docker.io/library/postgres:15.2-alpine3.17 \
+    --host host.containers.internal \
+    --port 32543 \
+    --username postgres  \
+    --dbname postgres  \
+    --command 'SELECT datname FROM pg_database;
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
 {{% /expand %}}
 
 

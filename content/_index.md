@@ -13,16 +13,16 @@ date = 2024-03-07T15:00:59+08:00
 - {{% icon icon="fa-brands fa-cloudflare" %}} [Cloudflare](https://gitee.com/aaron2333)
 {{% /card %}}
 {{% card title="Tools"%}}
-- OS: [Linux](Linux/_index.md)
+- OS: [Linux](Linux/_index.md), [WIn](Win/_index.md)
 - Language: [Java](Language/Java/_index.md), [Python](Language/Python/_index.md), [Go](Language/Python/_index.md)
 - CI/CD: [Git](Git/_index.md), [Argo](Argo/_index.md), [Action](Git/Action/_index.md)
-- Operator: [Slurm](Slurm\install\install_from_k8s_operator.md), Warehouse
+- Operator: [Slurm](csp/zhejianglab/Slurm/install/install_from_k8s_operator.md), [Warehouse](csp/zhejianglab/data-warehouse/_index.md)
 - Middleware: [Calcite](./Calcite/_index.md), [Kafka](), [Flink](./Flink/_index.md)
 - MLOps: Kubeflow, MLflow
-- 推荐系统: 
-- Agent: 
-- RAG: [Milvus](http://rag.demo.72602.online)
-- Prompt:
+- Agent: Dali
+- RAG: [Milvus](http://rag.demo.72602.online)， [N8N](https://n8n.72602.online)
+- MCP: Dali
+- Skills:
 {{% /card %}}
 {{% card title="Highlights"%}}
 - CSST

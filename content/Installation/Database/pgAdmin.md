@@ -30,7 +30,7 @@ weight = 161
   {{% /notice %}}
 
   {{% notice style="important" title="Using AY Helm Mirror" %}} 
-  {{% include "content\Installation\SNIPPET\_helm_chart_mirror.md" %}}
+  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
   {{% /notice %}}
 
 {{< /tab >}}
@@ -117,7 +117,7 @@ weight = 161
   {{% /notice %}}
 
   {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_helm_chart_mirror.md" %}}
+  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
   {{% /notice %}}
   {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
   {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
