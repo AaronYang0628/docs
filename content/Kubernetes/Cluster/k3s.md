@@ -4,6 +4,7 @@ date = 2024-03-07T15:00:59+08:00
 weight = 112
 +++
 
+
 ### Preliminary
 - [Hardware Requirements](https://docs.k3s.io/installation/requirements?os=debian#hardware):
 
@@ -18,29 +19,38 @@ weight = 112
     2. If you wish to utilize the metrics server, all nodes must be accessible to each other on port 10250.
 
 
-### Init server
+### Init K3s Server [[At Server End]]()
 ```shell
-curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - server --cluster-init --flannel-backend=vxlan --node-taint "node-role.kubernetes.io/control-plane=true:NoSchedule"
-```
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - server --cluster-init --flannel-backend=vxlan --node-taint "node-role.kubernetes.io/control-plane=true:NoSchedule" --disable traefik
+``` 
+append `--disable traefik`
 
-### Get token
+append `--disable servicelb` 禁用 ServiceLB（如果你计划使用其他负载均衡器如 MetalLB）
+
+append `--disable local-storage` 禁用本地存储（如果你使用其他存储方案）
+
+### Get K3s Token [[At Server End]]()
 ```shell
 cat /var/lib/rancher/k3s/server/node-token
 ```
 
-### Join worker
+### Join K3s Worker [[At Agent End]]()
 ```shell
 
 curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn K3S_URL=https://<master-ip>:6443 K3S_TOKEN=<join-token> sh -
 ```
 
-### Copy kubeconfig
+### Copy Kubeconfig [[At Server + Agent End]]()
 ```shell
 mkdir -p $HOME/.kube
 cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
 ```
 
-### Uninstall k3s
+### How it works
+
+<img src="../../../images/content/kubernetes/how-it-works-k3s-revised.svg" alt="k3s" width="900">
+
+### Uninstall K3s cluster [[At Server + Agent End]]()
 ```shell
 # exec on server
 /usr/local/bin/k3s-uninstall.sh

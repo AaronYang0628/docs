@@ -21,6 +21,7 @@ weight = 10
   <b>1. Prepare argocd.values.yaml</b><br/>
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="`argocd.zj.values.yaml`" %}}
+    cat <<EOF > argocd.zj.values.yaml
     crds:
       install: true
       keep: false
@@ -69,8 +70,10 @@ weight = 10
         path: /
         pathType: Prefix
         tls: true
+    EOF
     {{% /tab%}}
     {{% tab title="`argocd.72602.values.yaml`" %}}
+    cat <<EOF > argocd.72602.values.yaml
     crds:
       install: true
       keep: false
@@ -119,22 +122,11 @@ weight = 10
         path: /
         pathType: Prefix
         tls: true
+    EOF
     {{% /tab%}}
   {{< /tabs >}}
 
-  <b>2. Prepare Values.yaml file </b><br/>
-  
-  {{< tabs groupid="tabs-example-language" >}}
-    {{% tab title="argocd.zj.values.yaml" %}}
-    vim argocd.zj.values.yaml
-    {{% /tab%}}
-
-    {{% tab title="argocd.72602.values.yaml" %}}
-    vim argocd.72602.values.yaml
-    {{% /tab%}}
-  {{< /tabs >}}
-
-  <b>3. Install argoCD From Mirror</b><br/>
+  <b>2. Install argoCD From Mirror</b><br/>
 
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="argocd.zj.values.yaml" %}}
@@ -213,7 +205,33 @@ weight = 10
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}
     {{< tabs groupid="tabs-example-language" >}}
-      {{% tab title="yaml" %}}
+      {{% tab title="argocd.zj.values.yaml" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server-external
+      app.kubernetes.io/part-of: argocd
+    name: argocd-server-external
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30443
+    selector:
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argocd-server
+    type: NodePort
+  EOF
+  ```
+      {{% /tab%}}
+      {{% tab title="argocd.72602.values.yaml" %}}
   ```yaml
   kubectl -n argocd apply -f - <<EOF
   apiVersion: v1
@@ -276,21 +294,16 @@ weight = 10
 {{< /tabs >}}
 
 
-### 5. create external service
-```shell
-kubectl -n argocd apply -f argocd-server-external.yaml
-```
-
-
 
 ### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
 
-Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
+Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer` or `lets-encrypt`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
 
+And also, you need to install ingress-nginx or traefik components, if not, please check 🔗[link](Installation/networking/ingress.html)
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}
     {{< tabs groupid="tabs-example-language" >}}
-      {{% tab title="yaml" %}}
+      {{% tab title="argocd.zj.values.yaml" %}}
   ```yaml
   kubectl -n argocd apply -f - <<EOF
   apiVersion: networking.k8s.io/v1
@@ -299,7 +312,6 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
     annotations:
       cert-manager.io/cluster-issuer: self-signed-ca-issuer
       nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
     name: argo-cd-argocd-server
     namespace: argocd
   spec:
@@ -319,6 +331,38 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
     - hosts:
       - argo-cd.ay.dev
       secretName: argo-cd.ay.dev-tls
+  EOF
+  ```
+      {{% /tab%}}
+      {{% tab title="argocd.72602.values.yaml" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<EOF
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: lets-encrypt
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    name: argo-cd-argocd-server
+    namespace: argocd
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: argo-cd.72602.online
+      http:
+        paths:
+        - backend:
+            service:
+              name: argo-cd-argocd-server
+              port:
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - argo-cd.72602.online
+      secretName: argo-cd.72602.online-tls
   EOF
   ```
       {{% /tab%}}
@@ -362,10 +406,6 @@ Before you create ingress, you need to create cert-manager and cert-issuer `self
 {{< /tabs >}}
 
 
-### 7. [[Optional]]() create external service
-```shell
-kubectl -n argocd apply -f argocd-server-external.yaml
-```
 
 
 ### 8. get argocd initialized password
