@@ -297,13 +297,15 @@ weight = 10
 
 ### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
 
-Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer` or `lets-encrypt`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
+
 
 And also, you need to install ingress-nginx or traefik components, if not, please check 🔗[link](Installation/networking/ingress.html)
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}
     {{< tabs groupid="tabs-example-language" >}}
       {{% tab title="argocd.zj.values.yaml" %}}
+  Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
+
   ```yaml
   kubectl -n argocd apply -f - <<EOF
   apiVersion: networking.k8s.io/v1
@@ -335,6 +337,7 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
   ```
       {{% /tab%}}
       {{% tab title="argocd.72602.values.yaml" %}}
+  Before you create ingress, you need to create cert-manager and cert-issuer `lets-encrypt`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
   ```yaml
   kubectl -n argocd apply -f - <<EOF
   apiVersion: networking.k8s.io/v1
@@ -439,6 +442,7 @@ if you use ingress, you might need to configure your browser to allow insecure c
 ```shell
 kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}' | base64 -d > cert-manager-self-signed-ca-secret.crt
 ```
+import `cert-manager-self-signed-ca-secret.crt` into your browser
 ```text
 open https://argo-cd.ay.dev
 ```

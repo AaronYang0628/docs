@@ -1,5 +1,5 @@
 +++
-title = 'Deploy A Nginx App'
+title = 'Deploy From Git Repo'
 date = 2025-10-22T15:00:59+08:00
 +++
 
@@ -30,7 +30,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'git@github.com:AaronYang0628/home-site.git'
+    repoURL: 'git@github.com:<$github_username>/sample-repo.git'
     targetRevision: main
     path: mainfests
   syncPolicy:
@@ -50,6 +50,7 @@ spec:
 
 {{< tab title="Whole Repo" style="default" color="darkorchid" >}}
   Not only you need files in <b>`mainfests`</b> folder, but also need files in root folder. <br/><br/>
+  适用于：待部署的应用不只需要k8s资源，还需要源代码中的一些数据或者文件时 <br/><br/>
   you have to create an extra file `kustomization.yaml`, and set <b>`spec.source.path: .`</b> 
 
   {{< tabs groupid="tabs-example-language" >}}
@@ -74,7 +75,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'git@github.com:AaronYang0628/home-site.git'
+    repoURL: 'git@github.com:<$github_username>/sample-repo.git'
     targetRevision: main
     path: .
   syncPolicy:
