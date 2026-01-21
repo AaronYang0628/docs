@@ -61,6 +61,9 @@ echo $GITHUB_CR_PAT | podman login ghcr.io -u aaronyang0628 --password-stdin
 
 export DOCKER_CR_PAT=dckr_pat_bBN_Xkgz-xxxx
 echo $DOCKER_CR_PAT | podman login docker.io -u aaron666 --password-stdin
+
+export HARBOR_CR_PAT=Aaron
+echo $DOCKER_CR_PAT | podman login --tls-verify=false harbor.zhejianglab.com -u byang628@zhejianglab.org --password-stdin
 ```
 
 9. tag image

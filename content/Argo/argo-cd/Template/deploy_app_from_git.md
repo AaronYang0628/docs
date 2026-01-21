@@ -4,6 +4,57 @@ date = 2025-10-22T15:00:59+08:00
 +++
 
 
+方案 1：为 ArgoCD 添加 SSH 密钥（推荐用于私有仓库）
+
+### 1. 生成 SSH 密钥（如果还没有）
+```
+ssh-keygen -t ed25519 -C "argocd@your-cluster" -f ~/.ssh/argocd_key -N ""
+```
+### 2. 将公钥添加到 GitHub
+### 复制公钥内容
+```
+cat ~/.ssh/argocd_key.pub
+```
+### 然后在 GitHub 仓库设置 -> Deploy keys 中添加
+
+### 3. 将私钥添加到 ArgoCD
+```
+argocd repo add git@github.com:AaronYang0628/Euclid-Image-Cutout-Service.git \
+  --ssh-private-key-path ~/.ssh/argocd_key
+```
+方案 2：使用 HTTPS + Token（更简单）
+
+### 1. 在 GitHub 生成 Personal Access Token
+Settings -> Developer settings -> Personal access tokens -> Generate new token (需要 'repo' 权限)
+
+### 2. 使用 HTTPS URL 添加仓库
+```
+argocd repo add https://github.com/AaronYang0628/Euclid-Image-Cutout-Service.git \
+  --username AaronYang0628 \
+  --password <your-github-token>
+```
+方案 3：公开仓库（如果可以）
+
+如果这个仓库可以公开，直接使用 HTTPS URL 无需认证：
+```
+argocd repo add https://github.com/AaronYang0628/Euclid-Image-Cutout-Service.git
+```
+验证连接
+
+添加仓库后，验证连接：
+```
+argocd repo list
+```
+创建 Application
+
+连接成功后，创建 ArgoCD Application：
+```
+argocd app create euclid-cutout \
+  --repo https://github.com/AaronYang0628/Euclid-Image-Cutout-Service.git \
+  --path k8s \
+  --dest-server https://kubernetes.default.svc \
+    --dest-namespace default
+```
 
 {{< tabs groupid="main" style="primary" title="Sync" icon="thumbtack" >}}
 {{< tab title="Manifest Files" >}}
