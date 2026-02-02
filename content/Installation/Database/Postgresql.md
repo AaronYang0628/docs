@@ -238,25 +238,6 @@ weight = 160
             image:
               registry: m.daocloud.io/registry-1.docker.io
               pullPolicy: IfNotPresent
-      extraDeploy:
-      - apiVersion: networking.k8s.io/v1
-        kind: Ingress
-        metadata:
-          name: postgres-tcp-ingress
-          annotations:
-            kubernetes.io/ingress.class: nginx
-        spec:
-          rules:
-          - host: postgres.72602.online
-            http:
-              paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: postgresql
-                    port:
-                      number: 5342
     destination:
       server: https://kubernetes.default.svc
       namespace: database

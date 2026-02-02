@@ -79,6 +79,7 @@ weight = 90
                 https: 32443
                 tcp:
                   8080: 32808
+                  5324: 33224 #pg
             resources:
               requests:
                 cpu: 100m
