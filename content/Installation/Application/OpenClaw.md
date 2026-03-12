@@ -58,6 +58,13 @@ weight = 14
                     envFrom:
                       - secretRef:
                           name: openclaw-env-secret
+                    args:
+                      - "gateway"
+                      - "--bind"
+                      - "lan"
+                      - "--port"
+                      - "18789"
+                      - "--allow-unconfigured"
                     resources:
                       requests:
                         cpu: 200m
@@ -70,6 +77,11 @@ weight = 14
                       repository: zenika/alpine-chrome
                       tag: "124"
                       pullPolicy: IfNotPresent
+                    args:
+                      - "--no-sandbox"
+                      - "--disable-dev-shm-usage"
+                      - "--remote-debugging-address=0.0.0.0"
+                      - "--remote-debugging-port=9222"
                     resources:
                       requests:
                         cpu: 200m
@@ -110,6 +122,30 @@ weight = 14
                   - secretName: openclaw-tls
                     hosts:
                       - openclaw.72602.online
+            configMaps:
+              config:
+                data:
+                  openclaw.json: |
+                    {
+                      gateway: {
+                        controlUi: {
+                          allowedOrigins: ["https://openclaw.72602.online"],
+                          dangerouslyAllowHostHeaderOriginFallback: true,
+                        },
+                      },
+                      browser: {
+                        gatewayToken: "${OPENCLAW_GATEWAY_TOKEN}",
+                      },
+                      agents: {
+                        main: {
+                          brain: {
+                            provider: "anthropic",
+                            model: "claude-sonnet-4-20250514",
+                            apiKey: "${ANTHROPIC_API_KEY}",
+                          },
+                        },
+                      },
+                    }
     destination:
       server: https://kubernetes.default.svc
       namespace: claw
