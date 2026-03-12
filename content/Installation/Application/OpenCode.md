@@ -39,8 +39,8 @@ weight = 14
             "name": "中转站",
             "npm": "@ai-sdk/openai-compatible",
             "options": {
-              "baseURL": "http://154.37.218.75:3000/v1",
-              "apiKey": "sk-uMA2rRCqxr5kSnnyD1JGPnzoCnhlnCN73UAcCF1SjYfwV4JC"
+              "baseURL": "https://v2.qixuw.com/v1",
+              "apiKey": "sk-982c52bfcf1f729ef39724c9cdbb85212beb"
             },
             "models": {
               "claude-sonnet-4-5-20250929-thinking": {
@@ -83,8 +83,8 @@ weight = 14
     project: default
 
     source:
-      repoURL: oci://ghcr.io/fluxbase-eu/opencode
-      targetRevision: 0.13.0
+      repoURL: oci://ghcr.io/aaronyang0628/opencode
+      targetRevision: 0.18.0
       chart: opencode
       helm:
         values: |
@@ -116,16 +116,16 @@ weight = 14
               subPath: opencode.json
               readOnly: true
           persistence:
+            enabled: true
+            storageClass: local-path
             config:
               enabled: false 
             data:
               enabled: true
               size: 1Gi
-              storageClass: local-path
             workspace:
               enabled: true
               size: 5Gi
-              storageClass: local-path
           resources:
             requests:
               cpu: 500m
@@ -151,10 +151,61 @@ weight = 14
               periodSeconds: 5
               failureThreshold: 30
           ingress:
-            enabled: false
+            enabled: true
+            className: nginx
+            annotations:
+              kubernetes.io/ingress.class: nginx
+              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+              nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
+              nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+            hosts:
+              - host: opencode.ay.dev
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+            - hosts:
+              - opencode.ay.dev
+              secretName: opencode.ay.dev-tls
           globalLabels:
             app.kubernetes.io/part-of: opencode
             environment: production
+          bridge:
+            enabled: true
+            image:
+              repository: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-bridge
+              tag: "v20260310"
+            resources:
+              limits:
+                cpu: 500m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+            ingress:
+              enabled: true
+              annotations:
+                kubernetes.io/ingress.class: nginx
+                cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+                nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+                nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+                nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+                nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
+                nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+              hosts:
+                - host: opencode-bridge.ay.dev
+                  paths:
+                    - path: /
+                      pathType: Prefix
+              tls:
+                - secretName: opencode-bridge-tls
+                  hosts:
+                    - opencode-bridge.ay.dev
 
     destination:
       server: https://kubernetes.default.svc
@@ -171,7 +222,7 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/openclaw
+  argocd app sync argocd/opencode
   ```
   {{% /notice %}}
 
