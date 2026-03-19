@@ -9,6 +9,7 @@ weight = 14
 {{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
 
 
+
 {{< tab title="🐙ArgoCD (ZJ)" style="transparent" >}}
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
@@ -22,7 +23,7 @@ weight = 14
   kubectl -n opencode create secret generic opencode-server-secret \
     --from-literal=OPENCODE_SERVER_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 
-  kubectl -n opencode apply -f - <<EOF
+  kubectl -n opencode apply -f - <<'EOF'
   apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -31,39 +32,28 @@ weight = 14
   data:
     opencode.json: |
       {
-        "\$schema": "https://opencode.ai/config.json",
-        "model": "zzz/claude-sonnet-4-5-20250929-thinking",
-        "small_model": "zzz/claude-sonnet-4-5-20250929-thinking",
+        "$schema": "https://opencode.ai/config.json",
         "provider": {
-          "zzz": {
-            "name": "中转站",
+          "minimax": {
             "npm": "@ai-sdk/openai-compatible",
+            "name": "MiniMax M2.5",
             "options": {
-              "baseURL": "https://v2.qixuw.com/v1",
-              "apiKey": "sk-982c52bfcf1f729ef39724c9cdbb85212beb"
+              "baseURL": "http://10.200.92.41:31551/v1",
+              "apiKey": "sk-sss"
             },
             "models": {
-              "claude-sonnet-4-5-20250929-thinking": {
-                "name": "Claude Sonnet 4.5 Thinking",
-                "reasoning": true,
+              "minimax-m2.5": {
+                "name": "MiniMax M2.5",
+                "id": "MiniMaxAI/MiniMax-M2.5",
                 "limit": {
-                  "context": 200000,
-                  "output": 32000
-                },
-                "modalities": {
-                  "input": ["text", "image"],
-                  "output": ["text"]
-                },
-                "options": {
-                  "interleaved": {
-                    "field": "reasoning_content"
-                  }
+                  "context": 196608,
+                  "output": 8192
                 }
               }
             }
           }
         },
-        "disabled_providers": []
+        "model": "minimax/minimax-m2.5"
       }
   EOF
   ```
@@ -89,8 +79,8 @@ weight = 14
       helm:
         values: |
           image:
-            repository: ghcr.io/fluxbase-eu/opencode-docker
-            tag: latest
+            repository: ghcr.io/nimbleflux/opencode-docker
+            tag: 1.2.26
             pullPolicy: Always
           replicaCount: 1
           command:
@@ -179,6 +169,8 @@ weight = 14
             image:
               repository: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-bridge
               tag: "v20260310"
+            env:
+              defaultModel: "MiniMaxAI/MiniMax-M2.5"
             resources:
               limits:
                 cpu: 500m
@@ -226,233 +218,54 @@ weight = 14
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
+  <p> <b>4.then you can talk with LLM with rest api</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  curl -k -X POST https://opencode.ay.dev:32443/session \
+  -H "Content-Type: application/json" \
+  -d '{"model": "MiniMaxAI/MiniMax-M2.5"}'
+  
+  ## {"id":"ses_30a879abeffe6KRC0Rmg4aPrmK","slug":"brave-eagle","version":"1.2.26","projectID":"global","directory":"/home/opencode/workspace","title":"New session - 2026-03-16T07:07:14.113Z","time":{"created":1773644834113,"updated":1773644834113}}
+  ```
   {{% /notice %}}
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
+
+  <p> <b>5.reuse the same session</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  curl -k -X POST https://opencode.ay.dev:32443/session/ses_30a879abeffe6KRC0Rmg4aPrmK/message \
+  -H "Content-Type: application/json" \
+  -d '{"parts": [{"type": "text", "text": "你好"}]}'
+
+  ## {"info":{"role":"assistant","time":{"created":1773644844131,"completed":1773644848700},"parentID":"msg_cf5788c12001RS4wX3hwMRe0If","modelID":"minimax-m2.5","providerID":"minimax","mode":"build","agent":"build","path":{"cwd":"/home/opencode/workspace","root":"/"},"cost":0,"tokens":{"total":10628,"input":10567,"output":61,"reasoning":0,"cache":{"read":0,"write":0}},"finish":"stop","id":"msg_cf5788c63001hBrorYejcHc1tO","sessionID":"ses_30a879abeffe6KRC0Rmg4aPrmK"},"parts":[{"type":"step-start","id":"prt_cf57899120016WXp4jT4AHeTiG","sessionID":"ses_30a879abeffe6KRC0Rmg4aPrmK","messageID":"msg_cf5788c63001hBrorYejcHc1tO"},{"type":"text","text":"<think>The user said \"你好\" which means \"Hello\" in Chinese. According to the instructions, I should be concise and direct. I should respond briefly without unnecessary preamble. Since this is a simple greeting, I can just respond with a greeting back.\n</think>\n\n你好！有什么可以帮你的吗？","time":{"start":1773644848689,"end":1773644848689},"id":"prt_cf5789913001dUZnoW9w63ThkC","sessionID":"ses_30a879abeffe6KRC0Rmg4aPrmK","messageID":"msg_cf5788c63001hBrorYejcHc1tO"},{"type":"step-finish","reason":"stop","cost":0,"tokens":{"total":10628,"input":10567,"output":61,"reasoning":0,"cache":{"read":0,"write":0}},"id":"prt_cf5789e35001dLGIXJb5WHizMX","sessionID":"ses_30a879abeffe6KRC0Rmg4aPrmK","messageID":"msg_cf5788c63001hBrorYejcHc1tO"}]}
+  
+  ```
   {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
+
+  <p> <b>6.use bridge to manage session</b></p>
+
+  <img src="../../../images/content/n8n/opencode-bridge.png" alt="bridge" width="900">
 
 {{< /tab >}}
 
-{{< tab title="🐙ArgoCD (72602)" style="transparent" >}}
-  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
-  4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `n8n-middleware-credientials.yaml` </p>
+
+
+{{< tab title="🐙CLI" style="transparent" >}}
+
+  <p> <b>1. following the steps in `https://opencode.ai` </p>
   
 
   {{% notice style="transparent" %}}
   ```shell
-  kubectl get namespaces n8n > /dev/null 2>&1 || kubectl create namespace n8n
-  N8N_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.password}' | base64 -d)
-  kubectl -n n8n create secret generic n8n-middleware-credential \
-  --from-literal=postgres-password="${N8N_PASSWORD}"
+  curl -fsSL https://opencode.ai/install | bash
   ```
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-n8n.yaml` </p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n argocd apply -f - <<EOF
-  apiVersion: argoproj.io/v1alpha1
-  kind: Application
-  metadata:
-    name: n8n
-  spec:
-    project: default
-    source:
-      repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.22
-      helm:
-        releaseName: n8n
-        values: |
-          global:
-            security:
-              allowInsecureImages: true
-          image:
-            repository: n8nio/n8n
-          log:
-            level: info
-          encryptionKey: "ay-dev-n8n"
-          timezone: Asia/Shanghai
-          db:
-            type: postgresdb
-          externalPostgresql:
-            host: postgresql-hl.database.svc.cluster.local
-            port: 5432
-            username: "n8n"
-            database: "n8n"
-            existingSecret: "n8n-middleware-credential"
-          main:
-            count: 1
-            extraEnvVars:
-              "N8N_BLOCK_ENV_ACCESS_IN_NODE": "false"
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
-              "EXECUTIONS_TIMEOUT": "300"
-              "EXECUTIONS_TIMEOUT_MAX": "600"
-              "DB_POSTGRESDB_POOL_SIZE": "10"
-              "CACHE_ENABLED": "true"
-              "N8N_CONCURRENCY_PRODUCTION_LIMIT": "5"
-              "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-              "N8N_SECURE_COOKIE": "false"
-              "WEBHOOK_URL": "https://webhook.n8n.ay.dev"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
-              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
-              "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
-              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
-              "N8N_LICENSE_RENEW_ON_INIT": "true"
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 50Gi
-            volumes:
-              - name: downloads-volume
-                hostPath:
-                  path: /home/aaron/Downloads
-                  type: DirectoryOrCreate
-            volumeMounts:
-              - name: downloads-volume
-                mountPath: /home/node/.n8n-files
-            resources:
-              requests:
-                cpu: 1000m
-                memory: 1024Mi
-              limits:
-                cpu: 2000m
-                memory: 2048Mi
-          worker:
-            mode: queue
-            count: 2
-            waitMainNodeReady:
-              enabled: false
-            extraEnvVars:
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
-              "EXECUTIONS_TIMEOUT": "300"
-              "EXECUTIONS_TIMEOUT_MAX": "600"
-              "DB_POSTGRESDB_POOL_SIZE": "5"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
-              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
-              "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
-              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
-              "N8N_LICENSE_RENEW_ON_INIT": "true"
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 50Gi
-            volumes:
-              - name: downloads-volume
-                hostPath:
-                  path: /home/aaron/Downloads
-                  type: DirectoryOrCreate
-            volumeMounts:
-              - name: downloads-volume
-                mountPath: /home/node/.n8n-files
-            resources:
-              requests:
-                cpu: 500m
-                memory: 1024Mi
-              limits:
-                cpu: 1000m
-                memory: 2048Mi
-          nodes:
-            builtin:
-              enabled: true
-              modules:
-                - crypto
-                - fs
-            external:
-              allowAll: true
-              packages:
-                - n8n-nodes-globals
-          npmRegistry:
-            enabled: true
-            url: http://mirrors.cloud.tencent.com/npm/
-          redis:
-            enabled: true
-            image:
-              registry: m.daocloud.io/docker.io
-              repository: bitnamilegacy/redis
-            master:
-              resourcesPreset: "small"
-              persistence:
-                enabled: true
-                accessMode: ReadWriteOnce
-                storageClass: "local-path"
-                size: 10Gi
-          ingress:
-            enabled: true
-            className: nginx
-            annotations:
-              kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: self-signed-ca-issuer
-              nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-              nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
-              nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
-            hosts:
-              - host: n8n.ay.dev
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-            - hosts:
-              - n8n.ay.dev
-              - webhook.n8n.ay.dev
-              secretName: n8n.ay.dev-tls
-          webhook:
-            mode: queue
-            url: "https://webhook.n8n.ay.dev"
-            autoscaling:
-              enabled: false
-            waitMainNodeReady:
-              enabled: true
-            resources:
-              requests:
-                cpu: 200m
-                memory: 256Mi
-              limits:
-                cpu: 512m
-                memory: 512Mi
-      chart: n8n
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: n8n
-    syncPolicy:
-      syncOptions:
-        - CreateNamespace=true
-        - ApplyOutOfSyncOnly=false
-  EOF
-  ```
-  {{% /notice %}}
-
-  <p> <b>3.sync by argocd</b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  argocd app sync argocd/n8n
-  ```
-  {{% /notice %}}
-
-  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
 
 {{< /tab >}}
+
 
 
 {{< /tabs >}}

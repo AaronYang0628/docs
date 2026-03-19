@@ -38,7 +38,7 @@ weight = 14
     project: default
     source:
       repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.22
+      targetRevision: 1.16.30
       helm:
         releaseName: n8n
         values: |
