@@ -17,18 +17,92 @@ weight = 14
   
 
   {{% notice style="transparent" %}}
+
   ```shell
   kubectl get namespaces opencode > /dev/null 2>&1 || kubectl create namespace opencode
 
   kubectl -n opencode create secret generic opencode-server-secret \
     --from-literal=OPENCODE_SERVER_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 
+  ```
+
+  <p> <b>1.1.choose</b> different LLM configuration </p>
+
+  {{< tabs groupid="tabs-example-language" >}}
+  {{% tab title="codex-with-astro-mcp" %}}
+  ```shell
   kubectl -n opencode apply -f - <<'EOF'
   apiVersion: v1
   kind: ConfigMap
   metadata:
     name: opencode-config
-    namespace: opencode
+  data:
+    opencode.json: |
+      {
+        "provider": {
+          "openai": {
+            "options": {
+              "baseURL": "https://v2.qixuw.com/v1",
+              "apiKey": "sk-ss"
+            },
+            "models": {
+              "gpt-5.3-codex-spark": {
+                "name": "GPT-5.3 Codex Spark",
+                "limit": {
+                  "context": 128000,
+                  "output": 32000
+                },
+                "options": {
+                  "store": false
+                },
+                "variants": {
+                  "low": {},
+                  "medium": {},
+                  "high": {},
+                  "xhigh": {}
+                }
+              }
+            }
+          }
+        },
+        "mcp": {
+          "euclid-catalog": {
+            "type": "remote",
+            "url": "https://catalog.euclid.mcp.ay.dev:32443/sse",
+            "enabled": true
+          },
+          "astro_k3s_mcp": {
+            "type": "remote",
+            "url": "http://eva24002-entrance.lab.zverse.space:30082/mcp",
+            "enabled": true,
+            "oauth": false,
+            "timeout": 15000
+          }
+        },
+        "agent": {
+          "build": {
+            "options": {
+              "store": false
+            }
+          },
+          "plan": {
+            "options": {
+              "store": false
+            }
+          }
+        },
+        "$schema": "https://opencode.ai/config.json"
+      }
+  EOF
+  ```
+  {{% /tab %}}
+  {{% tab title="local-minimax" %}}
+  ```shell
+  kubectl -n opencode apply -f - <<'EOF'
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: opencode-config
   data:
     opencode.json: |
       {
@@ -57,9 +131,29 @@ weight = 14
       }
   EOF
   ```
+  {{% /tab %}}
+  {{% tab title="free-minimax" %}}
+  ```shell
+  kubectl -n opencode apply -f - <<'EOF'
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: opencode-config
+  data:
+    opencode.json: |
+      {
+        "$schema": "https://opencode.ai/config.json",
+        "model": "opencode/minimax-m2.5-free",
+        "small_model": "opencode/minimax-m2.5-free"
+      }
+  EOF
+  ```
+  {{% /tab %}}
+  {{< /tabs >}}
+ 
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-opencode.yaml` </p>
+  <p> <b>2.prepare</b> `deploy-opencode.yaml` ； change default model when you apply different configmap</p> 
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -71,10 +165,9 @@ weight = 14
     namespace: argocd
   spec:
     project: default
-
     source:
       repoURL: oci://ghcr.io/aaronyang0628/opencode
-      targetRevision: 0.18.0
+      targetRevision: 0.20.0
       chart: opencode
       helm:
         values: |
@@ -116,6 +209,11 @@ weight = 14
             workspace:
               enabled: true
               size: 5Gi
+            playbook:
+              enabled: true
+              mountPath: /home/opencode/workspace/playbook
+              example:
+                enabled: true
           resources:
             requests:
               cpu: 500m
@@ -146,9 +244,9 @@ weight = 14
             annotations:
               kubernetes.io/ingress.class: nginx
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
-              nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
               nginx.ingress.kubernetes.io/proxy-body-size: "50m"
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
@@ -168,9 +266,12 @@ weight = 14
             enabled: true
             image:
               repository: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-bridge
-              tag: "v20260310"
+              tag: "v20260326r4"
             env:
-              defaultModel: "MiniMaxAI/MiniMax-M2.5"
+              defaultModel: "opencode/minimax-m2.5-free"
+              openaiStreamChunkSize: "4"
+              openaiStreamChunkDelayMs: "10"
+              enableLeadingEchoFilter: "false"
             resources:
               limits:
                 cpu: 500m
@@ -183,9 +284,11 @@ weight = 14
               annotations:
                 kubernetes.io/ingress.class: nginx
                 cert-manager.io/cluster-issuer: self-signed-ca-issuer
+                nginx.ingress.kubernetes.io/proxy-buffering: "off"
+                nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
                 nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
                 nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-                nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+                nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
                 nginx.ingress.kubernetes.io/proxy-body-size: "50m"
                 nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
                 nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
@@ -224,7 +327,7 @@ weight = 14
   ```bash
   curl -k -X POST https://opencode.ay.dev:32443/session \
   -H "Content-Type: application/json" \
-  -d '{"model": "MiniMaxAI/MiniMax-M2.5"}'
+  -d '{"model": "opencode/minimax-m2.5-free"}'
   
   ## {"id":"ses_30a879abeffe6KRC0Rmg4aPrmK","slug":"brave-eagle","version":"1.2.26","projectID":"global","directory":"/home/opencode/workspace","title":"New session - 2026-03-16T07:07:14.113Z","time":{"created":1773644834113,"updated":1773644834113}}
   ```
@@ -243,9 +346,6 @@ weight = 14
   ```
   {{% /notice %}}
 
-  <p> <b>6.use bridge to manage session</b></p>
-
-  <img src="../../../images/content/n8n/opencode-bridge.png" alt="bridge" width="900">
 
 {{< /tab >}}
 
@@ -263,18 +363,7 @@ weight = 14
   kubectl -n opencode create secret generic opencode-server-secret \
     --from-literal=OPENCODE_SERVER_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 
-  kubectl -n opencode apply -f - <<'EOF'
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: opencode-config
-    namespace: opencode
-  data:
-    opencode.json: |
-      {
-        
-      }
-  EOF
+  
   ```
   {{% /notice %}}
 
@@ -292,7 +381,7 @@ weight = 14
     project: default
     source:
       repoURL: oci://ghcr.io/aaronyang0628/opencode
-      targetRevision: 0.18.0
+      targetRevision: 0.20.0
       chart: opencode
       helm:
         values: |
@@ -334,6 +423,11 @@ weight = 14
             workspace:
               enabled: true
               size: 5Gi
+            playbook:
+              enabled: true
+              mountPath: /home/opencode/workspace/playbook
+              example:
+                enabled: true
           resources:
             requests:
               cpu: 500m
@@ -366,7 +460,7 @@ weight = 14
               cert-manager.io/cluster-issuer: letsencrypt
               nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
               nginx.ingress.kubernetes.io/proxy-body-size: "50m"
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
@@ -386,9 +480,12 @@ weight = 14
             enabled: true
             image:
               repository: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-bridge
-              tag: "v20260310"
+              tag: "v20260326r4"
             env:
-              defaultModel: "OpenAI/GPT-5.3 Codex Spark"
+              defaultModel: "openai/gpt-5.3-codex-spark"
+              openaiStreamChunkSize: "4"
+              openaiStreamChunkDelayMs: "10"
+              enableLeadingEchoFilter: "false"
             resources:
               limits:
                 cpu: 500m
@@ -401,9 +498,11 @@ weight = 14
               annotations:
                 kubernetes.io/ingress.class: nginx
                 cert-manager.io/cluster-issuer: letsencrypt
+                nginx.ingress.kubernetes.io/proxy-buffering: "off"
+                nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
                 nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
                 nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-                nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+                nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
                 nginx.ingress.kubernetes.io/proxy-body-size: "50m"
                 nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
                 nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
@@ -440,6 +539,16 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```bash
+  curl -s "https://opencode-bridge.72602.online/v1/models"
+  
+  ## {"id":"ses_30a879abeffe6KRC0Rmg4aPrmK","slug":"brave-eagle","version":"1.2.26","projectID":"global","directory":"/home/opencode/workspace","title":"New session - 2026-03-16T07:07:14.113Z","time":{"created":1773644834113,"updated":1773644834113}}
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.then you can talk with LLM with rest api</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
   curl -k -X POST https://opencode.72602.online/session \
   -H "Content-Type: application/json" \
   -d '{"model": "MiniMaxAI/MiniMax-M2.5"}'
@@ -461,10 +570,7 @@ weight = 14
   ```
   {{% /notice %}}
 
-  <p> <b>6.use bridge to manage session</b></p>
-
-  <img src="../../../images/content/n8n/opencode-bridge.png" alt="bridge" width="900">
-
+ 
 {{< /tab >}}
 
 
@@ -485,6 +591,11 @@ weight = 14
 
 
 {{< /tabs >}}
+
+
+<p> <b>6.use bridge to manage session</b></p>
+
+<img src="../../../images/content/n8n/opencode-bridge.png" alt="bridge" width="900">
 
 
 
