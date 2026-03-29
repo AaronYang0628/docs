@@ -250,11 +250,13 @@ weight = 14
   kind: Application
   metadata:
     name: n8n
+    namespace: argocd
   spec:
     project: default
     source:
       repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.22
+      targetRevision: 1.16.30
+      chart: n8n
       helm:
         releaseName: n8n
         values: |
@@ -262,10 +264,10 @@ weight = 14
             security:
               allowInsecureImages: true
           image:
-            repository: n8nio/n8n
+            repository: m.daocloud.io/docker.io/n8nio/n8n
           log:
             level: info
-          encryptionKey: "ay-dev-n8n"
+          encryptionKey: "72602-n8n"
           timezone: Asia/Shanghai
           db:
             type: postgresdb
@@ -278,34 +280,39 @@ weight = 14
           main:
             count: 1
             extraEnvVars:
-              "N8N_BLOCK_ENV_ACCESS_IN_NODE": "false"
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
-              "EXECUTIONS_TIMEOUT": "300"
-              "EXECUTIONS_TIMEOUT_MAX": "600"
-              "DB_POSTGRESDB_POOL_SIZE": "10"
-              "CACHE_ENABLED": "true"
-              "N8N_CONCURRENCY_PRODUCTION_LIMIT": "5"
-              "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-              "N8N_SECURE_COOKIE": "false"
-              "WEBHOOK_URL": "https://webhook.n8n.ay.dev"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
-              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
-              "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
-              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
-              "N8N_LICENSE_RENEW_ON_INIT": "true"
+              HTTP_PROXY: "http://47.110.67.161:30890"
+              HTTPS_PROXY: "http://47.110.67.161:30890"
+              NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
+              no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
+              NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
+              N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+              N8N_FILE_SYSTEM_ALLOWED_PATHS: "/data"
+              EXECUTIONS_TIMEOUT: "300"
+              EXECUTIONS_TIMEOUT_MAX: "600"
+              DB_POSTGRESDB_POOL_SIZE: "10"
+              CACHE_ENABLED: "true"
+              N8N_CONCURRENCY_PRODUCTION_LIMIT: "5"
+              NODE_TLS_REJECT_UNAUTHORIZED: "0"
+              N8N_SECURE_COOKIE: "false"
+              WEBHOOK_URL: "https://webhook.72602.online"
+              QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
+              N8N_COMMUNITY_PACKAGES_ENABLED: "true"
+              N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
+              N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
+              N8N_LICENSE_RENEW_ON_INIT: "true"
             persistence:
               enabled: true
               accessMode: ReadWriteOnce
               storageClass: "local-path"
-              size: 50Gi
+              size: 5Gi
             volumes:
               - name: downloads-volume
                 hostPath:
-                  path: /home/aaron/Downloads
+                  path: /mnt/e/N8N_DATA
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
-                mountPath: /home/node/.n8n-files
+                mountPath: /data
             resources:
               requests:
                 cpu: 1000m
@@ -319,15 +326,20 @@ weight = 14
             waitMainNodeReady:
               enabled: false
             extraEnvVars:
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
-              "EXECUTIONS_TIMEOUT": "300"
-              "EXECUTIONS_TIMEOUT_MAX": "600"
-              "DB_POSTGRESDB_POOL_SIZE": "5"
-              "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
-              "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
-              "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
-              "N8N_LICENSE_AUTO_RENEW_ENABLED": "true"
-              "N8N_LICENSE_RENEW_ON_INIT": "true"
+              HTTP_PROXY: "http://47.110.67.161:30890"
+              HTTPS_PROXY: "http://47.110.67.161:30890"
+              NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
+              no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
+              NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
+              N8N_FILE_SYSTEM_ALLOWED_PATHS: "/data"
+              EXECUTIONS_TIMEOUT: "300"
+              EXECUTIONS_TIMEOUT_MAX: "600"
+              DB_POSTGRESDB_POOL_SIZE: "5"
+              QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
+              N8N_COMMUNITY_PACKAGES_ENABLED: "true"
+              N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
+              N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
+              N8N_LICENSE_RENEW_ON_INIT: "true"
             persistence:
               enabled: true
               accessMode: ReadWriteOnce
@@ -336,11 +348,11 @@ weight = 14
             volumes:
               - name: downloads-volume
                 hostPath:
-                  path: /home/aaron/Downloads
+                  path: /mnt/e/N8N_DATA
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
-                mountPath: /home/node/.n8n-files
+                mountPath: /data
             resources:
               requests:
                 cpu: 500m
@@ -358,9 +370,10 @@ weight = 14
               allowAll: true
               packages:
                 - n8n-nodes-globals
+                - n8n-nodes-wechat-formatter
           npmRegistry:
             enabled: true
-            url: http://mirrors.cloud.tencent.com/npm/
+            url: https://registry.npmmirror.com
           redis:
             enabled: true
             image:
@@ -372,13 +385,13 @@ weight = 14
                 enabled: true
                 accessMode: ReadWriteOnce
                 storageClass: "local-path"
-                size: 10Gi
+                size: 50Gi
           ingress:
             enabled: true
             className: nginx
             annotations:
               kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              cert-manager.io/cluster-issuer: letsencrypt
               nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
@@ -386,18 +399,17 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
             hosts:
-              - host: n8n.ay.dev
+              - host: n8n.72602.online
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
-            - hosts:
-              - n8n.ay.dev
-              - webhook.n8n.ay.dev
-              secretName: n8n.ay.dev-tls
+              - hosts:
+                  - n8n.72602.online
+                secretName: n8n.72602.online-tls
           webhook:
             mode: queue
-            url: "https://webhook.n8n.ay.dev"
+            url: "https://webhook.72602.online"
             autoscaling:
               enabled: false
             waitMainNodeReady:
@@ -409,7 +421,6 @@ weight = 14
               limits:
                 cpu: 512m
                 memory: 512Mi
-      chart: n8n
     destination:
       server: https://kubernetes.default.svc
       namespace: n8n
