@@ -29,6 +29,59 @@ weight = 14
   <p> <b>1.1.choose</b> different LLM configuration </p>
 
   {{< tabs groupid="tabs-example-language" >}}
+  {{% tab title="gpt-codex" %}}
+  ```shell
+  kubectl -n opencode apply -f - <<'EOF'
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: opencode-config
+  data:
+    opencode.json: |
+      {
+        "provider": {
+          "openai": {
+            "options": {
+              "baseURL": "https://v2.qixuw.com/v1",
+              "apiKey": "sk-ss"
+            },
+            "models": {
+              "gpt-5.3-codex-spark": {
+                "name": "GPT-5.3 Codex Spark",
+                "limit": {
+                  "context": 128000,
+                  "output": 32000
+                },
+                "options": {
+                  "store": false
+                },
+                "variants": {
+                  "low": {},
+                  "medium": {},
+                  "high": {},
+                  "xhigh": {}
+                }
+              }
+            }
+          }
+        },
+        "agent": {
+          "build": {
+            "options": {
+              "store": false
+            }
+          },
+          "plan": {
+            "options": {
+              "store": false
+            }
+          }
+        },
+        "$schema": "https://opencode.ai/config.json"
+      }
+  EOF
+  ```
+  {{% /tab %}}
   {{% tab title="codex-with-astro-mcp" %}}
   ```shell
   kubectl -n opencode apply -f - <<'EOF'
@@ -145,6 +198,59 @@ weight = 14
         "$schema": "https://opencode.ai/config.json",
         "model": "opencode/minimax-m2.5-free",
         "small_model": "opencode/minimax-m2.5-free"
+      }
+  EOF
+  ```
+  {{% /tab %}}
+  {{% tab title="qiniuyun-minimax" %}}
+  ```shell
+  kubectl -n opencode apply -f - <<'EOF'
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: opencode-config
+  data:
+    opencode.json: |
+      {
+        "provider": {
+          "qiniu": {
+            "options": {
+              "baseURL": "https://api.qnaigc.com/v1",
+              "apiKey": "sk-sss"
+            },
+            "models": {
+              "minimax-m2.5": {
+                "name": "Minimax-M2.5",
+                "limit": {
+                  "context": 128000,
+                  "output": 32000
+                },
+                "options": {
+                  "store": false
+                },
+                "variants": {
+                  "low": {},
+                  "medium": {},
+                  "high": {},
+                  "xhigh": {}
+                }
+              }
+            }
+          }
+        },
+        "agent": {
+          "build": {
+            "options": {
+              "store": false
+            }
+          },
+          "plan": {
+            "options": {
+              "store": false
+            }
+          }
+        },
+        "$schema": "https://opencode.ai/config.json"
       }
   EOF
   ```

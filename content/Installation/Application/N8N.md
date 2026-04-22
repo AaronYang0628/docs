@@ -38,7 +38,7 @@ weight = 14
     project: default
     source:
       repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.30
+      targetRevision: 1.16.36
       helm:
         releaseName: n8n
         values: |
@@ -63,7 +63,7 @@ weight = 14
             count: 1
             extraEnvVars:
               "N8N_BLOCK_ENV_ACCESS_IN_NODE": "false"
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/data"
+              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
               "EXECUTIONS_TIMEOUT": "300"
               "EXECUTIONS_TIMEOUT_MAX": "600"
               "DB_POSTGRESDB_POOL_SIZE": "10"
@@ -89,7 +89,7 @@ weight = 14
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
-                mountPath: /data
+                mountPath: /home/node/.n8n-files
             resources:
               requests:
                 cpu: 1000m
@@ -103,7 +103,7 @@ weight = 14
             waitMainNodeReady:
               enabled: false
             extraEnvVars:
-              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/data"
+              "N8N_FILE_SYSTEM_ALLOWED_PATHS": "/home/node/.n8n-files"
               "EXECUTIONS_TIMEOUT": "300"
               "EXECUTIONS_TIMEOUT_MAX": "600"
               "DB_POSTGRESDB_POOL_SIZE": "5"
@@ -124,7 +124,7 @@ weight = 14
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
-                mountPath: /data
+                mountPath: /home/node/.n8n-files
             resources:
               requests:
                 cpu: 500m
@@ -169,8 +169,17 @@ weight = 14
               nginx.ingress.kubernetes.io/proxy-body-size: "50m"
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+              nginx.ingress.kubernetes.io/enable-cors: "true"
+              nginx.ingress.kubernetes.io/cors-allow-origin: "https://webhook.n8n.ay.dev:32443"
+              nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT, DELETE"
+              nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+              nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
             hosts:
               - host: n8n.ay.dev
+                paths:
+                  - path: /
+                    pathType: Prefix
+              - host: webhook.n8n.ay.dev
                 paths:
                   - path: /
                     pathType: Prefix
@@ -201,6 +210,7 @@ weight = 14
       syncOptions:
         - CreateNamespace=true
         - ApplyOutOfSyncOnly=false
+
   EOF
   ```
   {{% /notice %}}
@@ -255,7 +265,7 @@ weight = 14
     project: default
     source:
       repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.30
+      targetRevision: 1.16.36
       chart: n8n
       helm:
         releaseName: n8n
