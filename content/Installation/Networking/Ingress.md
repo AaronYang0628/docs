@@ -35,7 +35,7 @@ weight = 90
   {{% notice style="important" title="Using Mirror" %}} 
   ```shell
   helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts &&
-    helm install ay-helm-mirror/ingress-nginx --generate-name --version 4.11.3
+    helm install ay-helm-mirror/ingress-nginx --generate-name --version 4.15.1
   ```
   for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
   {{% /notice %}}
@@ -64,7 +64,7 @@ weight = 90
     source:
       repoURL: https://kubernetes.github.io/ingress-nginx
       chart: ingress-nginx
-      targetRevision: 4.12.3
+      targetRevision: 4.15.1
       helm:
         releaseName: ingress-nginx
         values: |

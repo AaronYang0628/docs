@@ -191,9 +191,9 @@ weight = 160
       - CreateNamespace=true
     project: default
     source:
-      repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+      repoURL: https://charts.bitnami.com/bitnami
       chart: postgresql
-      targetRevision: 18.1.8
+      targetRevision: 18.6.2
       helm:
         releaseName: postgresql
         values: |

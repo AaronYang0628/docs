@@ -28,14 +28,14 @@ weight = 30
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install cert-manager-repo/cert-manager --generate-name --version 1.17.2
+  helm install cert-manager-repo/cert-manager --generate-name --version 1.20.2
   ```
   {{% /notice %}}
 
   {{% notice style="important" title="Using Mirror" %}} 
   ```shell
   helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts \
-    && helm install ay-helm-mirror/cert-manager --generate-name --version 1.17.2
+    && helm install ay-helm-mirror/cert-manager --generate-name --version 1.20.2
   ```
   for more information, you can check 🔗[https://aaronyang0628.github.io/helm-chart-mirror/](https://aaronyang0628.github.io/helm-chart-mirror/)
   {{% /notice %}}
@@ -50,7 +50,8 @@ weight = 30
 
   <p> <b>1.prepare</b> `cert-manager.yaml` </p>
 
-  {{% notice style="transparent" %}}
+  {{< tabs >}}
+  {{% tab title="Github Mirror" %}}
   ```yaml
   kubectl -n argocd apply -f - << EOF
   apiVersion: argoproj.io/v1alpha1
@@ -65,38 +66,84 @@ weight = 30
     source:
       repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
       chart: cert-manager
-      targetRevision: 1.17.2
+      targetRevision: 1.20.2
       helm:
         releaseName: cert-manager
         values: |
           installCRDs: true
           image:
             repository: m.daocloud.io/quay.io/jetstack/cert-manager-controller
-            tag: v1.17.2
+            tag: v1.20.2
           webhook:
             image:
               repository: m.daocloud.io/quay.io/jetstack/cert-manager-webhook
-              tag: v1.17.2
+              tag: v1.20.2
           cainjector:
             image:
               repository: m.daocloud.io/quay.io/jetstack/cert-manager-cainjector
-              tag: v1.17.2
+              tag: v1.20.2
           acmesolver:
             image:
               repository: m.daocloud.io/quay.io/jetstack/cert-manager-acmesolver
-              tag: v1.17.2
+              tag: v1.20.2
           startupapicheck:
             image:
               repository: m.daocloud.io/quay.io/jetstack/cert-manager-startupapicheck
-              tag: v1.17.2
+              tag: v1.20.2
     destination:
       server: https://kubernetes.default.svc
       namespace: basic-components
   EOF
   ```
-  {{% /notice %}}
+  {{% /tab %}}
+  {{% tab title="Official Chart" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: cert-manager
+  spec:
+    syncPolicy:
+      syncOptions:
+      - CreateNamespace=true
+    project: default
+    source:
+      repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: 1.20.2
+      helm:
+        releaseName: cert-manager
+        values: |
+          installCRDs: true
+          image:
+            repository: m.daocloud.io/quay.io/jetstack/cert-manager-controller
+            tag: v1.20.2
+          webhook:
+            image:
+              repository: m.daocloud.io/quay.io/jetstack/cert-manager-webhook
+              tag: v1.20.2
+          cainjector:
+            image:
+              repository: m.daocloud.io/quay.io/jetstack/cert-manager-cainjector
+              tag: v1.20.2
+          acmesolver:
+            image:
+              repository: m.daocloud.io/quay.io/jetstack/cert-manager-acmesolver
+              tag: v1.20.2
+          startupapicheck:
+            image:
+              repository: m.daocloud.io/quay.io/jetstack/cert-manager-startupapicheck
+              tag: v1.20.2        
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: basic-components
+  EOF
+  ```
+  {{% /tab %}}
+  {{< /tabs >}}
 
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>2.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -136,7 +183,7 @@ weight = 30
   <p> <b>1.just run</b></p>
   {{% notice style="transparent" %}}
   ```bash
-  kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+  kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.20.2/cert-manager.yaml
   ```
   {{% /notice %}}
 
@@ -196,7 +243,7 @@ kubectl -n kube-system apply -f - << EOF
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt
+  name: lets-encrypt
 spec:
   acme:
     email: aaron19940628@gmail.com
