@@ -26,7 +26,7 @@ weight = 10
       install: true
       keep: false
     global:
-      domain: argo-cd.ay.dev
+      domain: argocd.dev.72602.online
       revisionHistoryLimit: 3
       image:
         repository: m.daocloud.io/quay.io/argoproj/argocd
@@ -66,7 +66,7 @@ weight = 10
           nginx.ingress.kubernetes.io/ssl-passthrough: "true"
           cert-manager.io/cluster-issuer: self-signed-ca-issuer
           nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-        hostname: argo-cd.ay.dev
+        hostname: argocd.dev.72602.online
         path: /
         pathType: Prefix
         tls: true
@@ -78,7 +78,7 @@ weight = 10
       install: true
       keep: false
     global:
-      domain: argo-cd.ay.dev
+      domain: argocd.72602.online
       revisionHistoryLimit: 3
       image:
         repository: m.daocloud.io/quay.io/argoproj/argocd
@@ -116,9 +116,9 @@ weight = 10
         ingressClassName: nginx
         annotations:
           nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-          cert-manager.io/cluster-issuer: self-signed-ca-issuer
+          cert-manager.io/cluster-issuer: lets-encrypt
           nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-        hostname: argo-cd.ay.dev
+        hostname: argocd.72602.online
         path: /
         pathType: Prefix
         tls: true
@@ -174,7 +174,7 @@ weight = 10
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.3.5 \
+      --version 9.5.4 \
       --repo https://argoproj.github.io/argo-helm \
       --values argocd.72602.values.yaml \
       --atomic
@@ -319,7 +319,7 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
   spec:
     ingressClassName: nginx
     rules:
-    - host: argo-cd.ay.dev
+    - host: argocd.dev.72602.online
       http:
         paths:
         - backend:
@@ -331,8 +331,8 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
           pathType: Prefix
     tls:
     - hosts:
-      - argo-cd.ay.dev
-      secretName: argo-cd.ay.dev-tls
+      - argocd.dev.72602.online
+      secretName: argocd.dev.72602.online-tls
   EOF
   ```
       {{% /tab%}}
@@ -352,7 +352,7 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
   spec:
     ingressClassName: nginx
     rules:
-    - host: argo-cd.72602.online
+    - host: argocd.72602.online
       http:
         paths:
         - backend:
@@ -364,8 +364,8 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
           pathType: Prefix
     tls:
     - hosts:
-      - argo-cd.72602.online
-      secretName: argo-cd.72602.online-tls
+      - argocd.72602.online
+      secretName: argocd.72602.online-tls
   EOF
   ```
       {{% /tab%}}
@@ -388,7 +388,7 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
   spec:
     ingressClassName: nginx
     rules:
-    - host: argo-cd.ay.dev
+    - host: argocd.dev.72602.online
       http:
         paths:
         - backend:
@@ -400,8 +400,8 @@ And also, you need to install ingress-nginx or traefik components, if not, pleas
           pathType: Prefix
     tls:
     - hosts:
-      - argo-cd.ay.dev
-      secretName: argo-cd.ay.dev-tls
+      - argocd.dev.72602.online
+      secretName: argocd.dev.72602.online-tls
   ```
       {{% /tab%}}
     {{< /tabs >}}
@@ -444,7 +444,7 @@ kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}
 ```
 import `cert-manager-self-signed-ca-secret.crt` into your browser
 ```text
-open https://argo-cd.ay.dev
+open https://argocd.dev.72602.online
 ```
 {{% /tab  %}}
 {{< /tabs >}}
