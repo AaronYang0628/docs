@@ -5,8 +5,8 @@ weight = 11
 +++
 
 ### Preliminary
-- Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
-- Argo CD has installed, if not check 🔗[link](Installation/cicd/argocd.html)
+- Kubernetes is installed; if not, check 🔗[link](kubernetes/cluster/index.html)
+- Argo CD is installed; if not, check 🔗[link](Installation/cicd/argocd.html)
 - cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗[link](Installation/application/cert_manager.html)
 
 ### 0. create workflow related namespace
@@ -158,7 +158,7 @@ EOF
 {{% include file="Content\Installation\Binary\argo.md" %}}
 
 
-### 3. [[Optional]]() apply to k8s
+### 3. [Optional] apply to k8s
 ```shell
 kubectl -n argocd apply -f argo-workflows.yaml
 ```

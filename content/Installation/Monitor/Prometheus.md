@@ -12,8 +12,8 @@ weight = 160
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
 
   <p> <b>1.get helm repo </b></p>
@@ -45,10 +45,10 @@ weight = 160
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
-  4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary is installed; if not, check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  4. Ingress is installed on ArgoCD; if not, check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `chart-museum-credentials` </p>
 
@@ -120,13 +120,13 @@ weight = 160
                   cert-manager.io/clusterissuer: self-signed-issuer
                   kubernetes.io/ingress.class: nginx
                 hosts:
-                  - grafana.dev.tech
+                  - grafana.dev.72602.online
                 path: /
                 pathtype: ImplementationSpecific
                 tls:
-                - secretName: grafana.dev.tech-tls
+                - secretName: grafana.dev.72602.online-tls
                   hosts:
-                  - grafana.dev.tech
+                  - grafana.dev.72602.online
             prometheusOperator:
               admissionWebhooks:
                 patch:
@@ -155,13 +155,13 @@ weight = 160
                   cert-manager.io/clusterissuer: self-signed-issuer
                   kubernetes.io/ingress.class: nginx
                 hosts:
-                  - prometheus.dev.tech
+                  - prometheus.dev.72602.online
                 path: /
                 pathtype: ImplementationSpecific
                 tls:
-                - secretName: prometheus.dev.tech-tls
+                - secretName: prometheus.dev.72602.online-tls
                   hosts:
-                  - prometheus.dev.tech
+                  - prometheus.dev.72602.online
               prometheusSpec:
                 image:
                   registry: m.daocloud.io/quay.io
@@ -219,13 +219,13 @@ weight = 160
 
   {{% notice style="transparent" %}}
   ```bash
-    > add `$K8S_MASTER_IP grafana.dev.tech` to **/etc/hosts**
+    > add `$K8S_MASTER_IP grafana.dev.72602.online` to **/etc/hosts**
 
-    > add `$K8S_MASTER_IP prometheus.dev.tech` to **/etc/hosts**
+    > add `$K8S_MASTER_IP prometheus.dev.72602.online` to **/etc/hosts**
   ```
   {{% /notice %}}
-  prometheus-srver: <a href="https://prometheus.dev.tech:32443/" target="_blank">https://prometheus.dev.tech:32443/</a> </p></br>
-  grafana-console: <a href="https://grafana.dev.tech:32443/" target="_blank">https://grafana.dev.tech:32443/</a> </p></br>
+  prometheus-server: <a href="https://prometheus.dev.72602.online:32443/" target="_blank">https://prometheus.dev.72602.online:32443/</a> </p></br>
+  grafana-console: <a href="https://grafana.dev.72602.online:32443/" target="_blank">https://grafana.dev.72602.online:32443/</a> </p></br>
 
 
 {{< /tab >}}

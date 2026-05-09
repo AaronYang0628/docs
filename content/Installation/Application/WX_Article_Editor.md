@@ -4,163 +4,234 @@ date = 2024-03-07T15:00:59+08:00
 weight = 14
 +++
 
+Official Documentation: [https://github.com/doocs/md](https://github.com/doocs/md)
+
 ### 🚀Installation
 
-{{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
+{{< tabs groupid="wx-editor" style="primary" title="Install By" icon="thumbtack" >}}
 
-{{< tab title="📦Helm" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_helm_preliminary.md" %}}
+{{< tab title="🐙ArgoCD (ZJ)" style="transparent" >}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
-  <p> <b>1.get helm repo </b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  helm repo add xxxxx https://xxxx
-  helm repo update
-  ```
-  {{% /notice %}}
-
-  <p> <b>2.install chart </b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  helm install xxxxx/chart-name --generate-name --version a.b.c
-  ```
-  {{% /notice %}}
-
-  {{% notice style="important" title="Using AY Helm Mirror" %}} 
-  {{% include "content\Installation\CICD\_helm_chart_mirror.md" %}}
-  {{% /notice %}}
-
-{{< /tab >}}
-
-{{< tab title="🐙ArgoCD" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
-
-  <p> <b>1.prepare</b> `xxxxx-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `deploy-wx-article-editor.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
-
-  ```
-  {{% /notice %}}
-
-  <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n argocd apply -f -<< EOF
+  kubectl -n argocd apply -f - <<'EOF'
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
-    name: xxxx
+    name: wx-article-editor
+    namespace: argocd
   spec:
     project: default
     source:
-      repoURL: https://xxxxx
-      chart: xxxx
-      targetRevision: a.b.c
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      chart: app-template
+      targetRevision: 4.4.0
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                app:
+                  image:
+                    repository: m.daocloud.io/docker.io/doocs/md
+                    tag: latest
+                    pullPolicy: IfNotPresent
+                  probes:
+                    liveness:
+                      enabled: true
+                    readiness:
+                      enabled: true
+                    startup:
+                      enabled: true
+
+          service:
+            app:
+              controller: main
+              ports:
+                http:
+                  port: 80
+
+          ingress:
+            app:
+              enabled: true
+              className: nginx
+              annotations:
+                kubernetes.io/ingress.class: nginx
+                cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              hosts:
+                - host: md.dev.72602.online
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: app
+                        port: http
+              tls:
+                - secretName: md.dev.72602.online-tls
+                  hosts:
+                    - md.dev.72602.online
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: application
+    syncPolicy:
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
   EOF
   ```
   {{% /notice %}}
 
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>2.sync by argocd</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/wx-article-editor
   ```
-  {{% /notice %}}
-
-  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
   {{% /notice %}}
 
 {{< /tab >}}
 
+{{< tab title="🐙ArgoCD (72602)" style="transparent" >}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
+
+  <p> <b>1.prepare</b> `deploy-wx-article-editor.yaml` </p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - <<'EOF'
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: wx-article-editor
+    namespace: argocd
+  spec:
+    project: default
+    source:
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      chart: app-template
+      targetRevision: 4.4.0
+      helm:
+        values: |
+          controllers:
+            main:
+              containers:
+                app:
+                  image:
+                    repository: m.daocloud.io/docker.io/doocs/md
+                    tag: latest
+                    pullPolicy: IfNotPresent
+                  probes:
+                    liveness:
+                      enabled: true
+                    readiness:
+                      enabled: true
+                    startup:
+                      enabled: true
+
+          service:
+            app:
+              controller: main
+              ports:
+                http:
+                  port: 80
+
+          ingress:
+            app:
+              enabled: true
+              className: nginx
+              annotations:
+                kubernetes.io/ingress.class: nginx
+                cert-manager.io/cluster-issuer: letsencrypt
+              hosts:
+                - host: md.72602.online
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: app
+                        port: http
+              tls:
+                - secretName: md.72602.online-tls
+                  hosts:
+                    - md.72602.online
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: application
+    syncPolicy:
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+  EOF
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.sync by argocd</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app sync argocd/wx-article-editor
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
 
 {{< tab title="🐳Docker" style="transparent" >}}
   {{% include "content\Installation\SNIPPET\_container_preliminary.md" %}}
 
-  <p> <b>1.init server </b></p> 
+  <p> <b>1.run container</b></p>
 
   {{% notice style="transparent" %}}
   ```bash
-
+  docker run -d --name wx-article-editor -p 8080:80 doocs/md:latest
   ```
   {{% /notice %}}
-  
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
 
-{{< /tab >}}
-
-{{< tab title="📑manifests" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_manifests_preliminary.md" %}}
-
-  <p> <b>1.init server </b></p> 
+  <p> <b>2.access in browser</b></p>
 
   {{% notice style="transparent" %}}
-  ```bash
-
+  ```text
+  open http://localhost:8080
   ```
-  {{% /notice %}}
-  
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
   {{% /notice %}}
 
 {{< /tab >}}
-
 
 {{< /tabs >}}
 
+### Verify
 
+{{% notice style="transparent" %}}
+```bash
+kubectl -n application get pods
+kubectl -n application get ingress
+```
+{{% /notice %}}
+
+If deployed in ZJ environment, open `https://md.dev.72602.online`.
+
+If deployed in 72602 environment, open `https://md.72602.online`.
 
 ### 🛎️FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: Page is blank after opening domain" %}}
+Check Pod and Ingress first:
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+```bash
+kubectl -n application get pods
+kubectl -n application logs deploy/wx-article-editor --tail=100
+kubectl -n application describe ingress
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+Then verify the domain resolves to your ingress entry node.
 {{% /expand %}}
 
+{{% expand title="Q2: Browser does not trust HTTPS certificate" %}}
+If you use self-signed issuer in ZJ, export CA cert and import into browser:
 
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
-
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+```bash
+kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}' | base64 -d > cert-manager-self-signed-ca-secret.crt
 ```
-
-> the possibilities are endless (almost - including other shortcodes may or may not work)
 {{% /expand %}}

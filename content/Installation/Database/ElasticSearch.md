@@ -10,8 +10,8 @@ weight = 50
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -38,9 +38,9 @@ weight = 50
 
 {{< tab title="ArgoCD" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
-  3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  3. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `deploy-elasticsearch.yaml` </p>
 
@@ -78,7 +78,7 @@ weight = 50
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-            hostname: elastic-search.dev.tech
+            hostname: elastic-search.dev.72602.online
             ingressClassName: nginx
             path: /?(.*)
             tls: true
@@ -156,12 +156,12 @@ weight = 50
 
   {{% notice style="transparent" %}}
   ```text
-  add `$K8S_MASTER_IP elastic-search.dev.tech` to `/etc/hosts`
+  add `$K8S_MASTER_IP elastic-search.dev.72602.online` to `/etc/hosts`
   ```
 
   ```shell
   curl -k -H "Content-Type: application/json" \
-      -X POST "https://elastic-search.dev.tech:32443/books/_doc?pretty" \
+      -X POST "https://elastic-search.dev.72602.online:32443/books/_doc?pretty" \
       -d '{"name": "Snow Crash", "author": "Neal Stephenson", "release_date": "1992-06-01", "page_count": 470}'
   ```
   {{% /notice %}}
@@ -172,7 +172,7 @@ weight = 50
 
 {{< tab title="Docker" style="transparent" >}}
  <p> <b>Preliminary </b></p>
-  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
+  1. Docker|Podman|Buildah is installed; if not, check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
   
 
   {{% notice style="important" title="Using Mirror" %}} 
@@ -193,10 +193,10 @@ weight = 50
 
 {{< tab title="Argo Workflow" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
-  3. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  4. Argo Workflow has installed, if not check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
+  3. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  4. Argo Workflow is installed; if not, check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
 
 
   <p> <b>1.prepare `argocd-login-credentials` </b></p>
@@ -275,7 +275,7 @@ weight = 50
   {{% /notice %}}
 
 
-  <p> <b>6.subimit to argo workflow client</b></p> 
+  <p> <b>6.submit to argo workflow client</b></p> 
 
   {{% notice style="transparent" %}}
   ```bash

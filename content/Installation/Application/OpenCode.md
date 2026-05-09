@@ -259,7 +259,7 @@ weight = 14
  
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-opencode.yaml` ； change default model when you apply different configmap</p> 
+  <p> <b>2.prepare</b> `deploy-opencode.yaml`; change the default model when you apply a different ConfigMap</p> 
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -707,35 +707,41 @@ weight = 14
 
 ### 🛎️FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: OpenCode Pod runs but API returns 401/403" %}}
+**Symptom**
+- `curl` to `/session` or bridge endpoint returns unauthorized.
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+**Check**
+```bash
+kubectl -n opencode get secret opencode-server-secret -o yaml
+kubectl -n opencode get configmap opencode-config -o yaml
+kubectl -n opencode logs deploy/opencode --tail=100
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+**Fix**
+- Confirm `OPENCODE_SERVER_PASSWORD` secret exists and is mounted correctly.
+- Confirm client request carries expected auth configuration.
+- Re-apply ConfigMap/Application and sync again.
+
+**Expected**
+- Session creation and message requests return successful JSON responses.
 {{% /expand %}}
 
+{{% expand title="Q2: Model list is empty or model invocation fails" %}}
+**Symptom**
+- `/v1/models` returns empty list, or chat request returns provider/model error.
 
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
-
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+**Check**
+```bash
+kubectl -n opencode get configmap opencode-config -o jsonpath='{.data.opencode\.json}'
+kubectl -n opencode logs deploy/opencode --tail=200
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+**Fix**
+- Verify provider `baseURL`, `apiKey`, and model ID in `opencode.json`.
+- Ensure selected default model exists in configured provider models.
+- Re-apply config and restart workload if needed.
+
+**Expected**
+- `/v1/models` shows expected model entries and session message calls succeed.
 {{% /expand %}}

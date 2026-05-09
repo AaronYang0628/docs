@@ -23,7 +23,7 @@ Gatekeeper 是基于 [Open Policy Agent（OPA）](https://www.openpolicyagent.or
     * **生成审计报告**：在完成资源扫描后，gatekeeper-audit 会生成详细的**审计报告**，其中会明确指出哪些资源违反了哪些约束规则，方便管理员及时了解集群的合规状态。
 - **gatekeeper-controller-manager**
     * **实时准入控制**：作为准入控制器，gatekeeper-controller-manager 在资源创建、更新或删除操作发起时，会实时拦截这些请求。它会依据预定义的约束模板和约束规则，对请求中的资源进行即时评估。**（实时性，事件驱动）**
-    * **处理决策请求**：根据评估结果，如果请求中的资源符合所有约束规则，gatekeeper-controller-manager 会允许该请求继续执行；若违反了任何规则，它会拒绝该请求，避免违规资源进入集群。
+    * **处理决策请求**：根据评估结果，如果请求中的资源符合所有约束规则，gatekeeper-controller-manager 会允许该请求继续执行;若违反了任何规则，它会拒绝该请求，避免违规资源进入集群。
 {{% /expand %}}
 
 ### Features

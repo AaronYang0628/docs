@@ -184,7 +184,7 @@ weight = 14
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `n8n-middleware-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `n8n-middleware-credentials.yaml` </p>
   
 
   {{% notice style="transparent" %}}

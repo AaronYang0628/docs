@@ -12,16 +12,16 @@ weight = 140
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
 
 {{< /tab >}}
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   3. ingres has installed on argoCD, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare `nfs-provisioner.yaml` </b></p> 
@@ -93,7 +93,7 @@ weight = 140
 
 {{< tab title="Docker" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Docker has installed, if not check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Docker is installed; if not, check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
 
 {{% notice style="important" title="Using Proxy" %}} 
   you can run an addinational **daocloud** image to accelerate your pulling, check [Daocloud Proxy](daocloud/index.html)
@@ -238,7 +238,7 @@ weight = 140
 
 ### Notes
 
-##### [[Optional]]() create new partition
+##### [Optional] create new partition
 {{< tabs title="disk size:" >}}
 {{% tab title="< 2TB" %}}
 ```shell
@@ -265,21 +265,24 @@ parted
 {{% /tab %}}
 {{< /tabs >}}
 
-##### [[Optional]]()Format disk
+##### [Optional] Format disk
 ```shell
 mkfs.xfs /dev/vdb1 -f
 ```
 
-##### [[Optional]]() mount disk to folder
+##### [Optional] mount disk to folder
 ```shell
 mount /dev/vdb1 /data
 ```
 
-##### [[Optional]]() mount when restart
+##### [Optional] mount when restart
 ```shell
 #vim `/etc/fstab` 
 /dev/vdb1     /data  xfs   defaults   0 0
 ```
+
+After updating `/etc/fstab`, run `mount -a` to validate configuration before rebooting.
+
 ![fstab](../assets/fstab.png)
 
 

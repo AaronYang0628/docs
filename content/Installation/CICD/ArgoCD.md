@@ -5,16 +5,20 @@ weight = 10
 +++
 
 ### Preliminary
-- Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
-- Helm binary has installed, if not check 🔗[link](Installation/binary/helm/index.html)
+- Kubernetes is installed; if not, check 🔗[link](kubernetes/cluster/index.html)
+- Helm binary is installed; if not, check 🔗[link](Installation/binary/helm/index.html)
 
 
 
 ### 1. install argoCD binary
 
+Install the `argocd` CLI first so you can authenticate, sync applications, and verify deployment status from your terminal.
+
 {{% include file="/Installation/Binary/argocd.md" %}}
 
 ### 2. install components
+
+Choose one installation path below. Helm is recommended when you want versioned upgrades and repeatable configuration.
 
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
 {{< tab title="Helm" >}}
@@ -185,7 +189,7 @@ weight = 10
 {{< /tab >}}
 
 {{< tab title="File/URL" style="default" color="darkorchid" >}}
-  by default you can install argocd by this <a href="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml">link</a>
+  By default, you can install ArgoCD from this <a href="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml">link</a>.
   {{< tabs groupid="tabs-example-language" >}}
   {{% tab title="shell" %}}
   ```shell
@@ -195,7 +199,7 @@ weight = 10
   {{% /tab %}}
   {{< /tabs >}}
   </br>
-  Or, you can use your won flle link.
+  Or, you can use your own manifest file URL.
 {{< /tab >}}
 {{< /tabs >}}
 
@@ -295,16 +299,16 @@ weight = 10
 
 
 
-### 6. [[Optional]]() prepare `argocd-server-ingress.yaml`
+### 6. [Optional] prepare `argocd-server-ingress.yaml`
 
 
 
-And also, you need to install ingress-nginx or traefik components, if not, please check 🔗[link](Installation/networking/ingress.html)
+You also need an ingress controller (for example ingress-nginx or traefik). If not installed, check 🔗[link](Installation/networking/ingress.html).
 {{< tabs groupid="argocd" style="primary" title="Install By" icon="thumbtack" >}}
   {{< tab title="Helm" >}}
     {{< tabs groupid="tabs-example-language" >}}
       {{% tab title="argocd.zj.values.yaml" %}}
-  Before you create ingress, you need to create cert-manager and cert-issuer `self-signed-ca-issuer`, if not, please check 🔗[link](Installation/networking/cert_manager.html)
+  Before creating the ingress, install cert-manager and create the `self-signed-ca-issuer` issuer. If not ready, check 🔗[link](Installation/networking/cert_manager.html).
 
   ```yaml
   kubectl -n argocd apply -f - <<EOF
@@ -448,3 +452,15 @@ open https://argocd.dev.72602.online
 ```
 {{% /tab  %}}
 {{< /tabs >}}
+
+### FAQ
+
+{{% expand title="Q1: The browser doesn’t trust this self-signed certificate" %}}
+Basically, you need to import the certificate into your browser.
+
+```bash
+kubectl -n basic-components get secret root-secret -o jsonpath='{.data.tls\.crt}' | base64 -d > cert-manager-self-signed-ca-secret.crt
+```
+
+And then import it into your browser.
+{{% /expand %}}

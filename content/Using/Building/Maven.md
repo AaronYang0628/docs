@@ -5,7 +5,7 @@ weight = 3
 +++
 
 ### 1. build from submodule
-You dont need to build from the head of project.
+You don't need to build from the head of project.
 ```shell
 ./mvnw clean package -DskipTests  -rf :<$submodule-name>
 ```

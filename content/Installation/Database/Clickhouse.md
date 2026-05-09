@@ -12,15 +12,15 @@ weight = 30
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
 {{< /tab >}}
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
   3. cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
 
@@ -86,7 +86,7 @@ weight = 30
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-            hostname: clickhouse.dev.geekcity.tech
+            hostname: clickhouse.dev.72602.online
             ingressClassName: nginx
             path: /?(.*)
             tls: true
@@ -231,11 +231,11 @@ weight = 30
 
   {{% notice style="transparent" %}}
   ```text
-  add `$K8S_MASTER_IP clickhouse.dev.geekcity.tech` to **/etc/hosts**
+  add `$K8S_MASTER_IP clickhouse.dev.72602.online` to **/etc/hosts**
   ```
   ```shell
   CK_PASS=$(kubectl -n database get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d)
-  echo 'SELECT version()' | curl -k "https://admin:${CK_PASS}@clickhouse.dev.geekcity.tech:32443/" --data-binary @-
+  echo 'SELECT version()' | curl -k "https://admin:${CK_PASS}@clickhouse.dev.72602.online:32443/" --data-binary @-
   ```
   {{% /notice %}}
 
@@ -244,7 +244,7 @@ weight = 30
 
 {{< tab title="Docker Compose" style="default" >}}
   <p> <b>Preliminary </b></p>
-  1. Docker has installed, if not check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Docker is installed; if not, check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
    
 
   {{% notice style="important" title="Using Proxy" %}} 
@@ -301,9 +301,9 @@ weight = 30
 
 {{< tab title="Argo Workflow" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  3. Argo Workflow has installed, if not check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  3. Argo Workflow is installed; if not, check 🔗<a href="/docs/argo/argo-workflow/install_argoworkflow/index.html" target="_blank">link</a> </p></br>
 
 
   <p> <b>1.prepare `argocd-login-credentials` </b></p>
@@ -483,7 +483,7 @@ weight = 30
                       cert-manager.io/cluster-issuer: self-signed-ca-issuer
                       nginx.ingress.kubernetes.io/rewrite-target: /$1
                     path: /?(.*)
-                    hostname: clickhouse.dev.geekcity.tech
+                    hostname: clickhouse.dev.72602.online
                     tls: true
                   shards: 2
                   replicaCount: 3
@@ -602,7 +602,7 @@ weight = 30
   ```
   {{% /notice %}}
 
-  <p> <b>6.subimit to argo workflow client </b></p> 
+  <p> <b>6.submit to argo workflow client </b></p> 
 
   {{% notice style="transparent" %}}
   ```bash
@@ -622,10 +622,10 @@ weight = 30
 
   {{% notice style="transparent" %}}
   ```text
-  add `$K8S_MASTER_IP clickhouse.dev.geekcity.tech` to **/etc/hosts**
+  add `$K8S_MASTER_IP clickhouse.dev.72602.online` to **/etc/hosts**
   ```
   ```shell
-  CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) && echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.geekcity.tech/" --data-binary @-
+  CK_PASSWORD=$(kubectl -n application get secret clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d) && echo 'SELECT version()' | curl -k "https://admin:${CK_PASSWORD}@clickhouse.dev.72602.online/" --data-binary @-
   ```
   {{% /notice %}}
 

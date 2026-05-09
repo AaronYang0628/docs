@@ -8,7 +8,7 @@ weight = 111
 <img src="../../../images/content/kubernetes/kind.png" alt="kind-logo" width="300">
 
 > [!WARNING]
-> Although this is a easiest way to build a cluster, but I wont recommend you to choose this. SInce there are many unsolved issue in here, check [https://kind.sigs.k8s.io/docs/user/known-issues/](https://kind.sigs.k8s.io/docs/user/known-issues/)
+> Although this is a easiest way to build a cluster, but I won't recommend you to choose this. SInce there are many unsolved issue in here, check [https://kind.sigs.k8s.io/docs/user/known-issues/](https://kind.sigs.k8s.io/docs/user/known-issues/)
 
 
 ### Preliminary

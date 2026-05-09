@@ -37,7 +37,7 @@ The CNI library needs to be configured so that it will know which plugins to cal
 ### Installation
 
 > [!CAUTION]
-> If you already have something wrong with `apt update`, please check the following 🔗[link](), adding docker source wont help you to solve that problem.
+> If you already have something wrong with `apt update`, please check the following 🔗[link](), adding docker source won't help solve that problem.
 
 {{< tabs >}}
 {{% tab title="fedora" %}}
