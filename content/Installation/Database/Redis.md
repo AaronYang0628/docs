@@ -17,7 +17,7 @@ weight = 180
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add bitnami https://charts.bitnami.com/bitnami
   helm repo update
   ```
   {{% /notice %}}
@@ -26,12 +26,18 @@ weight = 180
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+
+  helm upgrade --install redis bitnami/redis \
+    --namespace database \
+    --version 18.16.0 \
+    --set architecture=replication \
+    --set auth.enabled=true
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  {{% notice style="important" title="Chart Reference" %}} 
+  for more information, you can check 🔗[https://artifacthub.io/packages/helm/bitnami/redis](https://artifacthub.io/packages/helm/bitnami/redis)
   {{% /notice %}}
 
 {{< /tab >}}

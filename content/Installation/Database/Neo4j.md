@@ -18,7 +18,7 @@ weight = 140
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add neo4j https://helm.neo4j.com/neo4j
   helm repo update
   ```
   {{% /notice %}}
@@ -27,12 +27,17 @@ weight = 140
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+
+  helm upgrade --install neo4j neo4j/neo4j \
+    --namespace database \
+    --set neo4j.password=changeMe123 \
+    --set volumes.data.mode=defaultStorageClass
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  {{% notice style="important" title="Chart Reference" %}} 
+  for more information, you can check 🔗[https://artifacthub.io/packages/helm/neo4j/neo4j](https://artifacthub.io/packages/helm/neo4j/neo4j)
   {{% /notice %}}
 
 {{< /tab >}}
@@ -273,5 +278,4 @@ You can add standard markdown syntax:
 
 > the possibilities are endless (almost - including other shortcodes may or may not work)
 {{% /expand %}}
-
 

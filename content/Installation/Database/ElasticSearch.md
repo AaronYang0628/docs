@@ -17,7 +17,7 @@ weight = 50
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add ay-helm-mirror https://aaronyang0628.github.io/helm-chart-mirror/charts
+  helm repo add bitnami https://charts.bitnami.com/bitnami
   helm repo update
   ```
   {{% /notice %}}
@@ -26,12 +26,34 @@ weight = 50
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  kubectl get namespaces application > /dev/null 2>&1 || kubectl create namespace application
+
+  helm upgrade --install elastic-search bitnami/elasticsearch \
+    --namespace application \
+    --version 19.11.3 \
+    --set global.kibanaEnabled=true \
+    --set security.enabled=false \
+    --set master.masterOnly=false \
+    --set master.replicaCount=1 \
+    --set master.persistence.enabled=false \
+    --set data.replicaCount=0 \
+    --set data.persistence.enabled=false \
+    --set coordinating.replicaCount=0 \
+    --set ingest.replicaCount=0
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
+  <p> <b>3.verify deployment</b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application get pods
+  kubectl -n application get svc
+  ```
+  {{% /notice %}}
+
+  {{% notice style="important" title="Chart Reference" %}} 
+  for more information, you can check 🔗[https://artifacthub.io/packages/helm/bitnami/elasticsearch](https://artifacthub.io/packages/helm/bitnami/elasticsearch)
   {{% /notice %}}
 
 {{< /tab >}}
@@ -147,8 +169,8 @@ weight = 50
   <p> <b>4.extract elasticsearch admin credentials </b></p>
 
   {{% notice style="transparent" %}}
-  ```bash
-  a
+  ```shell
+  kubectl -n application get secret elastic-search-elasticsearch -o jsonpath='{.data.elastic-password}' | base64 -d
   ```
   {{% /notice %}}
 
