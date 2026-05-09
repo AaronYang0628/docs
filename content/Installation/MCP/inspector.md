@@ -38,7 +38,7 @@ weight = 160
 {{< tab title="🐙ArgoCD" style="transparent" >}}
   {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
 
-  <p> <b>1.prepare</b> `xxxxx-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `xxxxx-credentials.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```yaml
@@ -134,7 +134,7 @@ weight = 160
   {{% /notice %}}
 
 
-  <p> <b>5.subimit to argo workflow client</b></p> 
+  <p> <b>5.submit to argo workflow client</b></p> 
 
   {{% notice style="transparent" %}}
   ```bash

@@ -13,7 +13,7 @@ weight = 14
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `n8n-middleware-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `n8n-middleware-credentials.yaml` </p>
   
 
   {{% notice style="transparent" %}}
@@ -71,7 +71,7 @@ weight = 14
               "N8N_CONCURRENCY_PRODUCTION_LIMIT": "5"
               "NODE_TLS_REJECT_UNAUTHORIZED": "0"
               "N8N_SECURE_COOKIE": "false"
-              "WEBHOOK_URL": "https://webhook.n8n.ay.dev"
+              "WEBHOOK_URL": "https://webhook.n8n.dev.72602.online"
               "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
               "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
               "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
@@ -170,27 +170,27 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
               nginx.ingress.kubernetes.io/enable-cors: "true"
-              nginx.ingress.kubernetes.io/cors-allow-origin: "https://webhook.n8n.ay.dev:32443"
+              nginx.ingress.kubernetes.io/cors-allow-origin: "https://webhook.n8n.dev.72602.online:32443"
               nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT, DELETE"
               nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
               nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
             hosts:
-              - host: n8n.ay.dev
+              - host: n8n.dev.72602.online
                 paths:
                   - path: /
                     pathType: Prefix
-              - host: webhook.n8n.ay.dev
+              - host: webhook.n8n.dev.72602.online
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
             - hosts:
-              - n8n.ay.dev
-              - webhook.n8n.ay.dev
-              secretName: n8n.ay.dev-tls
+              - n8n.dev.72602.online
+              - webhook.n8n.dev.72602.online
+              secretName: n8n.dev.72602.online-tls
           webhook:
             mode: queue
-            url: "https://webhook.n8n.ay.dev"
+            url: "https://webhook.n8n.dev.72602.online"
             autoscaling:
               enabled: false
             waitMainNodeReady:
@@ -239,7 +239,7 @@ weight = 14
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `n8n-middleware-credientials.yaml` </p>
+  <p> <b>1.prepare</b> `n8n-middleware-credentials.yaml` </p>
   
 
   {{% notice style="transparent" %}}
@@ -304,7 +304,7 @@ weight = 14
               N8N_CONCURRENCY_PRODUCTION_LIMIT: "5"
               NODE_TLS_REJECT_UNAUTHORIZED: "0"
               N8N_SECURE_COOKIE: "false"
-              WEBHOOK_URL: "https://webhook.72602.online"
+              WEBHOOK_URL: "https://webhook.n8n.72602.online"
               QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
               N8N_COMMUNITY_PACKAGES_ENABLED: "true"
               N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
@@ -413,13 +413,18 @@ weight = 14
                 paths:
                   - path: /
                     pathType: Prefix
+              - host: webhook.n8n.72602.online
+                paths:
+                  - path: /
+                    pathType: Prefix
             tls:
               - hosts:
                   - n8n.72602.online
+                  - webhook.n8n.72602.online
                 secretName: n8n.72602.online-tls
           webhook:
             mode: queue
-            url: "https://webhook.72602.online"
+            url: "https://webhook.n8n.72602.online"
             autoscaling:
               enabled: false
             waitMainNodeReady:
@@ -469,35 +474,43 @@ weight = 14
 
 ### 🛎️FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: n8n cannot connect to PostgreSQL" %}}
+**Symptom**
+- n8n Pod starts but keeps retrying DB connection.
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+**Check**
+```bash
+kubectl -n n8n get pods
+kubectl -n n8n logs deploy/n8n -c n8n --tail=100
+kubectl -n n8n get secret n8n-middleware-credential -o yaml
+kubectl -n database get svc postgresql-hl
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+**Fix**
+- Confirm secret key name matches chart expectation (`postgres-password`).
+- Confirm DB host/port/user/database in values are correct.
+- Ensure PostgreSQL is healthy before syncing n8n.
+
+**Expected**
+- n8n Pod reaches `Running` and UI becomes accessible.
 {{% /expand %}}
 
+{{% expand title="Q2: Webhook URL or HTTPS callback does not work" %}}
+**Symptom**
+- External webhook calls fail or timeout.
 
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
-
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+**Check**
+```bash
+kubectl -n n8n get ingress
+kubectl -n n8n describe ingress
+kubectl -n basic-components get pods | grep ingress
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+**Fix**
+- Verify `WEBHOOK_URL` matches ingress host.
+- Confirm ingress class is `nginx` and TLS secret exists.
+- Check DNS/hosts mapping for your environment domain (`n8n.dev.72602.online` for ZJ, `n8n.72602.online` for 72602).
+
+**Expected**
+- Webhook endpoint returns 2xx/expected response.
 {{% /expand %}}

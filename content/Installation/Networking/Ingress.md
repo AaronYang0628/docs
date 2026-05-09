@@ -12,8 +12,8 @@ weight = 90
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -44,8 +44,8 @@ weight = 90
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. argoCD has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `ingress-nginx.yaml` </p>
 
@@ -129,31 +129,38 @@ weight = 90
 
 ### FAQ
 
-{{% expand title="Q1: Using minikube, cannot access to the website" %}}
+{{% expand title="Q1: Ingress created but cannot access the domain" %}}
+**Symptom**
+- `curl -k https://<your-domain>` fails or times out.
 
+**Check**
+```bash
+kubectl -n basic-components get svc
+kubectl -n basic-components get pod -l app.kubernetes.io/component=controller
+kubectl -n basic-components get ingress
+```
 
-```plaintext
+**Fix**
+- Confirm your domain resolves to the node IP (or add `/etc/hosts` entry).
+- Ensure ingress-nginx Service exposes NodePort `32443` for HTTPS.
+- Re-sync app: `argocd app sync argocd/ingress-nginx`.
+
+**Expected**
+- Ingress controller Pods are `Running` and HTTPS endpoint is reachable.
+{{% /expand %}}
+
+{{% expand title="Q2: Using minikube and NodePort is unreachable" %}}
+**Symptom**
+- Browser cannot open `https://$(minikube ip):32443`.
+
+**Check and fix**
+```bash
+kubectl -n basic-components get svc
 ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:30443:0.0.0.0:30443' -N -f
 ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:32443:0.0.0.0:32443' -N -f
 ssh -i ~/.minikube/machines/minikube/id_rsa docker@$(minikube ip) -L '*:32080:0.0.0.0:32080' -N -f
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
-{{% /expand %}}
-
-
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
-
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
-```
-
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+**Expected**
+- You can access the ingress endpoint through forwarded ports.
 {{% /expand %}}

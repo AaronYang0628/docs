@@ -5,10 +5,10 @@ weight = 131
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
-- argoCD has installed, if not check [link](argo/argo-cd/install_argocd/index.html)
+- Kubernetes is installed; if not, check [link](kubernetes/command/install/index.html)
+- ArgoCD is installed; if not, check [link](argo/argo-cd/install_argocd/index.html)
 - cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check [link](argo/argo-cd/application/cert_manager/index.html)
-- minio has installed, if not check [link](argo/argo-cd/storage/minio/index.html)
+- minio is installed; if not, check [link](argo/argo-cd/storage/minio/index.html)
 
 ### Steps
 #### 1. copy minio credentials secret
@@ -158,7 +158,7 @@ spec:
             ingressClassName: "nginx"
             annotations:
               cert-manager.io/cluster-issuer: alidns-webhook-zverse-letsencrypt
-            hostname: milvus.dev.tech
+            hostname: milvus.dev.72602.online
             path: /
             pathType: ImplementationSpecific
             tls: true
@@ -267,10 +267,10 @@ milvus address: `milvus-proxy:19530`
 
 milvus database: `default`
 ```shell
-https://milvus.dev.tech:32443/#/
+https://milvus.dev.72602.online:32443/#/
 ```
 
-#### 5. [[Optional]]() import data
+#### 5. [Optional] import data
 import data by using sql file
 ```shell
 MARIADB_ROOT_PASSWORD=$(kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
@@ -284,12 +284,12 @@ POD_NAME=$(kubectl get pod -n database -l "app.kubernetes.io/name=mariadb-tool" 
     ccds < /tmp/Dump20240301.sql"
 ```
 
-#### 6. [[Optional]]() decode password
+#### 6. [Optional] decode password
 ```shell
 kubectl -n database get secret mariadb-credentials -o jsonpath='{.data.mariadb-root-password}' | base64 -d
 ```
 
-#### 7. [[Optional]]() execute sql in pod
+#### 7. [Optional] execute sql in pod
 ```shell
 kubectl -n database exec -it xxxx bash
 ```

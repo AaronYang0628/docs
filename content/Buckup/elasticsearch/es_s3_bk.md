@@ -54,13 +54,13 @@ weight = 2
           hostAliases:
           - ip: 192.168.31.111
             hostnames:
-            - minio-api.dev.tech
+            - minio-api.dev.72602.online
           ingress:
             enabled: true
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-            hostname: elastic-search.dev.tech
+            hostname: elastic-search.dev.72602.online
             ingressClassName: nginx
             path: /?(.*)
             tls: true
@@ -138,7 +138,7 @@ weight = 2
   hostAliases:
   - ip: 192.168.31.111
     hostnames:
-    - minio-api.dev.tech
+    - minio-api.dev.72602.online
   {{< /highlight >}}
 
 ### Methods
@@ -159,7 +159,7 @@ asdadas
 {{% tab title="snapshot" %}}
 1. 创建快照仓库repo -> `my_s3_repository`
 ```shell
-curl -k -X PUT "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository?pretty" -H 'Content-Type: application/json' -d'
+curl -k -X PUT "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository?pretty" -H 'Content-Type: application/json' -d'
 {
   "type": "s3",
   "settings": {
@@ -174,27 +174,27 @@ curl -k -X PUT "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository
 
 2. 验证集群各个节点是否可以使用这个快照仓库repo
 ```shell
-curl -k -X POST "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository/_verify?pretty"
+curl -k -X POST "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository/_verify?pretty"
 ```
 
 3. 查看快照仓库repo
 ```shell
-curl -k -X GET "https://elastic-search.dev.tech:32443/_snapshot/_all?pretty"
+curl -k -X GET "https://elastic-search.dev.72602.online:32443/_snapshot/_all?pretty"
 ```
 
 4. 查看某一个快照仓库repo的具体setting
 ```shell
-curl -k -X GET "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository?pretty"
+curl -k -X GET "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository?pretty"
 ```
 
 5. 分析一个快照仓库repo
 ```shell
-curl -k -X POST "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository/_analyze?blob_count=10&max_blob_size=1mb&timeout=120s&pretty"
+curl -k -X POST "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository/_analyze?blob_count=10&max_blob_size=1mb&timeout=120s&pretty"
 ```
 
 6. 手动打快照
 ```shell
-curl -k -X PUT "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository/ay_s3_snap_02?pretty"
+curl -k -X PUT "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository/ay_s3_snap_02?pretty"
 ```
 {{% expand title="使用SLM自动打快照(没生效)" %}}
 Thank you!
@@ -202,23 +202,23 @@ Thank you!
 
 7. 查看指定快照仓库repo 可用的快照
 ```shell
-curl -k -X GET "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository/*?verbose=false&pretty"
+curl -k -X GET "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository/*?verbose=false&pretty"
 ```
 
 8. 测试恢复
 ```shell
 # Delete an index
-curl -k -X DELETE "https://elastic-search.dev.tech:32443/books?pretty"
+curl -k -X DELETE "https://elastic-search.dev.72602.online:32443/books?pretty"
 
 # restore that index
-curl -k -X POST "https://elastic-search.dev.tech:32443/_snapshot/my_s3_repository/ay_s3_snap_02/_restore?pretty" -H 'Content-Type: application/json' -d'
+curl -k -X POST "https://elastic-search.dev.72602.online:32443/_snapshot/my_s3_repository/ay_s3_snap_02/_restore?pretty" -H 'Content-Type: application/json' -d'
 {
   "indices": "books"
 }
 '
 
 # query
-curl -k -X GET "https://elastic-search.dev.tech:32443/books/_search?pretty" -H 'Content-Type: application/json' -d'
+curl -k -X GET "https://elastic-search.dev.72602.online:32443/books/_search?pretty" -H 'Content-Type: application/json' -d'
 {
   "query": {
     "match_all": {}

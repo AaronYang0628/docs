@@ -19,6 +19,18 @@ git config --global pull.ff only
 git --no-pager diff
 ```
 
+### Using Proxy
+```shell
+git config --global http.proxy http://127.0.0.1:7890
+git config --global https.proxy http://127.0.0.1:7890
+```
+
+### Unset Proxy
+```shell
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
 ### change user and email (locally)
 ```shell
 # git config user.name ""

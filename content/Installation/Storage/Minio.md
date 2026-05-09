@@ -12,16 +12,16 @@ weight = 130
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary is installed; if not, check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
 {{< /tab >}}
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
-  3. Ingres has installed on argoCD, if not check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Ingress is installed on ArgoCD; if not, check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
   4. Cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗<a href="/docs/Installation/application/cert_manager/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare minio credentials secret </b></p>
@@ -190,9 +190,9 @@ weight = 130
   MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
   podman run --rm \
       --entrypoint bash \
-      --add-host=minio-api.dev.tech:${K8S_MASTER_IP} \
+      --add-host=minio-api.dev.72602.online:${K8S_MASTER_IP} \
       -it m.daocloud.io/docker.io/minio/mc:latest \
-      -c "mc alias set minio http://minio-api.dev.tech:32080 admin ${MINIO_ACCESS_SECRET} \
+      -c "mc alias set minio http://minio-api.dev.72602.online:32080 admin ${MINIO_ACCESS_SECRET} \
           && mc ls minio \
           && mc mb --ignore-existing minio/test \
           && mc cp /etc/hosts minio/test/etc/hosts \
@@ -206,7 +206,7 @@ weight = 130
   MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
   podman run --rm \
       --entrypoint bash \
-      --add-host=minio-api.dev.tech:${K8S_MASTER_IP} \
+      --add-host=minio-api.dev.72602.online:${K8S_MASTER_IP} \
       -it m.daocloud.io/docker.io/minio/mc:latest
   ```
   {{% /notice %}}
@@ -219,7 +219,7 @@ weight = 130
 
 {{< tab title="Docker Compose" style="default" >}}
   <p> <b>Preliminary </b></p>
-  1. Docker has installed, if not check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Docker is installed; if not, check 🔗<a href="docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
    
 
   {{% notice style="important" title="Using Proxy" %}} 

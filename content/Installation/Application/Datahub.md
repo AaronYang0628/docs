@@ -5,11 +5,11 @@ weight = 3
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check 🔗[link](/docs/kubernetes/cluster/index.html)
-- argoCD has installed, if not check 🔗[link](/docs/installation/cicd/argocd/)
-- Elasticsearch has installed, if not check 🔗[link](/docs/installation/database/elasticsearch/)
-- MariaDB has installed, if not check 🔗[link](/docs/installation/database/mariadb/index.html)
-- Kafka has installed, if not check 🔗[link](/docs/installation/database/kafka/index.html)
+- Kubernetes is installed; if not, check 🔗[link](/docs/kubernetes/cluster/index.html)
+- ArgoCD is installed; if not, check 🔗[link](/docs/installation/cicd/argocd/)
+- Elasticsearch is installed; if not, check 🔗[link](/docs/installation/database/elasticsearch/)
+- MariaDB is installed; if not, check 🔗[link](/docs/installation/database/mariadb/index.html)
+- Kafka is installed; if not, check 🔗[link](/docs/installation/database/kafka/index.html)
 
 ### Steps
 #### 1. prepare datahub credentials secret
@@ -101,13 +101,13 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
             hosts:
-            - host: datahub.dev.geekcity.tech
+            - host: datahub.dev.72602.online
               paths:
               - /
             tls:
-            - secretName: "datahub.dev.geekcity.tech-tls"
+            - secretName: "datahub.dev.72602.online-tls"
               hosts:
-              - datahub.dev.geekcity.tech
+              - datahub.dev.72602.online
         acryl-datahub-actions:
           enabled: true
           replicaCount: 1
@@ -236,13 +236,13 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
             hosts:
-            - host: datahub.dev.geekcity.tech
+            - host: datahub.dev.72602.online
               paths:
               - /
             tls:
-            - secretName: "datahub.dev.geekcity.tech-tls"
+            - secretName: "datahub.dev.72602.online-tls"
               hosts:
-              - datahub.dev.geekcity.tech
+              - datahub.dev.72602.online
         acryl-datahub-actions:
           enabled: true
           replicaCount: 1
@@ -312,20 +312,24 @@ argocd app sync argocd/datahub
 ```
 
 
-#### 5. extract credientials
+#### 5. extract credentials
 ```shell
 kubectl -n application get secret datahub-user-secret -o jsonpath='{.data.user\.props}' | base64 -d
 ```
 
 ---
 
-#### [[Optional]]() Visit though browser
-> add `$K8S_MASTER_IP datahub.dev.geekcity.tech` to `/etc/hosts`
+#### [Optional] Visit through browser
 
-- datahub frontend: https://datahub.dev.geekcity.tech:32443
-- api: https://datahub.dev.geekcity.tech:32443/openapi/swagger-ui/index.html
+After DNS or hosts mapping is configured, open the URLs below to verify UI and API reachability.
+> add `$K8S_MASTER_IP datahub.dev.72602.online` to `/etc/hosts`
 
-#### [[Optional]]() Visit though DatahubCLI
+- datahub frontend: https://datahub.dev.72602.online:32443
+- api: https://datahub.dev.72602.online:32443/openapi/swagger-ui/index.html
+
+#### [Optional] Visit through DatahubCLI
+
+Use DatahubCLI for metadata ingestion and management from scripts or CI pipelines.
 
 > We recommend Python virtual environments (venv-s) to namespace pip modules. Here's an example setup:
 

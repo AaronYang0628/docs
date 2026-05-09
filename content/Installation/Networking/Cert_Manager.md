@@ -12,8 +12,8 @@ weight = 30
 
 {{< tab title="Helm✅" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Helm binary is installed; if not, check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.get helm repo </b></p>
 
@@ -44,9 +44,9 @@ weight = 30
 
 {{< tab title="ArgoCD✅" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary is installed; if not, check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `cert-manager.yaml` </p>
 
@@ -156,7 +156,7 @@ weight = 30
 
 {{< tab title="Docker" style="transparent" >}}
  <p> <b>Preliminary </b></p>
-  1. Docker|Podman|Buildah has installed, if not check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
+  1. Docker|Podman|Buildah is installed; if not, check 🔗<a href="/docs/Installation/container/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.just run</b></p>
   {{% notice style="transparent" %}}
@@ -178,7 +178,7 @@ weight = 30
 
 {{< tab title="CURL" style="transparent" >}}
  <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.just run</b></p>
   {{% notice style="transparent" %}}
@@ -258,6 +258,49 @@ EOF
 ```
 {{% /tab %}}
 {{< /tabs >}}
+
+### FAQ
+
+{{% expand title="Q1: cert-manager Pods are not ready" %}}
+**Symptom**
+- `cert-manager`, `cert-manager-webhook`, or `cert-manager-cainjector` Pods keep restarting.
+
+**Check**
+```bash
+kubectl -n basic-components get pods | grep cert-manager
+kubectl -n basic-components describe pod -l app.kubernetes.io/name=cert-manager
+kubectl -n basic-components logs deploy/cert-manager --tail=100
+```
+
+**Fix**
+- Ensure CRDs are installed (`installCRDs: true` in Helm values).
+- Re-sync app: `argocd app sync argocd/cert-manager`.
+- If image pull fails, switch to mirror image settings shown above.
+
+**Expected**
+- All cert-manager Pods become `Running` and `READY 1/1`.
+{{% /expand %}}
+
+{{% expand title="Q2: Certificate stays in Pending or Ingress has no TLS secret" %}}
+**Symptom**
+- Ingress TLS secret is not created, or `Certificate` status does not become `Ready`.
+
+**Check**
+```bash
+kubectl get clusterissuer
+kubectl -n basic-components get certificate
+kubectl -n basic-components describe certificate <certificate-name>
+kubectl -n basic-components get secret root-secret
+```
+
+**Fix**
+- Confirm `ClusterIssuer` exists (`self-signed-ca-issuer` or `lets-encrypt`).
+- Ensure Ingress annotation matches issuer name: `cert-manager.io/cluster-issuer`.
+- Re-apply issuer manifest and then re-apply ingress.
+
+**Expected**
+- Target certificate shows `Ready=True` and TLS secret exists.
+{{% /expand %}}
 
 
 

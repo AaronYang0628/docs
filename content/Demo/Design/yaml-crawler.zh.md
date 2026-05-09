@@ -50,7 +50,7 @@ pollWaitingTimeUnit: "SECONDS"
 waitFinishedTimeout: 180
 waitFinishedTimeUnit: "SECONDS" 
 ```
-`ExceptionRecord`, `RetryControl`, `SpeedControl` are provided by the yaml crawler itself, dont worry.
+`ExceptionRecord`, `RetryControl`, `SpeedControl` are provided by the yaml crawler itself, don't worry.
 you only need to extend how to process your page `MainPage`, for example, you defined a `MainPageProcessor`.
 each processor will produce a set of other page or `DownloadPage`. `DownloadPage` like a ship containing 
 information you need, and this framework will help you process `DownloadPage` and download or persist.

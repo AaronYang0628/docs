@@ -6,7 +6,7 @@ weight = 80
 +++
 
 
-Offical Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
+Official Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
 
 ### Installation
 
@@ -14,8 +14,8 @@ Offical Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
 
 {{< tab title="Helm" style="transparent" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
-  2. Helm has installed, if not check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
+  2. Helm is installed; if not, check 🔗<a href="/docs/argo/argo-cd/install_argocd/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.install chart directly</b></p>
 
@@ -45,10 +45,10 @@ Offical Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
 
 {{< tab title="ArgoCD" style="transparent">}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. ArgoCD has installed, if not check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
-  3. Helm binary has installed, if not check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
-  4. Ingres has installed on argoCD, if not check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/Installation/cicd/argocd/index.html" target="_blank">link</a> </p></br>
+  3. Helm binary is installed; if not, check 🔗<a href="/docs/Installation/binary/helm/index.html" target="_blank">link</a> </p></br>
+  4. Ingress is installed on ArgoCD; if not, check 🔗<a href="/docs/Installation/networking/ingress/index.html" target="_blank">link</a> </p></br>
 
   <p> <b>1.prepare</b> `homepage.yaml` </p>
 
@@ -128,8 +128,8 @@ Offical Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
 
 {{< tab title="Docker" style="default" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Docker has installed, if not check 🔗<a href="/docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Docker is installed; if not, check 🔗<a href="/docs/Installation/container/docker/index.html" target="_blank">link</a> </p></br>
   
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="shell" %}}
@@ -153,8 +153,8 @@ Offical Documentation: [https://gethomepage.dev/](https://gethomepage.dev/)
 
 {{< tab title="Podman" style="default" >}}
   <p> <b>Preliminary </b></p>
-  1. Kubernetes has installed, if not check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
-  2. Podman has installed, if not check 🔗<a href="/docs/Installation/container/podman/index.html" target="_blank">link</a> </p></br>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
+  2. Podman is installed; if not, check 🔗<a href="/docs/Installation/container/podman/index.html" target="_blank">link</a> </p></br>
   
   {{< tabs groupid="tabs-example-language" >}}
     {{% tab title="shell" %}}

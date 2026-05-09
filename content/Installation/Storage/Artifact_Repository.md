@@ -5,7 +5,7 @@ weight = 10
 +++
 
 ### Preliminary
-- Kubernetes has installed, if not check [link](kubernetes/command/install/index.html)
+- Kubernetes is installed; if not, check [link](kubernetes/command/install/index.html)
 - minio is ready for artifact repository
     > endpoint: `minio.storage:9000`
 
@@ -18,9 +18,9 @@ K8S_MASTER_IP=172.27.253.27
 MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.rootPassword}' | base64 -d)
 podman run --rm \
 --entrypoint bash \
---add-host=minio-api.dev.geekcity.tech:${K8S_MASTER_IP} \
+--add-host=minio-api.dev.72602.online:${K8S_MASTER_IP} \
 -it docker.io/minio/mc:latest \
--c "mc alias set minio http://minio-api.dev.geekcity.tech admin ${MINIO_ACCESS_SECRET} \
+-c "mc alias set minio http://minio-api.dev.72602.online admin ${MINIO_ACCESS_SECRET} \
     && mc ls minio \
     && mc mb --ignore-existing minio/argo-workflows-artifacts"
 ```

@@ -47,7 +47,7 @@ weight = 3
             annotations:
               cert-manager.io/cluster-issuer: self-signed-ca-issuer
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-            hostname: elastic-search.dev.tech
+            hostname: elastic-search.dev.72602.online
             ingressClassName: nginx
             path: /?(.*)
             tls: true

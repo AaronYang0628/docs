@@ -5,8 +5,8 @@ weight = 12
 +++
 
 ### Preliminary
-- Kubernets has installed, if not check 🔗[link](kubernetes/cluster/index.html)
-- Argo CD has installed, if not check 🔗[link](Installation/cicd/argocd.html)
+- Kubernetes is installed; if not, check 🔗[link](kubernetes/cluster/index.html)
+- Argo CD is installed; if not, check 🔗[link](Installation/cicd/argocd.html)
 
 
 ### 1. prepare `argo-events.yaml`
