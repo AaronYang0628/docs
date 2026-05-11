@@ -1,0 +1,28 @@
+FROM node:20-alpine AS builder
+RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
+    npm config set proxy false && \
+    npm config set https-proxy false && \
+    npm install -g opencode-ai@1.14.33 && \
+    npm cache clean --force
+
+FROM alpine:3.19
+RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
+    apk add --no-cache \
+    git \
+    openssh-client \
+    curl \
+    bash \
+    jq \
+    && curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl && mv kubectl /usr/local/bin/
+
+COPY --from=builder /usr/local/lib/node_modules/opencode-ai/bin/.opencode /usr/local/bin/opencode
+
+WORKDIR /workspace
+EXPOSE 3000
+
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["opencode", "web", "--hostname", "0.0.0.0", "--port", "3000", "--print-logs", "--log-level", "INFO"]

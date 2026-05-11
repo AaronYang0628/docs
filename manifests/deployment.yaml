@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hugo-docs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hugo-docs
+  template:
+    metadata:
+      labels:
+        app: hugo-docs
+    spec:
+      containers:
+        - name: nginx
+          image: m.daocloud.io/docker.io/library/nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: docs-content
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: docs-content
+          persistentVolumeClaim:
+            claimName: hugo-docs-pvc

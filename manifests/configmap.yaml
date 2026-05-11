@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hugo-docs-config
+data:
+  REPO_URL: https://github.com/AaronYang0628/docs.git
+  REPO_BRANCH: main
+  SITE_SOURCE_DIR: /src
+  SITE_OUTPUT_DIR: /output
