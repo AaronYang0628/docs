@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencode-web
+  labels:
+    app: opencode-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opencode-web
+  template:
+    metadata:
+      labels:
+        app: opencode-web
+    spec:
+      serviceAccountName: opencode-sa
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: opencode-workspace-pvc
+
+      containers:
+        # ---- main: opencode web ----
+        - name: opencode
+          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: opencode
+          env:
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-secrets
+                  key: deepseek-api-key
+            - name: GIT_SSH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-git-ssh
+                  key: ssh-privatekey
+            - name: GIT_USER_NAME
+              value: "Aaron Yang"
+            - name: GIT_USER_EMAIL
+              value: "aaron19940628@gmail.com"
+            - name: OPENCODE_WORKSPACE
+              value: /workspace
+            - name: REPO_URL
+              value: https://github.com/AaronYang0628/docs.git
+            - name: REPO_BRANCH
+              value: main
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+
+        # ---- sidecar: oauth2-proxy (GitHub OAuth 2FA) ----
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          ports:
+            - containerPort: 4180
+              name: auth-proxy
+          args:
+            - --provider=github
+            - --github-user=AaronYang0628
+            - --upstream=http://127.0.0.1:3000
+            - --http-address=0.0.0.0:4180
+            - --redirect-url=https://opencode.72602.online/oauth2/callback
+            - --email-domain=*
+            - --cookie-secure=true
+            - --cookie-name=_opencode_auth
+          env:
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-oauth2-secrets
+                  key: client-id
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-oauth2-secrets
+                  key: client-secret
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-oauth2-secrets
+                  key: cookie-secret

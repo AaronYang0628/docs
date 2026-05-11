@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: docs-content-build
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: clone-repo
+          image: m.daocloud.io/docker.io/alpine/git:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" "${SITE_SOURCE_DIR}"
+              git -C "${SITE_SOURCE_DIR}" submodule sync -- themes/hugo-theme-relearn || true
+              git -C "${SITE_SOURCE_DIR}" submodule update --init --depth 1 themes/hugo-theme-relearn || true
+              test -f "${SITE_SOURCE_DIR}/hugo.toml"
+              chown -R 1000:1000 "${SITE_OUTPUT_DIR}" "${SITE_SOURCE_DIR}" || true
+              chmod -R g+rwX "${SITE_OUTPUT_DIR}" "${SITE_SOURCE_DIR}" || true
+          envFrom:
+            - configMapRef:
+                name: hugo-docs-config
+          volumeMounts:
+            - name: src
+              mountPath: /src
+            - name: output
+              mountPath: /output
+      containers:
+        - name: hugo
+          image: m.daocloud.io/docker.io/hugomods/hugo:exts-non-root-0.152.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              rm -rf "${SITE_OUTPUT_DIR}"/*
+              hugo --source "${SITE_SOURCE_DIR}" --destination "${SITE_OUTPUT_DIR}"
+              test -f "${SITE_OUTPUT_DIR}/index.html"
+          envFrom:
+            - configMapRef:
+                name: hugo-docs-config
+          volumeMounts:
+            - name: output
+              mountPath: /output
+            - name: src
+              mountPath: /src
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: output
+          persistentVolumeClaim:
+            claimName: hugo-docs-pvc
+        - name: src
+          emptyDir: {}
