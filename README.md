@@ -12,3 +12,9 @@ Vists Ay's DEV docs -> https://aaronyang0628.github.io/docs/
     > **[newser version of cowsay]** </br>
     > docker pull ghcr.io/aaronyang0628/whalesay:v2 
 - something related to k8s
+
+
+### Upda
+```shell
+git submodule update --init --recursive
+```

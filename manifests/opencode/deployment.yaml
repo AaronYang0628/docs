@@ -15,10 +15,6 @@ spec:
         app: opencode-web
     spec:
       serviceAccountName: opencode-sa
-      volumes:
-        - name: workspace
-          persistentVolumeClaim:
-            claimName: opencode-workspace-pvc
 
       containers:
         # ---- main: opencode web ----
@@ -44,14 +40,7 @@ spec:
             - name: GIT_USER_EMAIL
               value: "aaron19940628@gmail.com"
             - name: OPENCODE_WORKSPACE
-              value: /workspace
-            - name: REPO_URL
-              value: https://github.com/AaronYang0628/docs.git
-            - name: REPO_BRANCH
-              value: main
-          volumeMounts:
-            - name: workspace
-              mountPath: /workspace
+              value: /app/repo-baked
 
         # ---- sidecar: oauth2-proxy (GitHub OAuth 2FA) ----
         - name: oauth2-proxy

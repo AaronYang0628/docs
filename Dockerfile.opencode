@@ -5,7 +5,7 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     npm install -g opencode-ai@1.14.33 && \
     npm cache clean --force
 
-FROM alpine:3.19
+FROM alpine:3.19 AS runtime
 RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     apk add --no-cache \
     git \
@@ -13,12 +13,23 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     curl \
     bash \
     jq \
+    libstdc++ \
+    gcompat \
     && curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl" \
     && chmod +x kubectl && mv kubectl /usr/local/bin/
 
-COPY --from=builder /usr/local/lib/node_modules/opencode-ai/bin/.opencode /usr/local/bin/opencode
+COPY --from=builder /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode /usr/local/bin/opencode
 
-WORKDIR /workspace
+# Clone repo at build time so runtime doesn't need full clone
+# Use host's proxy since cluster has restricted network access
+RUN git clone --depth 1 --branch main \
+        https://github.com/AaronYang0628/docs.git /app/repo-baked && \
+    cd /app/repo-baked && \
+    git submodule update --init --depth 1 || true && \
+    rm -rf /app/repo-baked/.git/modules && \
+    git remote set-url origin https://github.com/AaronYang0628/docs.git
+
+WORKDIR /app
 EXPOSE 3000
 
 COPY docker-entrypoint.sh /usr/local/bin/

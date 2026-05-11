@@ -1,5 +1,4 @@
 resources:
-  - pvc.yaml
   - rbac.yaml
   - deployment.yaml
   - svc.yaml

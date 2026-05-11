@@ -23,7 +23,6 @@ if [ -n "${GIT_SSH_KEY:-}" ]; then
     mkdir -p "$HOME/.ssh"
     printf '%s\n' "$GIT_SSH_KEY" > "$HOME/.ssh/id_ed25519"
     chmod 600 "$HOME/.ssh/id_ed25519"
-    # Add GitHub to known_hosts to avoid interactive prompt
     ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
 fi
 
@@ -34,17 +33,13 @@ if [ -n "${GIT_USER_EMAIL:-}" ]; then
     git config --global user.email "${GIT_USER_EMAIL}"
 fi
 
-# 3. Ensure workspace exists
-WORKSPACE="${OPENCODE_WORKSPACE:-/workspace}"
-mkdir -p "$WORKSPACE"
+# 3. Set workspace from baked-in repo
+WORKSPACE="${OPENCODE_WORKSPACE:-/app/repo-baked}"
 
-# 4. If workspace is empty and REPO_URL is set, clone the repo
-if [ -n "${REPO_URL:-}" ] && [ -z "$(ls -A "$WORKSPACE" 2>/dev/null)" ]; then
-    echo "Cloning ${REPO_URL} into ${WORKSPACE} ..."
-    git clone --depth 1 --branch "${REPO_BRANCH:-main}" "${REPO_URL}" "$WORKSPACE"
+# 4. Try to pull latest changes (best-effort, cluster may be offline)
+if [ -d "$WORKSPACE/.git" ]; then
     cd "$WORKSPACE"
-    git submodule sync || true
-    git submodule update --init --depth 1 || true
+    git pull --rebase 2>/dev/null || true
 fi
 
 cd "$WORKSPACE"
