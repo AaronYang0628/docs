@@ -130,7 +130,7 @@ weight = 160
             kubernetes.io/ingress.class: nginx
         spec:
           rules:
-          - host: postgres.ay.dev
+          - host: postgres.dev.72602.online
             http:
               paths:
               - path: /

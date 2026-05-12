@@ -66,14 +66,14 @@ spec:
               nginx.ingress.kubernetes.io/rewrite-target: /$1
               nginx.ingress.kubernetes.io/use-regex: "true"
             hosts:
-              - argo-workflows.ay.dev
+              - argo-workflows.dev.72602.online
             paths:
               - /?(.*)
             pathType: ImplementationSpecific
             tls:
-              - secretName: argo-workflows.ay.dev-tls
+              - secretName: argo-workflows.dev.72602.online-tls
                 hosts:
-                  - argo-workflows.ay.dev
+                  - argo-workflows.dev.72602.online
           authModes:
             - server
             - client
@@ -132,14 +132,14 @@ spec:
               nginx.ingress.kubernetes.io/rewrite-target: /$1
               nginx.ingress.kubernetes.io/use-regex: "true"
             hosts:
-              - argo-workflows.ay.dev
+              - argo-workflows.dev.72602.online
             paths:
               - /?(.*)
             pathType: ImplementationSpecific
             tls:
-              - secretName: argo-workflows.ay.dev-tls
+              - secretName: argo-workflows.dev.72602.online-tls
                 hosts:
-                  - argo-workflows.ay.dev
+                  - argo-workflows.dev.72602.online
           authModes:
             - server
             - client

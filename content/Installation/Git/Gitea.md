@@ -111,14 +111,14 @@ weight = 71
                 nginx.ingress.kubernetes.io/rewrite-target: /$1
                 cert-manager.io/cluster-issuer: self-signed-ca-issuer
               hosts:
-              - host: gitea.ay.dev
+              - host: gitea.dev.72602.online
                 paths:
                 - path: /?(.*)
                   pathType: ImplementationSpecific
               tls:
-              - secretName: gitea.ay.dev-tls
+              - secretName: gitea.dev.72602.online-tls
                 hosts:
-                - gitea.ay.dev
+                - gitea.dev.72602.online
             persistence:
               enabled: true
               size: 8Gi
@@ -176,9 +176,9 @@ weight = 71
                 server:
                   PROTOCOL: http
                   LANDING_PAGE: login
-                  DOMAIN: gitea.ay.dev
-                  ROOT_URL: https://gitea.ay.dev:32443/
-                  SSH_DOMAIN: ssh.gitea.ay.dev
+                  DOMAIN: gitea.dev.72602.online
+                  ROOT_URL: https://gitea.dev.72602.online:32443/
+                  SSH_DOMAIN: ssh.gitea.dev.72602.online
                   SSH_PORT: 32022
                   SSH_AUTHORIZED_PRINCIPALS_ALLOW: email
                 admin:
@@ -228,7 +228,7 @@ weight = 71
   {{% /notice %}}
 
   <p> <b>5.decode admin password</b></p>
-  login 🔗<a href="https://gitea.ay.dev:32443/" target="_blank">https://gitea.ay.dev:32443/</a> </p>, using user <b>gitea_admin</b> and password
+  login 🔗<a href="https://gitea.dev.72602.online:32443/" target="_blank">https://gitea.dev.72602.online:32443/</a> </p>, using user <b>gitea_admin</b> and password
   {{% notice style="transparent" %}}
   ```bash
   kubectl -n application get secret gitea-admin-credentials -o jsonpath='{.data.password}' | base64 -d
