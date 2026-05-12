@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: opencode-web
+  name: ops-agent
 spec:
   project: default
   source:

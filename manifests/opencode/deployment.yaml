@@ -61,7 +61,7 @@ spec:
             - --github-user=AaronYang0628
             - --upstream=http://127.0.0.1:3000
             - --http-address=0.0.0.0:4180
-            - --redirect-url=https://opencode.72602.online/oauth2/callback
+            - --redirect-url=https://ops.agent.72602.online/oauth2/callback
             - --email-domain=*
             - --cookie-secure=true
             - --cookie-name=_opencode_auth
