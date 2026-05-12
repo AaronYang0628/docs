@@ -1,0 +1,115 @@
+- Workflows:
+    - WeChat:
+        - abbr: WeChat
+          icon: sh-wechat
+          href: https://mp.weixin.qq.com/
+          description: Medium中文公众号
+    - Toutiao:
+        - abbr: Toutiao
+          icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/toutiao.png
+          href: https://www.toutiao.com/
+          description: Apple内幕推送
+- Blog:
+    - DEV-BLOG:
+        - abbr: ay's dev blog
+          icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dev_blog.png
+          href: https://aaronyang0628.github.io/docs/
+    - WZ-BLOG:
+        - abbr: wangzhi
+          icon: blogger
+          href: https://blog.geekcity.tech/articles/
+    - BK-BLOG:
+        - abbr: cnconti
+          icon: blogger
+          href: https://memo.cnconti.tech/#/
+- Developer:
+    - Github:
+        - abbr: GH
+          icon: github
+          href: https://github.com/AaronYang0628
+    - Aliyun:
+        - abbr: Ali
+          icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/aliyun.png
+          href: https://home.console.aliyun.com/home/dashboard/ProductAndService
+    - Tailscale:
+        - abbr: TS
+          icon: tailscale
+          href: https://tailscale.com
+    - OperatorHub:
+        - abbr: OSH
+          icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/operator_hub.png
+          href: https://operatorhub.io/
+    - Artifacthub:
+        - abbr: AH
+          icon: artifacthub
+          href: https://artifacthub.io/
+    - ACR:
+        - abbr: ACR
+          icon: docker-engine
+          href: https://cr.console.aliyun.com/cn-hongkong/instance/dashboard
+    - DD-Dev:
+        - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dingding.png
+          href: https://open-dev.dingtalk.com/
+          description: https://open-dev.dingtalk.com/
+    - DD-Admin:
+        - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dingding.png
+          href: https://oa.dingtalk.com
+          description: https://oa.dingtalk.com
+- Tool:
+    - ChatGPT:
+        - abbr: chatgpt
+          icon: chatgpt
+          href: https://chatgpt.com/
+    - Deepseek:
+        - abbr: DB
+          icon: deepseek
+          href: https://chat.deepseek.com/
+    - Gemini:
+        - abbr: GM
+          icon: google-gemini
+          href: https://gemini.google.com/
+    - Claude Code:
+        - abbr: Claude
+          icon: claude-ai
+          href: https://claude.ai/new
+    - FontAwesome:
+        - abbr: FA
+          icon: fontawesome
+          href: https://fontawesome.com/v6/search?o=r
+    - Skywork:
+        - abbr: SKY
+          icon: google-slides
+          href: https://skywork.ai/
+    - ICON:
+        - abbr: IC
+          icon: dashboard-icons-dark
+          href: https://dashboardicons.com/
+- Media:
+    - Twitter:
+        - abbr: twitter
+          icon: twitter
+          href: https://x.com/
+    - RedBook:
+        - abbr: XHS
+          icon: si-xiaohongshu
+          href: https://www.xiaohongshu.com/explore
+    - YouTube:
+        - abbr: YT
+          icon: youtube
+          href: https://youtube.com/
+    - Bilibili:
+        - abbr: BB
+          icon: bilibili
+          href: https://bilibili.com/
+    - IYF:
+        - abbr: IYF
+          icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/iyf.png
+          href: https://www.iyf.tv/?from=1
+    - WeChat:
+        - abbr: WeChat
+          icon: sh-wechat
+          href: https://mp.weixin.qq.com/
+    - Medium:
+        - abbr: Medium
+          icon: medium-dark
+          href: https://medium.com/

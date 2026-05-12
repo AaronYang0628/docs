@@ -1,0 +1,28 @@
+title: 72602 Homepage
+theme: gray
+description: A Monitoring Dashboard for All Services in 72602
+startUrl: /
+discovery:
+  enabled: false
+hideVersion: true
+disableUpdateCheck: true
+quicklaunch:
+  searchDescriptions: true
+  hideInternetSearch: true
+  showSearchSuggestions: true
+  hideVisitURL: true
+  provider: google
+layout:
+  Developer:
+    style: row
+    columns: 5
+  Blog:
+    style: row
+    columns: 5
+  Workflows:
+    style: row
+    columns: 5
+  Media:
+    iconsOnly: true
+  Tool:
+    iconsOnly: true
