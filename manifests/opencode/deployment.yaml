@@ -15,6 +15,10 @@ spec:
         app: opencode-web
     spec:
       serviceAccountName: opencode-sa
+      volumes:
+        - name: opencode-config
+          configMap:
+            name: opencode-json-config
 
       containers:
         # ---- main: opencode web ----
@@ -41,6 +45,10 @@ spec:
               value: "aaron19940628@gmail.com"
             - name: OPENCODE_WORKSPACE
               value: /app/repo-baked
+          volumeMounts:
+            - name: opencode-config
+              mountPath: /app/repo-baked/.opencode/opencode.json
+              subPath: opencode.json
 
         # ---- sidecar: oauth2-proxy (GitHub OAuth 2FA) ----
         - name: oauth2-proxy

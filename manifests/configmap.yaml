@@ -7,3 +7,4 @@ data:
   REPO_BRANCH: main
   SITE_SOURCE_DIR: /src
   SITE_OUTPUT_DIR: /output
+  SITE_BASE_URL: https://port.72602.online

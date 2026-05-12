@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencode-json-config
+data:
+  opencode.json: |
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "baseUrl": "https://opencode.72602.online",
+      "permissions": [
+        {
+          "permission": "*",
+          "action": "allow",
+          "pattern": "*"
+        },
+        {
+          "permission": "question",
+          "action": "deny",
+          "pattern": "*"
+        },
+        {
+          "permission": "external_directory",
+          "pattern": "*",
+          "action": "ask"
+        }
+      ],
+      "agents": {
+        "72602-k3s-maintainer": {
+          "description": "72602 集群运维 Agent",
+          "systemPrompt": "content from agents/72602-k3s-maintainer.md"
+        },
+        "hugo-doc-maintainer": {
+          "description": "Hugo 文档维护 Agent",
+          "systemPrompt": "content from agents/hugo-doc-maintainer.md"
+        }
+      }
+    }
