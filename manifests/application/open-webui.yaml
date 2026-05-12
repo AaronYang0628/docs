@@ -56,6 +56,24 @@ spec:
             value: "http://sub2api.application.svc.cluster.local:8080/v1"
           - name: DEFAULT_USER_ROLE
             value: "admin"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 1
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 3
+          periodSeconds: 30
   destination:
     server: https://kubernetes.default.svc
     namespace: ai
