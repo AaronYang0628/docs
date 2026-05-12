@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: opencode-json-config
+  name: ops-agent-config
 data:
   # ────────────────────────────────────────────
   # opencode.json — 用户自定义配置文件
