@@ -1,0 +1,86 @@
+- Basic Services:
+    - SSH At 72602:
+        icon: terminal
+        description: SSH Service At 72602 Home
+        widget:
+          type: uptimekuma
+          url: https://uptime.72602.online
+          slug: 72602-minipc-ssh
+    - Clash At 72602:
+        icon: clash
+        href: http://clash.72602.online/ui
+        description: http://clash.72602.online/ui
+        siteMonitor: http://clash.72602.online/ui
+    - Clash At ECS:
+        icon: clash
+        href: http://47.110.67.161:56396/ui
+        description: http://47.110.67.161:56396
+        siteMonitor: http://47.110.67.161:56396/ui
+    - Sub2API-WZ:
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
+        href: https://sub2api.home.geekcity.tech:32443
+        description: https://sub2api.home.geekcity.tech:32443
+        siteMonitor: https://sub2api.home.geekcity.tech:32443
+    - Minio Ingress:
+        icon: minio
+        href: https://console.minio.72602.online
+        description: https://console.minio.72602.online
+        siteMonitor: https://console.minio.72602.online
+    - Uptimekuma:
+        icon: sh-uptime-kuma
+        href: https://uptime.72602.online
+        description: https://uptime.72602.online
+        siteMonitor: https://uptime.72602.online
+    - ArgoCD At 72602:
+        icon: argo-cd
+        description: ArgoCD Monitor
+        href: https://argocd.72602.online
+        siteMonitor: https://argocd.72602.online
+        widget:
+          type: argocd
+          url: https://argocd.72602.online
+          key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJyZWFkb25seTphcGlLZXkiLCJuYmYiOjE3Nzc0NjU4MDMsImlhdCI6MTc3NzQ2NTgwMywianRpIjoiMjZmZTdjMTEtM2M4Ni00MGIzLWE4ZjItYzZkOTI5MDA4M2I1In0.U7i0owmmzvdG-hl51lZfHJqSBUyCczrAneSJMOm3LPQ
+          insecure: true
+- 72602 Hosted:
+    - Postgres Admin:
+        icon: postgres
+        description: https://pgadmin.72602.online
+        siteMonitor: https://pgadmin.72602.online
+    - Sub2API-AY:
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
+        href: https://sub2api.72602.online
+        description: https://sub2api.72602.online
+        siteMonitor: https://sub2api.72602.online
+    - N8N Ingress:
+        icon: n8n
+        href: https://n8n.72602.online
+        description: https://n8n.72602.online
+        siteMonitor: https://n8n.72602.online
+    - Opencode:
+        icon: opencode
+        href: https://opencode.72602.online
+        description: https://opencode.72602.online
+        siteMonitor: https://opencode.72602.online
+    - Port Blog Ingress:
+        href: http://port.72602.online
+        icon: hugo
+        description: http://port.72602.online
+        siteMonitor: http://port.72602.online
+    - Langfuse Ingress:
+        href: https://langfuse.72602.online
+        icon: sh-langfuse
+        description: https://langfuse.72602.online
+        siteMonitor: https://langfuse.72602.online
+- External Links:
+    - ZJLAB Nanhu:
+        href: https://zjic.zhejianglab.com/portal/navigation
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png
+        description: https://zjic.zhejianglab.com/portal/navigation
+        siteMonitor: https://zjic.zhejianglab.com/portal/navigation
+    - ZJLAB Haina:
+        href: https://open-sci-datahub.zero2x.org/home
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png
+        description: https://open-sci-datahub.zero2x.org/home
+        siteMonitor: https://open-sci-datahub.zero2x.org/home
+        
+- Conatiners: []

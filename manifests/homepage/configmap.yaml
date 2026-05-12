@@ -1,0 +1,200 @@
+apiVersion: v1
+data:
+  bookmarks.yaml: |-
+    - Workflows:
+        - WeChat:
+            - abbr: WeChat
+              icon: sh-wechat
+              href: https://mp.weixin.qq.com/
+              description: Medium中文公众号
+        - Toutiao:
+            - abbr: Toutiao
+              icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/toutiao.png
+              href: https://www.toutiao.com/
+              description: Apple内幕推送
+    - Blog:
+        - DEV-BLOG:
+            - abbr: ay's dev blog
+              icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/dev_blog.png
+              href: https://aaronyang0628.github.io/docs/
+        - WZ-BLOG:
+            - abbr: wangzhi
+              icon: blogger
+              href: https://blog.geekcity.tech/articles/
+        - BK-BLOG:
+            - abbr: cnconti
+              icon: blogger
+              href: https://memo.cnconti.tech/#/
+    - Developer:
+        - Github:
+            - abbr: GH
+              icon: github
+              href: https://github.com/AaronYang0628
+        - Aliyun:
+            - abbr: Ali
+              icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/aliyun.png
+              href: https://home.console.aliyun.com/home/dashboard/ProductAndService
+        - Tailscale:
+            - abbr: TS
+              icon: tailscale
+              href: https://tailscale.com
+        - OperatorHub:
+            - abbr: OSH
+              icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/operator_hub.png
+              href: https://operatorhub.io/
+        - Artifacthub:
+            - abbr: AH
+              icon: artifacthub
+              href: https://artifacthub.io/
+        - ACR:
+            - abbr: ACR
+              icon: docker-engine
+              href: https://cr.console.aliyun.com/cn-hongkong/instance/dashboard
+        - DD-Dev:
+            - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/dingding.png
+              href: https://open-dev.dingtalk.com/
+              description: https://open-dev.dingtalk.com/
+        - DD-Admin:
+            - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/dingding.png
+              href: https://oa.dingtalk.com
+              description: https://oa.dingtalk.com
+    - Tool:
+        - ChatGPT:
+            - abbr: chatgpt
+              icon: chatgpt
+              href: https://chatgpt.com/
+        - Deepseek:
+            - abbr: DB
+              icon: deepseek
+              href: https://chat.deepseek.com/
+        - Gemini:
+            - abbr: GM
+              icon: google-gemini
+              href: https://gemini.google.com/
+        - Claude Code:
+            - abbr: Claude
+              icon: claude-ai
+              href: https://claude.ai/new
+        - FontAwesome:
+            - abbr: FA
+              icon: fontawesome
+              href: https://fontawesome.com/v6/search?o=r
+        - Skywork:
+            - abbr: SKY
+              icon: google-slides
+              href: https://skywork.ai/
+        - ICON:
+            - abbr: IC
+              icon: dashboard-icons-dark
+              href: https://dashboardicons.com/
+    - Media:
+        - Twitter:
+            - abbr: twitter
+              icon: twitter
+              href: https://x.com/
+        - RedBook:
+            - abbr: XHS
+              icon: si-xiaohongshu
+              href: https://www.xiaohongshu.com/explore
+        - YouTube:
+            - abbr: YT
+              icon: youtube
+              href: https://youtube.com/
+        - Bilibili:
+            - abbr: BB
+              icon: bilibili
+              href: https://bilibili.com/
+        - IYF:
+            - abbr: IYF
+              icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/iyf.png
+              href: https://www.iyf.tv/?from=1
+        - WeChat:
+            - abbr: WeChat
+              icon: sh-wechat
+              href: https://mp.weixin.qq.com/
+        - Medium:
+            - abbr: Medium
+              icon: medium-dark
+              href: https://medium.com/
+  custom.css: ""
+  custom.js: ""
+  docker.yaml: ""
+  kubernetes.yaml: |-
+    mode: default
+    ingress: true
+  services.yaml: "- Basic Services:\n    - SSH At 72602:\n        icon: terminal\n
+    \       description: SSH Service At 72602 Home\n        widget:\n          type:
+    uptimekuma\n          url: https://uptime.72602.online\n          slug: 72602-minipc-ssh\n
+    \   - Clash At 72602:\n        icon: clash\n        href: http://clash.72602.online/ui\n
+    \       description: http://clash.72602.online/ui\n        siteMonitor: http://clash.72602.online/ui\n
+    \   - Clash At ECS:\n        icon: clash\n        href: http://47.110.67.161:56396/ui\n
+    \       description: http://47.110.67.161:56396\n        siteMonitor: http://47.110.67.161:56396/ui\n
+    \   - Sub2API-WZ:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/sub2api.png\n
+    \       href: https://sub2api.home.geekcity.tech:32443\n        description: https://sub2api.home.geekcity.tech:32443\n
+    \       siteMonitor: https://sub2api.home.geekcity.tech:32443\n    - Minio Ingress:\n
+    \       icon: minio\n        href: https://console.minio.72602.online\n        description:
+    https://console.minio.72602.online\n        siteMonitor: https://console.minio.72602.online\n
+    \   - Uptimekuma:\n        icon: sh-uptime-kuma\n        href: https://uptime.72602.online\n
+    \       description: https://uptime.72602.online\n        siteMonitor: https://uptime.72602.online\n
+    \   - ArgoCD At 72602:\n        icon: argo-cd\n        description: ArgoCD Monitor\n
+    \       href: https://argocd.72602.online\n        siteMonitor: https://argocd.72602.online\n
+    \       widget:\n          type: argocd\n          url: https://argocd.72602.online\n
+    \         key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJyZWFkb25seTphcGlLZXkiLCJuYmYiOjE3Nzc0NjU4MDMsImlhdCI6MTc3NzQ2NTgwMywianRpIjoiMjZmZTdjMTEtM2M4Ni00MGIzLWE4ZjItYzZkOTI5MDA4M2I1In0.U7i0owmmzvdG-hl51lZfHJqSBUyCczrAneSJMOm3LPQ\n
+    \         insecure: true\n- 72602 Hosted:\n    - Postgres Admin:\n        icon:
+    postgres\n        description: https://pgadmin.72602.online\n        siteMonitor:
+    https://pgadmin.72602.online\n    - Sub2API-AY:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/sub2api.png\n
+    \       href: https://sub2api.72602.online\n        description: https://sub2api.72602.online\n
+    \       siteMonitor: https://sub2api.72602.online\n    - N8N Ingress:\n        icon:
+    n8n\n        href: https://n8n.72602.online\n        description: https://n8n.72602.online\n
+    \       siteMonitor: https://n8n.72602.online\n    - Opencode:\n        icon:
+    opencode\n        href: https://opencode.72602.online\n        description: https://opencode.72602.online\n
+    \       siteMonitor: https://opencode.72602.online\n    - Port Blog Ingress:\n
+    \       href: http://port.72602.online\n        icon: hugo\n        description:
+    http://port.72602.online\n        siteMonitor: http://port.72602.online\n    -
+    Langfuse Ingress:\n        href: https://langfuse.72602.online\n        icon:
+    sh-langfuse\n        description: https://langfuse.72602.online\n        siteMonitor:
+    https://langfuse.72602.online\n- External Links:\n    - ZJLAB Nanhu:\n        href:
+    https://zjic.zhejianglab.com/portal/navigation\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
+    \       description: https://zjic.zhejianglab.com/portal/navigation\n        siteMonitor:
+    https://zjic.zhejianglab.com/portal/navigation\n    - ZJLAB Haina:\n        href:
+    https://open-sci-datahub.zero2x.org/home\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
+    \       description: https://open-sci-datahub.zero2x.org/home\n        siteMonitor:
+    https://open-sci-datahub.zero2x.org/home\n        \n- Conatiners: []\n"
+  settings.yaml: |-
+    title: 72602 Homepage
+    theme: gray
+    description: A Monitoring Dashboard for All Services in 72602
+    startUrl: /
+    discovery:
+      enabled: false
+    hideVersion: true
+    disableUpdateCheck: true
+    quicklaunch:
+      searchDescriptions: true
+      hideInternetSearch: true
+      showSearchSuggestions: true
+      hideVisitURL: true
+      provider: google
+    layout:
+      Developer:
+        style: row
+        columns: 5
+      Blog:
+        style: row
+        columns: 5
+      Workflows:
+        style: row
+        columns: 5
+      Media:
+        iconsOnly: true
+      Tool:
+        iconsOnly: true
+  widgets.yaml: "- resources:\n    backend: resources\n    expanded: true\n    cpu:
+    true\n    memory: true\n    network: default\n- search:\n    provider: google\n
+    \   target: _blank\n- logo:\n    href: http://home.72602.online\n    target: _blank
+    \n    icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/icons/port_icon.png"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: homepage
+  name: homepage

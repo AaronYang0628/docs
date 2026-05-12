@@ -1,0 +1,13 @@
+- resources:
+    backend: resources
+    expanded: true
+    cpu: true
+    memory: true
+    network: default
+- search:
+    provider: google
+    target: _blank
+- logo:
+    href: http://home.72602.online
+    target: _blank 
+    icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/port_icon.png
