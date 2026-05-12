@@ -1,0 +1,31 @@
+#!/bin/bash
+# Pre-commit hook: block files containing secrets from being committed.
+
+set -euo pipefail
+
+RED='\033[0;31m'
+NC='\033[0m'
+
+git diff --cached --name-only --diff-filter=ACM | while read -r file; do
+  if echo "$file" | grep -qE '\.(png|jpg|gif|ico|pdf|woff2?|ttf|eot|svg)$'; then
+    continue
+  fi
+
+  content=$(git show ":${file}" 2>/dev/null || true)
+  [ -z "$content" ] && continue
+
+  # Check for API keys (sk-... pattern from OpenAI/DeepSeek)
+  if echo "$content" | grep -qE '(sk-[a-zA-Z0-9]{20,})'; then
+    if ! echo "$content" | grep -q "kind: Secret"; then
+      echo -e "${RED}[SECURITY]${NC} $file: contains API key (sk-...)"
+      echo "If this is intentional, use: git commit --no-verify"
+      exit 1
+    fi
+  fi
+
+  # Check for private SSH keys
+  if echo "$content" | grep -qE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY'; then
+    echo -e "${RED}[SECURITY]${NC} $file: contains private SSH key"
+    exit 1
+  fi
+done
