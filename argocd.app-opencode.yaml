@@ -7,7 +7,7 @@ spec:
   source:
     repoURL: https://github.com/AaronYang0628/docs.git
     targetRevision: main
-    path: manifests/opencode
+    path: manifests/ops-agent
   syncPolicy:
     automated:
       prune: true

@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: opencode-web
+  name: ops-agent
   labels:
-    app: opencode-web
+    app: ops-agent
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: opencode-web
+      app: ops-agent
   template:
     metadata:
       labels:
-        app: opencode-web
+        app: ops-agent
     spec:
-      serviceAccountName: opencode-sa
+      serviceAccountName: ops-agent-sa
       volumes:
         - name: opencode-config
           configMap:
-            name: opencode-json-config
+            name: ops-agent-config
 
       containers:
         # ---- main: opencode web ----
         - name: opencode
-          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-web:latest
+          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/ops-agent:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
