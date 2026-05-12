@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: opencode-web
+  name: ops-agent
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: lets-encrypt
@@ -9,10 +9,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - opencode.72602.online
-      secretName: opencode-web-tls
+        - ops.agent.72602.online
+      secretName: ops-agent-tls
   rules:
-    - host: opencode.72602.online
+    - host: ops.agent.72602.online
       http:
         paths:
           - path: /
