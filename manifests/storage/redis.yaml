@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-shared
+spec:
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: redis
+    targetRevision: 18.16.0
+    helm:
+      releaseName: redis-shared
+      values: |
+        architecture: standalone
+        auth:
+          enabled: true
+          existingSecret: redis-shared-credentials
+        master:
+          disableCommands:
+            - FLUSHDB
+            - FLUSHALL
+          persistence:
+            enabled: true
+            storageClass: local-path
+            size: 2Gi
+        image:
+          registry: m.daocloud.io/docker.io
+          repository: bitnamilegacy/redis
+          tag: latest
+          pullPolicy: IfNotPresent
+        metrics:
+          enabled: false
+        volumePermissions:
+          enabled: false
+        sysctl:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: storage
