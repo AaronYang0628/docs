@@ -62,7 +62,7 @@ spec:
           parameters: [{name: message, value: end}]
 ```
 {{% /tab %}}
-{{% tab title="apply" %}}
+{{% tab title="shortcut" %}}
 ```bash
 kubectl -n business-workflow apply -f - << EOF
 apiVersion: argoproj.io/v1alpha1
