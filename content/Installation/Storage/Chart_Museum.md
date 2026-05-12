@@ -118,10 +118,10 @@ weight = 31
                 cert-manager.io/cluster-issuer: self-signed-ca-issuer
                 nginx.ingress.kubernetes.io/rewrite-target: /$1
               hosts:
-                - name: chartmuseum.ay.dev
+                - name: chartmuseum.dev.72602.online
                   path: /?(.*)
                   tls: true
-                  tlsSecret: chartmuseum.ay.dev-tls
+                  tlsSecret: chartmuseum.dev.72602.online-tls
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components
@@ -153,7 +153,7 @@ weight = 31
               open:
                 DISABLE_API: false
                 STORAGE: amazon
-                STORAGE_AMAZON_ENDPOINT: http://minio-api.ay.dev:32080
+                STORAGE_AMAZON_ENDPOINT: http://minio-api.dev.72602.online:32080
                 STORAGE_AMAZON_BUCKET: chart-museum
                 STORAGE_AMAZON_PREFIX: charts
                 STORAGE_AMAZON_REGION: us-east-1
@@ -177,10 +177,10 @@ weight = 31
                 cert-manager.io/cluster-issuer: self-signed-ca-issuer
                 nginx.ingress.kubernetes.io/rewrite-target: /$1
               hosts:
-                - name: chartmuseum.ay.dev
+                - name: chartmuseum.dev.72602.online
                   path: /?(.*)
                   tls: true
-                  tlsSecret: chartmuseum.ay.dev-tls
+                  tlsSecret: chartmuseum.dev.72602.online-tls
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components
@@ -229,10 +229,10 @@ weight = 31
                 cert-manager.io/cluster-issuer: self-signed-ca-issuer
                 nginx.ingress.kubernetes.io/rewrite-target: /$1
               hosts:
-                - name: chartmuseum.ay.dev
+                - name: chartmuseum.dev.72602.online
                   path: /?(.*)
                   tls: true
-                  tlsSecret: chartmuseum.ay.dev-tls
+                  tlsSecret: chartmuseum.dev.72602.online-tls
       destination:
         server: https://kubernetes.default.svc
         namespace: basic-components

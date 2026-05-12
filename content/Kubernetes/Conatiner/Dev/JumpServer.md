@@ -11,7 +11,7 @@ weight = 10
       ╱         ╱ ------  ╱        ╱╱  --------  ╱         ╱
      ╱         ╱         ╱         ╱            ╱         ╱ 
      ╲________╱          ╲________╱             ╲________╱  
-    IP: 10.A.B.C    IP: jumpserver.ay.dev   IP: 192.168.100.xxx                                
+    IP: 10.A.B.C    IP: jumpserver.dev.72602.online   IP: 192.168.100.xxx                                
 ```
 
 ### Modify SSH Config
@@ -19,7 +19,7 @@ weight = 10
 ```shell
 cat .ssh/config
 Host jumpserver
-  HostName jumpserver.ay.dev
+  HostName jumpserver.dev.72602.online
   Port 30022
   User ay
   IdentityFile ~/.ssh/id_rsa
@@ -38,5 +38,5 @@ And then you can directly connect to the `virtual node`
 > 
 > `32524` is a service which you wanna forward
 ```shell
-ssh -o 'UserKnownHostsFile /dev/null' -o 'ServerAliveInterval=60' -L 32524:192.168.100.xxx:32524 -p 30022 ay@jumpserver.ay.dev
+ssh -o 'UserKnownHostsFile /dev/null' -o 'ServerAliveInterval=60' -L 32524:192.168.100.xxx:32524 -p 30022 ay@jumpserver.dev.72602.online
 ```

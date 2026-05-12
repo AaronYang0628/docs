@@ -121,7 +121,7 @@ weight = 14
         "mcp": {
           "euclid-catalog": {
             "type": "remote",
-            "url": "https://catalog.euclid.mcp.ay.dev:32443/sse",
+            "url": "https://catalog.euclid.mcp.dev.72602.online:32443/sse",
             "enabled": true
           },
           "astro_k3s_mcp": {
@@ -357,14 +357,14 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
             hosts:
-              - host: opencode.ay.dev
+              - host: opencode.dev.72602.online
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
             - hosts:
-              - opencode.ay.dev
-              secretName: opencode.ay.dev-tls
+              - opencode.dev.72602.online
+              secretName: opencode.dev.72602.online-tls
           globalLabels:
             app.kubernetes.io/part-of: opencode
             environment: production
@@ -399,14 +399,14 @@ weight = 14
                 nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
                 nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
               hosts:
-                - host: opencode-bridge.ay.dev
+                - host: opencode-bridge.dev.72602.online
                   paths:
                     - path: /
                       pathType: Prefix
               tls:
                 - secretName: opencode-bridge-tls
                   hosts:
-                    - opencode-bridge.ay.dev
+                    - opencode-bridge.dev.72602.online
 
     destination:
       server: https://kubernetes.default.svc
@@ -431,7 +431,7 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```bash
-  curl -k -X POST https://opencode.ay.dev:32443/session \
+  curl -k -X POST https://opencode.dev.72602.online:32443/session \
   -H "Content-Type: application/json" \
   -d '{"model": "opencode/minimax-m2.5-free"}'
   
@@ -443,7 +443,7 @@ weight = 14
 
   {{% notice style="transparent" %}}
   ```bash
-  curl -k -X POST https://opencode.ay.dev:32443/session/ses_30a879abeffe6KRC0Rmg4aPrmK/message \
+  curl -k -X POST https://opencode.dev.72602.online:32443/session/ses_30a879abeffe6KRC0Rmg4aPrmK/message \
   -H "Content-Type: application/json" \
   -d '{"parts": [{"type": "text", "text": "你好"}]}'
 

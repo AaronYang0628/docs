@@ -61,7 +61,7 @@ spec:
             spec:
               ingressClassName: nginx
               rules:
-              - host: argo-events.webhook.ay.dev
+              - host: argo-events.webhook.dev.72602.online
                 http:
                   paths:
                   - backend:
@@ -73,7 +73,7 @@ spec:
                     pathType: ImplementationSpecific
               tls:
               - hosts:
-                - argo-events.webhook.ay.dev
+                - argo-events.webhook.dev.72602.online
                 secretName: argo-events-webhook-tls
   destination:
     server: https://kubernetes.default.svc

@@ -242,7 +242,7 @@ weight = 14
               "N8N_CONCURRENCY_PRODUCTION_LIMIT": "5"
               "NODE_TLS_REJECT_UNAUTHORIZED": "0"
               "N8N_SECURE_COOKIE": "false"
-              "WEBHOOK_URL": "https://webhook.n8n.ay.dev"
+              "WEBHOOK_URL": "https://webhook.n8n.dev.72602.online"
               "QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD": "60000"
               "N8N_COMMUNITY_PACKAGES_ENABLED": "true"
               "N8N_GIT_NODE_DISABLE_BARE_REPOS": "true"
@@ -341,18 +341,18 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
             hosts:
-              - host: n8n.ay.dev
+              - host: n8n.dev.72602.online
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
             - hosts:
-              - n8n.ay.dev
-              - webhook.n8n.ay.dev
-              secretName: n8n.ay.dev-tls
+              - n8n.dev.72602.online
+              - webhook.n8n.dev.72602.online
+              secretName: n8n.dev.72602.online-tls
           webhook:
             mode: queue
-            url: "https://webhook.n8n.ay.dev"
+            url: "https://webhook.n8n.dev.72602.online"
             autoscaling:
               enabled: false
             waitMainNodeReady:
