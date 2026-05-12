@@ -33,10 +33,12 @@ if [ -n "${GIT_USER_EMAIL:-}" ]; then
     git config --global user.email "${GIT_USER_EMAIL}"
 fi
 
-# 3. Inject API key into opencode.json (replace placeholder)
-CONFIG_FILE="${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json"
-if [ -f "$CONFIG_FILE" ] && [ -n "${DEEPSEEK_API_KEY:-}" ]; then
-    sed -i "s/___INJECT_FROM_ENV___/${DEEPSEEK_API_KEY}/g" "$CONFIG_FILE"
+# 3. Merge API key into opencode config (ConfigMap is read-only, write to user dir)
+CONFIG_TEMPLATE="${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json"
+USER_CONFIG="$HOME/.config/opencode/opencode.json"
+if [ -f "$CONFIG_TEMPLATE" ] && [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+    mkdir -p "$HOME/.config/opencode"
+    sed "s/___INJECT_FROM_ENV___/${DEEPSEEK_API_KEY}/g" "$CONFIG_TEMPLATE" > "$USER_CONFIG"
 fi
 
 # 4. Set workspace from baked-in repo
