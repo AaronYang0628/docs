@@ -1,4 +1,9 @@
-
++++
+title = 'UFW'
+date = 2025-09-07T19:58:45+08:00
+weight = 21
+tags = ["Linux", "Firewall"]
++++
 
 1. add allow rule
 ```shell

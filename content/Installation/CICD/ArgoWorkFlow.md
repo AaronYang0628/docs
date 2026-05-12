@@ -4,10 +4,12 @@ date = 2024-03-07T15:00:59+08:00
 weight = 11
 +++
 
+> ⚠️ **ZJ Lab Only** — Argo Workflow is only deployed in the ZJ Lab environment (`ay.dev`). It is **not** deployed in the 72602 cluster.
+
 ### Preliminary
 - Kubernetes is installed; if not, check 🔗[link](kubernetes/cluster/index.html)
 - Argo CD is installed; if not, check 🔗[link](Installation/cicd/argocd.html)
-- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`service, , if not check 🔗[link](Installation/application/cert_manager.html)
+- cert-manager has installed on argocd and the clusterissuer has a named `self-signed-ca-issuer`, if not check 🔗[link](Installation/application/cert_manager.html)
 
 ### 0. create workflow related namespace
 ```yaml

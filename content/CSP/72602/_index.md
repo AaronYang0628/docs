@@ -1,6 +1,7 @@
 +++
 title = "72602"
 tags = ["k3s", "argocd", "ingress", "tailscale"]
+weight = 1
 +++
 
 ## Scope
