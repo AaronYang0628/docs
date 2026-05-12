@@ -41,7 +41,7 @@ spec:
             - |
               set -euo pipefail
               rm -rf "${SITE_OUTPUT_DIR}"/*
-              hugo --source "${SITE_SOURCE_DIR}" --destination "${SITE_OUTPUT_DIR}"
+              hugo --source "${SITE_SOURCE_DIR}" --destination "${SITE_OUTPUT_DIR}" --baseURL "${SITE_BASE_URL}"
               test -f "${SITE_OUTPUT_DIR}/index.html"
           envFrom:
             - configMapRef:
