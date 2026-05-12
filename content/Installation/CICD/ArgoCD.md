@@ -138,7 +138,7 @@ Choose one installation path below. Helm is recommended when you want versioned 
     helm upgrade --install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.3.5 \
+      --version 9.5.4 \
       --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
       --values argocd.zj.values.yaml \
       --atomic
@@ -150,7 +150,7 @@ Choose one installation path below. Helm is recommended when you want versioned 
     helm install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.3.5 \
+      --version 9.5.4 \
       --repo https://aaronyang0628.github.io/helm-chart-mirror/charts \
       --values argocd.72602.values.yaml \
       --atomic
@@ -166,7 +166,7 @@ Choose one installation path below. Helm is recommended when you want versioned 
     helm upgrade --install argo-cd argo-cd \
       --namespace argocd \
       --create-namespace \
-      --version 8.3.5 \
+      --version 9.5.4 \
       --repo https://argoproj.github.io/argo-helm \
       --values argocd.zj.values.yaml \
       --atomic
@@ -277,7 +277,7 @@ Choose one installation path below. Helm is recommended when you want versioned 
       app.kubernetes.io/instance: argo-cd
       app.kubernetes.io/name: argocd-server-external
       app.kubernetes.io/part-of: argocd
-      app.kubernetes.io/version: v2.8.4
+      app.kubernetes.io/version: v3.3.8
     name: argocd-server-external
   spec:
     ports:
@@ -452,6 +452,42 @@ open https://argocd.dev.72602.online
 ```
 {{% /tab  %}}
 {{< /tabs >}}
+
+
+
+### Manage User Info
+user `readonly` is using for [homepage](https://home.72602.online) website to grab some data from kubernetes.
+
+1. create local user `readonly` (no password, apiKey only)
+```
+kubectl -n argocd patch configmap argocd-cm --type merge -p '{"data":{"accounts.readonly":"apiKey","accounts.readonly.enabled":"true"}}'
+
+kubectl -n argocd patch configmap argocd-rbac-cm --type merge -p '{"data":{"policy.csv":"p, role:readonly, applications, get, */*, allow\np, role:readonly, projects, get, *, allow\np, role:readonly, repositories, get, *, allow\np, role:readonly, clusters, get, *, allow\ng, readonly, role:readonly","policy.default":""}}'
+
+kubectl -n argocd rollout restart deploy argo-cd-argocd-server
+```
+
+2. retrieve user `readonly` token
+```
+argocd account list
+argocd account generate-token --account readonly
+```
+
+
+### Manage GitHub Repo
+1. generate github deploy key
+```
+ssh-keygen -t rsa -b 4096 -C "github-deploy-key" -f id_rsa_github -N ""
+```
+
+2. create kubernetes secret
+```
+kubectl create secret generic github-ssh-key \
+  --from-file=id_rsa=./id_rsa_github \
+  --from-file=id_rsa.pub=./id_rsa_github.pub \
+  --from-file=known_hosts=<(ssh-keyscan github.com)
+```
+
 
 ### FAQ
 
