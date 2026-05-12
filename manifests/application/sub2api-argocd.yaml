@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: k8s-at-home-charts-oci
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+type: Opaque
+stringData:
+  name: k8s-at-home-charts-oci
+  type: helm
+  enableOCI: "true"
+  url: ghcr.io/ben-wangz/k8s-at-home-charts
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sub2api
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: application
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: ghcr.io/ben-wangz/k8s-at-home-charts
+    chart: sub2api
+    targetRevision: 0.1.1
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hostname: sub2api.72602.online
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+          tls: true
+          tlsSecret: sub2api.72602.online-tls
+
+        sub2api:
+          auth:
+            existingSecret: sub2api-auth
+
+        redis:
+          auth:
+            existingSecret: sub2api-redis
+            existingSecretPasswordKey: redis-password
+
+        postgresql:
+          enabled: false
+
+        externalPostgresql:
+          host: postgresql.database.svc.cluster.local
+          port: 5432
+          username: sub2api
+          database: sub2api
+          sslmode: disable
+          existingSecret: sub2api-external-postgresql
+          existingSecretPasswordKey: postgres-password
