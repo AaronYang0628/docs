@@ -66,6 +66,12 @@ spec:
             - --cookie-secure=true
             - --cookie-name=_opencode_auth
           env:
+            - name: HTTP_PROXY
+              value: http://100.107.240.120:7890
+            - name: HTTPS_PROXY
+              value: http://100.107.240.120:7890
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,.svc,.cluster.local,10.42.0.0/16,10.43.0.0/16,100.64.0.0/10,ghfast.top
             - name: OAUTH2_PROXY_CLIENT_ID
               valueFrom:
                 secretKeyRef:
