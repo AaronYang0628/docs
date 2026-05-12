@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-webui
+spec:
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  source:
+    repoURL: https://open-webui.github.io/helm-charts
+    chart: open-webui
+    targetRevision: 14.5.0
+    helm:
+      releaseName: open-webui
+      values: |
+        image:
+          repository: m.daocloud.io/ghcr.io/open-webui/open-webui
+          pullPolicy: IfNotPresent
+          useSlim: false
+        ollama:
+          enabled: false
+        pipelines:
+          enabled: false
+        tika:
+          enabled: false
+        terminals:
+          enabled: false
+        websocket:
+          enabled: true
+          manager: redis
+          existingSecret: open-webui-redis-url
+          existingSecretKey: redis-url
+          redis:
+            enabled: false
+        ingress:
+          enabled: true
+          class: nginx
+          host: txt2img.agent.72602.online
+          tls: true
+          existingSecret: txt2img-agent-tls
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+        persistence:
+          enabled: true
+          size: 2Gi
+          storageClass: local-path
+        extraEnvVars:
+          - name: OPENAI_API_BASE_URL
+            value: "http://sub2api.application.svc.cluster.local:8080/v1"
+          - name: DEFAULT_USER_ROLE
+            value: "admin"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
