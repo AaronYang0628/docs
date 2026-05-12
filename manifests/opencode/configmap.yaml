@@ -3,19 +3,37 @@ kind: ConfigMap
 metadata:
   name: opencode-json-config
 data:
+  # ────────────────────────────────────────────
+  # opencode.json — 用户自定义配置文件
+  # 你想用什么 provider、model、agent 都在这里配。
+  # API key 用 ___INJECT_FROM_ENV___ 占位，
+  # entrypoint 会自动替换为 Secret 中的实际 key。
+  # ────────────────────────────────────────────
   opencode.json: |
     {
       "$schema": "https://opencode.ai/config.json",
-      "agent": {
-        "72602-k3s-maintainer": {
+      "provider": {
+        "openai": {
           "options": {
-            "store": false
-          }
-        },
-        "hugo-doc-maintainer": {
-          "options": {
-            "store": false
+            "apiKey": "___INJECT_FROM_ENV___",
+            "baseURL": "https://sub2api.72602.online/v1"
+          },
+          "models": {
+            "deepseek-v4-flash": {
+              "name": "Deepseek V4 Flash",
+              "limit": { "context": 400000, "output": 128000 },
+              "variants": { "low": {}, "medium": {}, "high": {} }
+            },
+            "deepseek-v4-pro": {
+              "name": "Deepseek V4 Pro",
+              "limit": { "context": 1050000, "output": 128000 },
+              "variants": { "low": {}, "medium": {}, "high": {}, "xhigh": {} }
+            }
           }
         }
+      },
+      "agent": {
+        "72602-k3s-maintainer": { "options": { "store": false } },
+        "hugo-doc-maintainer": { "options": { "store": false } }
       }
     }

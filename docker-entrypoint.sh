@@ -33,7 +33,13 @@ if [ -n "${GIT_USER_EMAIL:-}" ]; then
     git config --global user.email "${GIT_USER_EMAIL}"
 fi
 
-# 3. Set workspace from baked-in repo
+# 3. Inject API key into opencode.json (replace placeholder)
+CONFIG_FILE="${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json"
+if [ -f "$CONFIG_FILE" ] && [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+    sed -i "s/___INJECT_FROM_ENV___/${DEEPSEEK_API_KEY}/g" "$CONFIG_FILE"
+fi
+
+# 4. Set workspace from baked-in repo
 WORKSPACE="${OPENCODE_WORKSPACE:-/app/repo-baked}"
 
 # 4. Try to pull latest changes (best-effort, cluster may be offline)
