@@ -28,17 +28,109 @@ weight = 180
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install ay-helm-mirror/kube-prometheus-stack --generate-name
+  helm install redis bitnami/redis \
+    --namespace storage --create-namespace \
+    --set architecture=standalone \
+    --set auth.password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
   ```
-  {{% /notice %}}
-
-  {{% notice style="important" title="Using Proxy" %}} 
-  for more information, you can check 🔗[https://artifacthub.io/packages/helm/prometheus-community/prometheus](https://artifacthub.io/packages/helm/prometheus-community/prometheus)
   {{% /notice %}}
 
 {{< /tab >}}
 
-{{< tab title="ArgoCD" style="transparent" >}}
+{{< tab title="ArgoCD (72602)" style="transparent" >}}
+  <p> <b>Preliminary </b></p>
+  1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/k3s/" target="_blank">link</a> </p></br>
+  2. ArgoCD is installed; if not, check 🔗<a href="/docs/Installation/cicd/argocd/" target="_blank">link</a> </p></br>
+
+  <p> <b>1.prepare redis secret </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespaces storage > /dev/null 2>&1 || kubectl create namespace storage
+  kubectl -n storage create secret generic redis-shared-credentials \
+    --from-literal=redis-password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.prepare</b> `deploy-redis.yaml` </p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f - << EOF
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: redis-shared
+  spec:
+    project: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+      - CreateNamespace=true
+    source:
+      repoURL: https://charts.bitnami.com/bitnami
+      chart: redis
+      targetRevision: 18.16.0
+      helm:
+        releaseName: redis-shared
+        values: |
+          architecture: standalone
+          auth:
+            enabled: true
+            existingSecret: redis-shared-credentials
+          master:
+            disableCommands:
+              - FLUSHDB
+              - FLUSHALL
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 2Gi
+          image:
+            registry: m.daocloud.io/docker.io
+            repository: bitnamilegacy/redis
+            tag: latest
+            pullPolicy: IfNotPresent
+          metrics:
+            enabled: false
+          volumePermissions:
+            enabled: false
+          sysctl:
+            enabled: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: storage
+  EOF
+  ```
+  {{% /notice %}}
+
+  <p> <b>3.sync by argocd</b></p>
+
+  ```bash
+  argocd app sync redis-shared
+  ```
+
+  <p> <b>4.verify</b></p>
+
+  ```bash
+  kubectl -n storage get pods -l app.kubernetes.io/instance=redis-shared
+  kubectl -n storage exec redis-shared-master-0 -- redis-cli -a \
+    "\$(kubectl -n storage get secret redis-shared-credentials -o jsonpath='{.data.redis-password}' | base64 -d)" ping
+  ```
+
+  <p> <b>5.connection info</b></p>
+
+  ```
+  Host: redis-shared-master.storage.svc.cluster.local
+  Port: 6379
+  Password: (stored in secret redis-shared-credentials)
+  ```
+
+{{< /tab >}}
+
+{{< tab title="ArgoCD (Replication)" style="transparent" >}}
   <p> <b>Preliminary </b></p>
   1. Kubernetes is installed; if not, check 🔗<a href="/docs/kubernetes/cluster/index.html" target="_blank">link</a> </p></br>
   2. Helm is installed; if not, check 🔗<a href="/docs/Installation/binary/k8s_realted/index.html#helm" target="_blank">link</a> </p></br>
