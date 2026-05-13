@@ -35,5 +35,9 @@ data:
       "agent": {
         "72602-k3s-maintainer": { "options": { "store": false } },
         "hugo-doc-maintainer": { "options": { "store": false } }
+      },
+      "plugin": ["opencode-plugin-langfuse"],
+      "experimental": {
+        "openTelemetry": true
       }
     }
