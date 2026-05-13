@@ -1,0 +1,102 @@
+global:
+  security:
+    allowInsecureImages: true
+  librechat:
+    existingSecretName: librechat-credentials-env
+    existingSecretApiKey: OPENAI_API_KEY
+
+librechat:
+  existingSecretName: librechat-credentials-env
+  configEnv:
+    ALLOW_REGISTRATION: "false"
+    ENDPOINTS: "openAI"
+  configYamlContent: |
+    version: 1.2.8
+    cache: true
+    endpoints:
+      custom:
+        - name: "sub2api"
+          apiKey: "${OPENAI_API_KEY}"
+          baseURL: "https://sub2api.home.geekcity.tech:32443/v1"
+          models:
+            default: ["gpt-image-2"]
+            fetch: true
+          titleConvo: false
+          summarize: false
+          modelDisplayLabel: "sub2api"
+
+image:
+  registry: ghcr.io
+  repository: danny-avila/librechat
+
+service:
+  type: ClusterIP
+  port: 3080
+  targetPort: 3080
+  containerPort: 3080
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: lets-encrypt
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  hosts:
+    - host: txt2img.agent.72602.online
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: txt2img-agent-tls
+      hosts:
+        - txt2img.agent.72602.online
+
+enableServiceLinks: false
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3080
+  initialDelaySeconds: 90
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 12
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 12
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: false
+  databases:
+    - LibreChat
+  command:
+    - mongod
+  args:
+    - --bind_ip_all
+    - --dbpath
+    - /bitnami/mongodb
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  image:
+    registry: m.daocloud.io
+    repository: docker.io/library/mongo
+    tag: 4.4.29
+
+meilisearch:
+  enabled: true
+  auth:
+    existingMasterKeySecret: librechat-credentials-env
+
+redis:
+  enabled: false
