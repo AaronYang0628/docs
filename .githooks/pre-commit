@@ -1,11 +1,35 @@
 #!/bin/bash
-# Pre-commit hook: block files containing secrets from being committed.
+# Pre-commit hook:
+#   1. Auto-regenerate homepage ConfigMap when config files change
+#   2. Block files containing secrets from being committed
 
 set -euo pipefail
 
 RED='\033[0;31m'
+GREEN='\033[0;32m'
 NC='\033[0m'
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# ─────────────────────────────────────────────
+# Step 1: Auto-regenerate homepage ConfigMap
+# ─────────────────────────────────────────────
+staged_config=$(git diff --cached --name-only --diff-filter=ACM | grep "^manifests/homepage/config/" || true)
+if [ -n "$staged_config" ]; then
+  echo -e "${GREEN}[HOOK]${NC} Homepage config files changed, regenerating ConfigMap..."
+  if command -v kubectl &>/dev/null; then
+    bash "$ROOT_DIR/scripts/gen-homepage-configmap.sh" 2>&1 | sed 's/^/    /'
+    git add "$ROOT_DIR/manifests/homepage/configmap.yaml"
+    echo -e "${GREEN}[HOOK]${NC} ConfigMap regenerated and staged ✅"
+  else
+    echo -e "${RED}[HOOK]${NC} kubectl not found, skipping ConfigMap regeneration ⚠️"
+    echo "         Run manually: bash scripts/gen-homepage-configmap.sh"
+  fi
+fi
+
+# ─────────────────────────────────────────────
+# Step 2: Security check — block secrets in git
+# ─────────────────────────────────────────────
 git diff --cached --name-only --diff-filter=ACM | while read -r file; do
   if echo "$file" | grep -qE '\.(png|jpg|gif|ico|pdf|woff2?|ttf|eot|svg)$'; then
     continue
@@ -14,7 +38,6 @@ git diff --cached --name-only --diff-filter=ACM | while read -r file; do
   content=$(git show ":${file}" 2>/dev/null || true)
   [ -z "$content" ] && continue
 
-  # Check for API keys (sk-... pattern from OpenAI/DeepSeek)
   if echo "$content" | grep -qE '(sk-[a-zA-Z0-9]{20,})'; then
     if ! echo "$content" | grep -q "kind: Secret"; then
       echo -e "${RED}[SECURITY]${NC} $file: contains API key (sk-...)"
@@ -23,7 +46,6 @@ git diff --cached --name-only --diff-filter=ACM | while read -r file; do
     fi
   fi
 
-  # Check for private SSH keys
   if echo "$content" | grep -qE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY'; then
     echo -e "${RED}[SECURITY]${NC} $file: contains private SSH key"
     exit 1
