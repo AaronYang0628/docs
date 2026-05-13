@@ -49,6 +49,14 @@ weight = 161
 
   <p> <b>2.prepare</b> `deploy-pgadmin.yaml` </p>
 
+{{< tabs >}}
+{{< tab title="ZJ" style="transparent" >}}
+```shell
+kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/main/manifests/zjlab/pgadmin.yaml
+```
+{{< /tab >}}
+{{< tab title="72602" style="transparent" >}}
+
   {{% notice style="transparent" %}}
   ```yaml
   kubectl -n argocd apply -f -<< EOF
@@ -107,6 +115,9 @@ weight = 161
   EOF
   ```
   {{% /notice %}}
+
+{{< /tab >}}
+{{< /tabs >}}
 
   <p> <b>3.sync by argocd</b></p>
 

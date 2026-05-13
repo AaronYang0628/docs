@@ -49,6 +49,13 @@ weight = 90
 
   <p> <b>1.prepare</b> `ingress-nginx.yaml` </p>
 
+  {{< tabs >}}
+  {{< tab title="ZJ" style="transparent" >}}
+  ```shell
+  kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/main/manifests/zjlab/ingress-nginx.yaml
+  ```
+  {{< /tab >}}
+  {{< tab title="72602" style="transparent" >}}
   {{% notice style="transparent" %}}
   ```yaml
   kubectl -n argocd apply -f - <<EOF
@@ -120,8 +127,9 @@ weight = 90
  {{% /notice %}}
 
 {{< /tab >}}
+{{< /tabs >}}
 
-
+{{< /tab >}}
 
 {{< /tabs >}}
 

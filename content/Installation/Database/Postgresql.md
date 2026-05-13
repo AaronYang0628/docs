@@ -128,6 +128,7 @@ weight = 160
           name: postgres-tcp-ingress
           annotations:
             kubernetes.io/ingress.class: nginx
+            cert-manager.io/cluster-issuer: lets-encrypt
         spec:
           rules:
           - host: postgres.dev.72602.online
