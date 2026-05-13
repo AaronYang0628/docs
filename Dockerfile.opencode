@@ -15,8 +15,14 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     jq \
     libstdc++ \
     gcompat \
+    nodejs \
+    npm \
     && curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl" \
-    && chmod +x kubectl && mv kubectl /usr/local/bin/
+    && chmod +x kubectl && mv kubectl /usr/local/bin/ && \
+    mkdir -p /root/.config/opencode && \
+    cd /root/.config/opencode && \
+    npm init -y >/dev/null 2>&1 && \
+    npm install opencode-plugin-langfuse@0.1.8 2>&1 | tail -3
 
 COPY --from=builder /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode /usr/local/bin/opencode
 

@@ -45,6 +45,18 @@ spec:
               value: "aaron19940628@gmail.com"
             - name: OPENCODE_WORKSPACE
               value: /app/repo-baked
+            - name: LANGFUSE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ops-agent-langfuse
+                  key: LANGFUSE_PUBLIC_KEY
+            - name: LANGFUSE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ops-agent-langfuse
+                  key: LANGFUSE_SECRET_KEY
+            - name: LANGFUSE_BASEURL
+              value: https://langfuse.72602.online
           volumeMounts:
             - name: opencode-config
               mountPath: /app/repo-baked/.opencode/opencode.json
