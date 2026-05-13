@@ -126,3 +126,44 @@ weight = 15
 
 - **Redis**: `manifests/storage/redis.yaml` → Bitnami Redis chart, standalone, 2Gi local-path
 - **sub2api**: `manifests/application/sub2api-argocd.yaml` → AI API proxy
+
+### 🔧Operations (72602)
+
+<p> <b>1.cleanup</b> `open-webui` </p>
+
+```shell
+kubectl delete application -n argocd open-webui --ignore-not-found
+helm uninstall -n ai open-webui || true
+kubectl -n ai delete ingress,statefulset,svc,secret,pvc -l app.kubernetes.io/instance=open-webui --ignore-not-found
+```
+
+<p> <b>2.rollback</b> `open-webui` </p>
+
+```shell
+kubectl apply -f /home/aaron/Ops/docs/manifests/openwebui-backup-ai-20260513.yaml
+```
+
+### 🧱Pitfalls we already hit (2026-05)
+
+1. OpenWebUI image button only enables UI entry, not backend readiness.
+2. `OPENAI_API_BASE_URL` and provider mapping may be overridden by persisted config (Redis/DB), so env var change alone may not take effect.
+3. Using image-only model in chat path can trigger handler errors in 0.9.5:
+   - `TypeError: 'JSONResponse' object is not subscriptable`
+   - `TypeError: 'StreamingResponse' object is not subscriptable`
+4. `sub2api` in-cluster endpoint may return `404` on `/v1/images/generations`; verify real upstream supports image endpoint before enabling image generation.
+5. Browser cache / service worker can keep old API path and cause false 404 symptoms after frontend migration.
+
+### ✅Monitor / Verify Checklist
+
+```shell
+argocd app get open-webui
+kubectl -n ai get pods,svc,ingress
+kubectl -n ai logs statefulset/open-webui --tail=200
+curl -vkI https://txt2img.agent.72602.online
+```
+
+If image generation fails, verify in order:
+
+1. upstream supports `/v1/images/generations`
+2. provider/model mapping in OpenWebUI admin page
+3. no stale client cache/service worker
