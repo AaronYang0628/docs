@@ -51,6 +51,11 @@ weight = 30
   <p> <b>1.prepare</b> `cert-manager.yaml` </p>
 
   {{< tabs >}}
+  {{% tab title="ZJ" %}}
+  ```yaml
+  kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/main/manifests/zjlab/cert-manager.yaml
+  ```
+  {{% /tab %}}
   {{% tab title="Github Mirror" %}}
   ```yaml
   kubectl -n argocd apply -f - << EOF
@@ -234,6 +239,26 @@ metadata:
 spec:
   ca:
     secretName: root-secret
+EOF
+```
+{{% /tab %}}
+{{% tab title="let's encrypt (ZJ)" %}}
+```yaml
+kubectl apply -f - << EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: lets-encrypt
+spec:
+  acme:
+    email: byang628@zhejianglab.org
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 EOF
 ```
 {{% /tab %}}

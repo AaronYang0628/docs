@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+  project: default
+  source:
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    chart: minio
+    targetRevision: 16.0.10
+    helm:
+      releaseName: minio
+      values: |
+        image:
+          registry: docker.io
+          repository: bitnami/minio
+        mode: standalone
+        auth:
+          existingSecret: minio-secret
+        statefulset:
+          replicaCount: 1
+          zones: 1
+          drivesPerNode: 1
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 250m
+            memory: 512Mi
+        persistence:
+          enabled: true
+          storageClass: local-path
+          size: 8Gi
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+          hostname: minio-console.dev.72602.online
+          path: /?(.*)
+          pathType: ImplementationSpecific
+          tls: true
+          selfSigned: false
+          extraTls:
+            - secretName: minio-console.dev.72602.online-tls
+              hosts:
+                - minio-console.dev.72602.online
+        apiIngress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+          hostname: minio-api.dev.72602.online
+          path: /?(.*)
+          pathType: ImplementationSpecialfic
+          tls: true
+          selfSigned: false
+          extraTls:
+            - secretName: minio-api.dev.72602.online-tls
+              hosts:
+                - minio-api.dev.72602.online
+        metrics:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: storage

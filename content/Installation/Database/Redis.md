@@ -60,6 +60,14 @@ weight = 180
 
   <p> <b>2.apply</b> `deploy-redis.yaml` </p>
 
+{{< tabs >}}
+{{< tab title="ZJ" style="transparent" >}}
+```shell
+kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/main/manifests/zjlab/redis.yaml
+```
+{{< /tab >}}
+{{< tab title="72602" style="transparent" >}}
+
   {{% notice style="transparent" %}}
   ```yaml
   kubectl -n argocd apply -f - << 'EOF'
@@ -152,6 +160,8 @@ weight = 180
   ```
   {{% /notice %}}
 
+{{< /tab >}}
+{{< /tabs >}}
 
   <p> <b>3.sync by argocd</b></p>
 

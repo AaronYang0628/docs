@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+  project: default
+  source:
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    chart: cert-manager
+    targetRevision: v1.17.2
+    helm:
+      releaseName: cert-manager
+      values: |
+        installCRDs: true
+        image:
+          repository: quay.io/jetstack/cert-manager-controller
+          tag: v1.17.2
+        webhook:
+          image:
+            repository: quay.io/jetstack/cert-manager-webhook
+            tag: v1.17.2
+        cainjector:
+          image:
+            repository: quay.io/jetstack/cert-manager-cainjector
+            tag: v1.17.2
+        acmesolver:
+          image:
+            repository: quay.io/jetstack/cert-manager-acmesolver
+            tag: v1.17.2
+        startupapicheck:
+          image:
+            repository: quay.io/jetstack/cert-manager-startupapicheck
+            tag: v1.17.2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: basic-components

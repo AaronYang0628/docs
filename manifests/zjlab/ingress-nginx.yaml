@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+spec:
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+  project: default
+  source:
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    chart: ingress-nginx
+    targetRevision: 4.11.3
+    helm:
+      releaseName: ingress-nginx
+      values: |
+        controller:
+          image:
+            registry: registry.k8s.io
+          service:
+            enabled: true
+            type: NodePort
+            nodePorts:
+              http: 32080
+              https: 32443
+              tcp:
+                8080: 32808
+                5324: 33224
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          admissionWebhooks:
+            enabled: true
+            patch:
+              enabled: true
+              image:
+                registry: registry.k8s.io
+        metrics:
+          enabled: false
+        defaultBackend:
+          enabled: false
+          image:
+            registry: registry.k8s.io
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: basic-components
