@@ -19,6 +19,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: opencode-web
+                name: ops-agent
                 port:
                   number: 443
