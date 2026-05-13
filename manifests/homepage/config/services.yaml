@@ -58,14 +58,14 @@
         siteMonitor: https://n8n.72602.online
     - Opencode:
         icon: opencode
-        href: https://opencode.72602.online
-        description: https://opencode.72602.online
-        siteMonitor: https://opencode.72602.online
+        href: https://ops.agent.72602.online
+        description: https://ops.agent.72602.online
+        siteMonitor: https://ops.agent.72602.online
     - Port Blog Ingress:
-        href: http://port.72602.online
+        href: http://ops.docs.72602.online
         icon: hugo
-        description: http://port.72602.online
-        siteMonitor: http://port.72602.online
+        description: http://ops.docs.72602.online
+        siteMonitor: http://ops.docs.72602.online
     - Langfuse Ingress:
         href: https://langfuse.72602.online
         icon: sh-langfuse

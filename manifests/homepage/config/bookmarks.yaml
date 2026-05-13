@@ -63,7 +63,7 @@
     - Deepseek:
         - abbr: DB
           icon: deepseek
-          href: https://chat.deepseek.com/
+          href: https://platform.deepseek.com/
     - Gemini:
         - abbr: GM
           icon: google-gemini
