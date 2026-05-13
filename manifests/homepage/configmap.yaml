@@ -116,7 +116,8 @@ data:
             - abbr: Medium
               icon: medium-dark
               href: https://medium.com/
-  custom.css: ""
+  custom.css: |
+    # test pre-commit hook
   custom.js: ""
   docker.yaml: ""
   kubernetes.yaml: |-
