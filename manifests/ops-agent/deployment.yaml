@@ -16,52 +16,11 @@ spec:
     spec:
       serviceAccountName: ops-agent-sa
       volumes:
-        - name: repo-workspace
-          emptyDir: {}
         - name: opencode-config
           configMap:
             name: ops-agent-config
 
-      initContainers:
-        - name: git-sync-init
-          image: registry.k8s.io/git-sync/git-sync:v4.2.3
-          env:
-            - name: HTTP_PROXY
-              value: http://100.107.240.120:7890
-            - name: HTTPS_PROXY
-              value: http://100.107.240.120:7890
-            - name: NO_PROXY
-              value: localhost,127.0.0.1,.svc,.cluster.local,10.42.0.0/16,10.43.0.0/16,100.64.0.0/10,ghfast.top
-          args:
-            - --repo=https://github.com/AaronYang0628/docs.git
-            - --ref=main
-            - --root=/git
-            - --link=repo
-            - --one-time=true
-          volumeMounts:
-            - name: repo-workspace
-              mountPath: /git
-
       containers:
-        - name: git-sync
-          image: registry.k8s.io/git-sync/git-sync:v4.2.3
-          env:
-            - name: HTTP_PROXY
-              value: http://100.107.240.120:7890
-            - name: HTTPS_PROXY
-              value: http://100.107.240.120:7890
-            - name: NO_PROXY
-              value: localhost,127.0.0.1,.svc,.cluster.local,10.42.0.0/16,10.43.0.0/16,100.64.0.0/10,ghfast.top
-          args:
-            - --repo=https://github.com/AaronYang0628/docs.git
-            - --ref=main
-            - --root=/git
-            - --link=repo
-            - --period=30s
-          volumeMounts:
-            - name: repo-workspace
-              mountPath: /git
-
         # ---- main: opencode web ----
         - name: opencode
           image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/ops-agent:latest
@@ -85,9 +44,9 @@ spec:
             - name: GIT_USER_EMAIL
               value: "aaron19940628@gmail.com"
             - name: OPENCODE_WORKSPACE
-              value: /app/repo-baked/repo
+              value: /app/repo-baked
             - name: OPENCODE_CONFIG_TEMPLATE
-              value: /etc/opencode/opencode.json
+              value: /app/repo-baked/.opencode/opencode.json
             - name: LANGFUSE_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
@@ -101,10 +60,8 @@ spec:
             - name: LANGFUSE_BASEURL
               value: https://langfuse.72602.online
           volumeMounts:
-            - name: repo-workspace
-              mountPath: /app/repo-baked
             - name: opencode-config
-              mountPath: /etc/opencode/opencode.json
+              mountPath: /app/repo-baked/.opencode/opencode.json
               subPath: opencode.json
 
         # ---- sidecar: oauth2-proxy (GitHub OAuth 2FA) ----
