@@ -88,3 +88,41 @@ provider:
       deepseek-v4-flash: { ... }
       deepseek-v4-pro: { ... }
 ```
+
+### 🔧 72602 变更记录（2026-05-14）
+
+#### 现象
+1. 网页进入 ops-agent 后对话报错：`Unauthorized: Invalid API key`。
+2. ops-docs 内容未跟随 GitHub main 及时更新。
+3. 直接 `kubectl apply` 会被 ArgoCD `selfHeal` 回滚，导致线上反复恢复旧配置。
+
+#### 根因
+1. 线上仍使用旧变量名与旧启动逻辑，密钥未按统一变量注入。
+2. 仓库工作目录依赖镜像内置内容，缺少持续同步机制。
+3. ArgoCD 的源是 GitHub main；未提交到 main 的集群手改会被自动回滚。
+
+#### 操作步骤
+1. 统一模型密钥变量：`OPS_MODEL_SECRET`（Secret 注入 env）。
+2. `opencode.json` 继续由 ConfigMap 挂载，并由 entrypoint 用 `OPS_MODEL_SECRET` 替换 `___INJECT_FROM_ENV___`。
+3. Deployment 增加：
+   - `git-sync-init`（启动一次拉取 main）
+   - `git-sync` sidecar（周期 30s 同步 main）
+   - 将工作目录指向 `/app/repo-baked/repo`
+4. GitOps 正确流程：**先在分支提交 -> 验证 -> 合并 main -> 由 ArgoCD 自动部署**。
+
+#### 回滚步骤
+```bash
+kubectl -n application rollout undo deploy/ops-agent
+```
+
+#### 验证结果
+```bash
+kubectl -n application get pod -l app=ops-agent -o wide
+kubectl -n application logs deploy/ops-agent -c git-sync --tail=100
+kubectl -n application logs deploy/ops-agent -c opencode --tail=100
+```
+
+预期：
+1. Pod 包含 `git-sync` 容器并持续同步。
+2. 对话不再出现 `Unauthorized: Invalid API key`。
+3. GitHub main 更新后，ops-docs 页面内容可同步更新。
