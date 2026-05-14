@@ -10,7 +10,7 @@ if [ -n "${OPS_MODEL_SECRET:-}" ]; then
     mkdir -p "$HOME/.local/share/opencode"
     cat > "$HOME/.local/share/opencode/auth.json" <<EOF
 {
-  "deepseek": {
+  "openai": {
     "type": "api",
     "key": "${OPS_MODEL_SECRET}"
   }
