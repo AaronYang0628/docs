@@ -50,22 +50,31 @@ weight = 270
 
   <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
 
+{{< tabs >}}
+
+{{< tab title="ZJ" style="transparent" >}}
+
   {{% notice style="transparent" %}}
   ```yaml
   kubectl -n argocd apply -f -<< EOF
-  apiVersion: argoproj.io/v1alpha1
-  kind: Application
-  metadata:
-    name: xxxx
-  spec:
-    project: default
-    source:
-      repoURL: https://xxxxx
-      chart: xxxx
-      targetRevision: a.b.c
+  
   EOF
   ```
   {{% /notice %}}
+{{< /tab >}}
+
+{{< tab title="72602" style="transparent" >}}
+
+  {{% notice style="transparent" %}}
+  ```yaml
+  kubectl -n argocd apply -f -<< EOF
+  
+  EOF
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
+{{< /tabs >}}
 
   <p> <b>3.sync by argocd</b></p>
 
