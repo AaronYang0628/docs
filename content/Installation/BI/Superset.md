@@ -1,7 +1,8 @@
 +++
-title = 'Install PgAdmin'
-date = 2025-03-07T15:00:59+08:00
-weight = 161
+title = 'SuperSet'
+date = 2026-05-07T15:00:59+08:00
+draft = true
+weight = 190
 +++
 
 
@@ -16,7 +17,7 @@ weight = 161
 
   {{% notice style="transparent" %}}
   ```bash
-  helm repo add runix https://helm.runix.net/
+  helm repo add xxxxx https://xxxx
   helm repo update
   ```
   {{% /notice %}}
@@ -25,7 +26,7 @@ weight = 161
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install runix/pgadmin4 --generate-name --version 1.62.0
+  helm install xxxxx/chart-name --generate-name --version a.b.c
   ```
   {{% /notice %}}
 
@@ -37,17 +38,32 @@ weight = 161
 
 {{< tab title="🐙ArgoCD" style="transparent" >}}
   {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
+  4. Postgresql is installed; if not, check 🔗<a href="/docs/Installation/binary/helm" target="_blank">link</a> </p></br>
+  5. Redis is installed; if not, check 🔗<a href="/docs/Installation/binary/helm" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `pgadmin-credentials.yaml` </p>
+  <p> <b>1.prepare</b> `xxxxx-credentials.yaml` </p>
 
   {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n database create secret generic pgadmin-credentials \
-    --from-literal=password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+  ```shell
+  kubectl create secret generic superset-external-env -n database \
+  --from-literal=DB_HOST=postgresql.database.svc.cluster.local \
+  --from-literal=DB_PORT=5432 \
+  --from-literal=DB_USER=n8n \
+  --from-literal=DB_PASS=REPLACE_DB_PASSWORD \
+  --from-literal=DB_NAME=superset \
+  --from-literal=REDIS_HOST=redis-master.database.svc.cluster.local \
+  --from-literal=REDIS_PORT=6379 \
+  --from-literal=REDIS_USER= \
+  --from-literal=REDIS_PASSWORD=REPLACE_REDIS_PASSWORD \
+  --from-literal=REDIS_PROTO=redis \
+  --from-literal=REDIS_DB=1 \
+  --from-literal=REDIS_CELERY_DB=0 \
+  --from-literal=SUPERSET_SECRET_KEY=REPLACE_SUPERSET_SECRET_KEY \
+  --from-literal=SUPERSET_ADMIN_PASSWORD=REPLACE_SUPERSET_ADMIN_PASSWORD
   ```
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-pgadmin.yaml` </p>
+  <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
 
 {{< tabs >}}
 
@@ -55,65 +71,85 @@ weight = 161
 
   {{% notice style="transparent" %}}
   ```yaml
-  kubectl -n argocd apply -f -<< EOF
+  kubectl -n argocd apply -f -<<EOF
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
     name: pgadmin
   spec:
     syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
       syncOptions:
-      - CreateNamespace=true
+        - CreateNamespace=true
     project: default
     source:
-      repoURL: https://helm.runix.net
-      targetRevision: 1.62.0
+      repoURL: https://apache.github.io/superset
+      targetRevision: 0.15.5
       helm:
-        releaseName: pgadmin
+        releaseName: superset
         values: |
-          image:
-            registry: docker.io
-            repository: dpage/pgadmin4
-            tag: latest
-          replicaCount: 1
-          persistentVolume:
+          envFromSecret: superset-external-env
+          secretEnv:
+            create: false
+          bootstrapScript: |
+            #!/bin/bash
+            uv pip install psycopg2-binary
+            if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
+          postgresql:
             enabled: false
-          env:
-            email: pgadmin@mail.dev.72602.online
-            passwordExistingSecret: pgadmin-credentials
-            variables:
-              - name: PGADMIN_CONFIG_WTF_CSRF_ENABLED
-                value: "False"
-              - name: PGADMIN_CONFIG_PROXY_X_FOR_COUNT
-                value: "1"
-              - name: PGADMIN_CONFIG_PROXY_X_PROTO_COUNT
-                value: "1"
-              - name: PGADMIN_CONFIG_PROXY_X_HOST_COUNT
-                value: "1"
-              - name: PGADMIN_CONFIG_PROXY_X_PORT_COUNT
-                value: "1"
-          resources:
-            requests:
-              cpu: 500m
-              memory: 512Mi
-            limits:
-              cpu: 1000m
-              memory: 1024Mi
+          redis:
+            enabled: false
+          supersetNode:
+            connections:
+              db_type: postgresql
+              db_host: postgresql.database.svc.cluster.local
+              db_port: "5432"
+              db_user: n8n
+              db_name: superset
+              redis_host: redis-master.database.svc.cluster.local
+              redis_port: "6379"
+              redis_user: ""
+              redis_cache_db: "1"
+              redis_celery_db: "0"
+          configOverrides:
+            secret: |
+              import os
+              SECRET_KEY = os.getenv("SUPERSET_SECRET_KEY")
+            proxy: |
+              ENABLE_PROXY_FIX = True
+          init:
+            createAdmin: false
+            initscript: |-
+              #!/bin/sh
+              set -eu
+              echo "Upgrading DB schema..."
+              superset db upgrade
+              echo "Initializing roles..."
+              superset init
+              echo "Creating admin user..."
+              superset fab create-admin \
+                --username admin \
+                --firstname Superset \
+                --lastname Admin \
+                --email admin@dev.72602.online \
+                --password "${SUPERSET_ADMIN_PASSWORD}" \
+                || true
           ingress:
             enabled: true
             ingressClassName: nginx
             annotations:
               cert-manager.io/cluster-issuer: lets-encrypt
             hosts:
-              - host: pgadmin.dev.72602.online
-                paths:
-                  - path: /
-                    pathType: ImplementationSpecific
+              - superset.dev.72602.online
+            path: /
+            pathType: Prefix
             tls:
-              - secretName: pgadmin.dev.72602.online-tls
+              - secretName: superset.dev.72602.online-tls
                 hosts:
-                  - pgadmin.dev.72602.online
-      chart: pgadmin4
+                  - superset.dev.72602.online
+      chart: superset
     destination:
       server: https://kubernetes.default.svc
       namespace: database
@@ -123,6 +159,7 @@ weight = 161
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+
   EOF
   ```
   {{% /notice %}}
@@ -133,58 +170,7 @@ weight = 161
   {{% notice style="transparent" %}}
   ```yaml
   kubectl -n argocd apply -f -<< EOF
-  apiVersion: argoproj.io/v1alpha1
-  kind: Application
-  metadata:
-    name: pgadmin
-  spec:
-    syncPolicy:
-      syncOptions:
-      - CreateNamespace=true
-    project: default
-    source:
-      repoURL: https://helm.runix.net/
-      chart: pgadmin4
-      targetRevision: 1.23.3
-      helm:
-        releaseName: pgadmin4
-        values: |
-          replicaCount: 1
-          persistentVolume:
-            enabled: false
-          env:
-            email: pgadmin@mail.72602.online
-            variables:
-              - name: PGADMIN_CONFIG_WTF_CSRF_ENABLED
-                value: "False"
-          existingSecret: pgadmin-credentials
-          resources:
-            requests:
-              memory: 512Mi
-              cpu: 500m
-            limits:
-              memory: 1024Mi
-              cpu: 1000m
-          image:
-            registry: m.daocloud.io/docker.io
-            pullPolicy: IfNotPresent
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            annotations:
-              cert-manager.io/cluster-issuer: letsencrypt
-            hosts:
-              - host: pgadmin.72602.online
-                paths:
-                  - path: /
-                    pathType: ImplementationSpecific
-            tls:
-              - secretName: pgadmin.72602.online-tls
-                hosts:
-                  - pgadmin.72602.online
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: database
+  
   EOF
   ```
   {{% /notice %}}
@@ -196,7 +182,7 @@ weight = 161
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/pgadmin
+  argocd app sync argocd/xxxx
   ```
   {{% /notice %}}
 
@@ -234,6 +220,51 @@ weight = 161
 {{< /tab >}}
 
 
+{{< tab title="♻️Argo Workflow" style="transparent" >}}
+  {{% include "content\Installation\SNIPPET\_argo_wf_preliminary.md" %}}
+
+  <p> <b>1.prepare `argocd-login-credentials` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>2.apply rolebinding to k8s </b></p>
+
+  {{% notice style="transparent" %}}
+  {{% include "content\Installation\SNIPPET\_argo_wf_rbac.md" %}}
+  {{% /notice %}}
+
+  <p> <b>4.prepare `deploy-xxxx-flow.yaml` </b></p>
+
+  {{% notice style="transparent" %}}
+  ```yaml
+
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>5.submit to argo workflow client</b></p> 
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argo -n business-workflows submit deploy-xxxx-flow.yaml
+  ```
+  {{% /notice %}}
+
+
+  <p> <b>7.decode password</b></p> 
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application get secret xxxx-credentials -o jsonpath='{.data.xxx-password}' | base64 -d
+  ```
+  {{% /notice %}}
+
+{{< /tab >}}
 
 {{< tab title="📑manifests" style="transparent" >}}
   {{% include "content\Installation\SNIPPET\_manifests_preliminary.md" %}}

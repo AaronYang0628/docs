@@ -28,7 +28,7 @@ weight = 180
   ```bash
   kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
 
-  helm upgrade --install redis bitnami/redis \
+  helm upgrade --install redis m.daocloud.io/docker.io/bitnamilegacy/redis \
     --namespace database \
     --version 18.16.0 \
     --set architecture=replication \
