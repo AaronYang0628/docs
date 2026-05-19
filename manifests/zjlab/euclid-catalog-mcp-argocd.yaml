@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: euclid-catalog-mcp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AaronYang0628/euclid-mcp.git
+    targetRevision: main
+    path: analysis-catalog/overlays/env-zjlab
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: data-and-computing
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,50 @@
+image:
+  repository: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/astro-code
+  tag: v20260506-171419
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: lets-encrypt
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  hosts:
+    - host: astro-code.dev.72602.online
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: astro-code
+              port:
+                number: 4000
+  tls:
+    - secretName: astro-code-tls
+      hosts:
+        - astro-code.dev.72602.online
+
+persistence:
+  enabled: true
+  storageClass: local-path
+  accessMode: ReadWriteOnce
+  config:
+    enabled: true
+    size: 1Gi
+  data:
+    enabled: true
+    size: 1Gi
+
+opencodeConfig:
+  mode: seed
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+
+replicaCount: 1
+
+initSeed:
+  enabled: false
