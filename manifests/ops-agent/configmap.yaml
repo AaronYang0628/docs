@@ -4,10 +4,11 @@ metadata:
   name: ops-agent-config
 data:
   # ────────────────────────────────────────────
-  # opencode.json — 用户自定义配置文件
-  # 你想用什么 provider、model、agent 都在这里配。
-  # API key 用 ___INJECT_FROM_ENV___ 占位，
-  # entrypoint 会自动替换为 Secret 中的实际 key。
+  # opencode.json — workspace-level config
+  # Provider structure + models defined here.
+  # API key is injected via auth.json (entrypoint).
+  # No apiKey in options to avoid workspace config
+  # overriding the user-level credential injection.
   # ────────────────────────────────────────────
   opencode.json: |
     {
@@ -15,7 +16,6 @@ data:
       "provider": {
         "openai": {
           "options": {
-            "apiKey": "___INJECT_FROM_ENV___",
             "baseURL": "https://sub2api.72602.online/v1"
           },
           "models": {
@@ -32,6 +32,8 @@ data:
           }
         }
       },
+      "model": "openai/deepseek-v4-flash",
+      "small_model": "openai/deepseek-v4-flash",
       "agent": {
         "72602-k3s-maintainer": { "options": { "store": false } },
         "hugo-doc-maintainer": { "options": { "store": false } }

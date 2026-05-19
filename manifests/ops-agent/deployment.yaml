@@ -29,7 +29,7 @@ spec:
             - containerPort: 3000
               name: opencode
           env:
-            - name: DEEPSEEK_API_KEY
+            - name: OPS_MODEL_SECRET
               valueFrom:
                 secretKeyRef:
                   name: opencode-secrets
@@ -45,6 +45,8 @@ spec:
               value: "aaron19940628@gmail.com"
             - name: OPENCODE_WORKSPACE
               value: /app/repo-baked
+            - name: OPENCODE_CONFIG_TEMPLATE
+              value: /app/repo-baked/.opencode/opencode.json
             - name: LANGFUSE_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
@@ -57,6 +59,40 @@ spec:
                   key: LANGFUSE_SECRET_KEY
             - name: LANGFUSE_BASEURL
               value: https://langfuse.72602.online
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Setup AI provider with correct provider name
+              if [ -n "${OPS_MODEL_SECRET:-}" ]; then
+                  mkdir -p "$HOME/.local/share/opencode"
+                  cat > "$HOME/.local/share/opencode/auth.json" <<AUTH
+              {
+                "openai": {
+                  "type": "api",
+                  "key": "${OPS_MODEL_SECRET}"
+                }
+              }
+              AUTH
+              fi
+              # Setup git SSH key
+              if [ -n "${GIT_SSH_KEY:-}" ]; then
+                  mkdir -p "$HOME/.ssh"
+                  printf '%s\n' "$GIT_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+                  chmod 600 "$HOME/.ssh/id_ed25519"
+                  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+              fi
+              if [ -n "${GIT_USER_NAME:-}" ]; then
+                  git config --global user.name "${GIT_USER_NAME}"
+              fi
+              if [ -n "${GIT_USER_EMAIL:-}" ]; then
+                  git config --global user.email "${GIT_USER_EMAIL}"
+              fi
+              WORKSPACE="${OPENCODE_WORKSPACE:-/app/repo-baked}"
+              cd "$WORKSPACE"
+              git pull --rebase 2>/dev/null || true
+              echo "Starting opencode from $(pwd) ..."
+              exec opencode web --hostname 0.0.0.0 --port 3000 --print-logs --log-level INFO
           volumeMounts:
             - name: opencode-config
               mountPath: /app/repo-baked/.opencode/opencode.json

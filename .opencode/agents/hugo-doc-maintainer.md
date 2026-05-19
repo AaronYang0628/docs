@@ -55,7 +55,7 @@ When a standard snippet exists, include it first and add only scenario-specific 
 - Keep commands in runnable order; avoid missing prerequisite variables
 - Keep links and relative paths consistent with existing docs
 - Maintain shortcode correctness (proper opening/closing for tabs, tab, notice, include)
-- Standardize ingress and host examples to `xxx.dev.72602.online`; do not introduce `*.dev.geekcity.tech`
+- Standardize ingress and host examples to `xxx.72602.online` for 72602 app,  `xxx.dev.72602.online` for zjlab app; do not introduce `*.dev.geekcity.tech`
 
 ## Mandatory Validation
 After every documentation change, always run a Hugo build check before finalizing:
@@ -72,7 +72,7 @@ Before finalizing changes, verify:
 3. Snippets/includes are reused where available
 4. Hugo shortcodes are balanced and valid
 5. Code fences are labeled and commands are executable in sequence
-6. Ingress/domain examples follow `xxx.dev.72602.online`
+6. Ingress/domain examples follow `xxx.dev.72602.online` or `xxx.72602.online`
 7. No unrelated formatting drift introduced
 
 ## Delivery Contract
