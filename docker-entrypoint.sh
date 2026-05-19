@@ -6,13 +6,13 @@ set -euo pipefail
 # ------------------------------------------------------------------
 
 # 1. Setup AI provider credentials
-if [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+if [ -n "${OPS_MODEL_SECRET:-}" ]; then
     mkdir -p "$HOME/.local/share/opencode"
     cat > "$HOME/.local/share/opencode/auth.json" <<EOF
 {
-  "deepseek": {
+  "openai": {
     "type": "api",
-    "key": "${DEEPSEEK_API_KEY}"
+    "key": "${OPS_MODEL_SECRET}"
   }
 }
 EOF
@@ -34,11 +34,11 @@ if [ -n "${GIT_USER_EMAIL:-}" ]; then
 fi
 
 # 3. Merge API key into opencode config (ConfigMap is read-only, write to user dir)
-CONFIG_TEMPLATE="${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json"
+CONFIG_TEMPLATE="${OPENCODE_CONFIG_TEMPLATE:-${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json}"
 USER_CONFIG="$HOME/.config/opencode/opencode.json"
-if [ -f "$CONFIG_TEMPLATE" ] && [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+if [ -f "$CONFIG_TEMPLATE" ] && [ -n "${OPS_MODEL_SECRET:-}" ]; then
     mkdir -p "$HOME/.config/opencode"
-    sed "s/___INJECT_FROM_ENV___/${DEEPSEEK_API_KEY}/g" "$CONFIG_TEMPLATE" > "$USER_CONFIG"
+    sed "s/___INJECT_FROM_ENV___/${OPS_MODEL_SECRET}/g" "$CONFIG_TEMPLATE" > "$USER_CONFIG"
 fi
 
 # 4. Set workspace from baked-in repo
