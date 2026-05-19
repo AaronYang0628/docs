@@ -18,8 +18,9 @@ spec:
       releaseName: minio
       values: |
         image:
-          registry: docker.io
-          repository: bitnami/minio
+          registry: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com
+          repository: ay-mirror/minio
+          tag: 2025.4.22-debian-12-r1
         mode: standalone
         auth:
           existingSecret: minio-secret

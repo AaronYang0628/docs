@@ -18,8 +18,9 @@ spec:
       releaseName: redis
       values: |
         image:
-          registry: docker.io
-          repository: bitnami/redis
+          registry: m.daocloud.io
+          repository: docker.io/bitnamilegacy/redis
+          tag: latest
         architecture: replication
         auth:
           enabled: true
