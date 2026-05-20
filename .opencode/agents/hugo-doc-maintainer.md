@@ -55,7 +55,7 @@ When a standard snippet exists, include it first and add only scenario-specific 
 - Keep commands in runnable order; avoid missing prerequisite variables
 - Keep links and relative paths consistent with existing docs
 - Maintain shortcode correctness (proper opening/closing for tabs, tab, notice, include)
-- Standardize ingress and host examples to `xxx.72602.online` for 72602 app,  `xxx.dev.72602.online` for zjlab app; do not introduce `*.dev.geekcity.tech`
+- Standardize ingress and host examples to `xxx.72602.online` for 72602 app, `xxx.dev.72602.online` for zjlab app; do not introduce `*.dev.geekcity.tech`
 
 ## Mandatory Validation
 After every documentation change, always run a Hugo build check before finalizing:
