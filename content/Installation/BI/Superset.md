@@ -1,7 +1,7 @@
 +++
-title = 'SuperSet'
+title = 'Install Superset'
 date = 2026-05-07T15:00:59+08:00
-draft = true
+draft = false
 weight = 190
 +++
 
@@ -38,10 +38,10 @@ weight = 190
 
 {{< tab title="🐙ArgoCD" style="transparent" >}}
   {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
-  4. Postgresql is installed; if not, check 🔗<a href="/docs/Installation/binary/helm" target="_blank">link</a> </p></br>
-  5. Redis is installed; if not, check 🔗<a href="/docs/Installation/binary/helm" target="_blank">link</a> </p></br>
+  4. Postgresql is installed; if not, check 🔗<a href="/docs/Installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
+  5. Redis is installed; if not, check 🔗<a href="/docs/Installation/database/redis/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `xxxxx-credentials.yaml` </p>
+  <p> <b>1.prepare</b> `superset-external-env` </p>
 
   {{% notice style="transparent" %}}
   ```shell
@@ -63,7 +63,7 @@ weight = 190
   ```
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
+  <p> <b>2.prepare</b> `deploy-superset.yaml` </p>
 
 {{< tabs >}}
 
@@ -75,7 +75,7 @@ weight = 190
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
-    name: pgadmin
+    name: superset
   spec:
     syncPolicy:
       automated:
@@ -182,7 +182,7 @@ weight = 190
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/superset
   ```
   {{% /notice %}}
 
