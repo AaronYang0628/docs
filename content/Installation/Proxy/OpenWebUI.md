@@ -122,6 +122,62 @@ weight = 15
 | 镜像 | `m.daocloud.io/ghcr.io/open-webui/open-webui:0.9.5` |
 | 部署方式 | ArgoCD Helm chart `open-webui-14.5.0` |
 
+### 🛠️2026-05 实际部署记录（72602）
+
+> 当前集群已按本文部署，`argocd/open-webui` 已创建并进入 `Synced`，首次启动会执行 DB migration，`StatefulSet` 短时间显示 `Progressing` 属于正常现象。
+
+1. 准备 Redis URL Secret（`ai/open-webui-redis-url`）
+
+```bash
+REDIS_PASS=$(kubectl -n storage get secret redis-shared-credentials -o jsonpath='{.data.redis-password}' | base64 -d)
+kubectl -n ai create secret generic open-webui-redis-url \
+  --from-literal=redis-url="redis://:${REDIS_PASS}@redis-shared-master.storage.svc.cluster.local:6379/0" \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+2. 确认证书（已存在可复用）
+
+```bash
+kubectl -n ai get certificate txt2img-agent-tls
+```
+
+3. 通过仓库清单部署 ArgoCD Application
+
+```bash
+kubectl -n argocd apply -f /home/aaron/Ops/docs/manifests/application/open-webui.yaml
+```
+
+4. 验证
+
+```bash
+argocd app get open-webui
+kubectl -n ai get pods,svc,ingress
+kubectl -n ai logs statefulset/open-webui --tail=120
+```
+
+### 🔁回滚步骤（OpenWebUI）
+
+```bash
+kubectl -n argocd delete application open-webui --ignore-not-found
+kubectl -n ai delete ingress,svc,statefulset,pvc,secret -l app.kubernetes.io/instance=open-webui --ignore-not-found
+kubectl -n ai delete secret open-webui-redis-url --ignore-not-found
+```
+
+若需恢复旧版本：
+
+```bash
+kubectl apply -f /home/aaron/Ops/docs/manifests/application/openwebui-backup-ai-20260513.yaml
+```
+
+### ✅验证结果（2026-05）
+
+- `argocd/open-webui`: `Sync=Synced`, `Health=Progressing`（初始化阶段）
+- `ai` 命名空间资源：
+  - `StatefulSet/open-webui`
+  - `Service/open-webui`
+  - `Ingress/open-webui`（`txt2img.agent.72602.online`）
+- 启动日志包含 Alembic migration，未出现 CrashLoopBackOff
+
 ### 📦Shared Dependencies
 
 - **Redis**: `manifests/storage/redis.yaml` → Bitnami Redis chart, standalone, 2Gi local-path

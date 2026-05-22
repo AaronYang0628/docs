@@ -1,7 +1,13 @@
 +++
-title = "Tailscale"
-tags = ["tailscale", "derp", "iptables", "nat"]
+title = "Tailscale (Deprecated)"
+tags = ["tailscale", "derp", "iptables", "nat", "deprecated"]
+draft = true
 +++
+
+> ⚠️ **DEPRECATED**: Tailscale has been fully removed from 72602-minipc as of 2026-05.
+> Current connectivity uses SSH reverse tunnels instead. See [CSP/72602/Tunnel](/csp/72602/tunnel/) for current setup.
+>
+> This document is preserved for historical reference only.
 
 # Linux 内网穿透与网络环境配置实操手册
 

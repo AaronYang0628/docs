@@ -16,14 +16,19 @@ For any self-hosted service to be accessible via browser, you need:
 All subdomains use A records → `47.110.67.161` (ECS public IP):
 
 ```csv
+72602.online                  A  47.110.67.161
 argocd.72602.online           A  47.110.67.161
-ops.agent.72602.online        A  47.110.67.161
 txt2img.agent.72602.online    A  47.110.67.161
 ops.docs.72602.online         A  47.110.67.161
 sub2api.72602.online          A  47.110.67.161
 home.72602.online             A  47.110.67.161
 n8n.72602.online              A  47.110.67.161
+webhook.72602.online          A  47.110.67.161
 uptime.72602.online           A  47.110.67.161
+langfuse.72602.online         A  47.110.67.161
+clash.72602.online            A  47.110.67.161
+api.minio.72602.online        A  47.110.67.161
+console.minio.72602.online    A  47.110.67.161
 ```
 
 Add these records in your DNS provider (Cloudflare / Aliyun DNS / etc.).
@@ -32,8 +37,8 @@ Add these records in your DNS provider (Cloudflare / Aliyun DNS / etc.).
 
 ```
 Browser → A record → 47.110.67.161:443
-                         ↓ ECS iptables
-                      100.81.60.34:32443 (minipc tailscale IP)
+                         ↓ ECS sshd (reverse tunnel from minipc)
+                       127.0.0.1:32443 (minipc ingress-nginx NodePort via SSH -R)
                          ↓ ingress-nginx NodePort
                       k3s ingress controller
                          ↓ Ingress rules
@@ -49,7 +54,7 @@ With ingress-nginx + cert-manager, TLS is automatic:
 3. Each Ingress gets annotation `cert-manager.io/cluster-issuer: lets-encrypt`
 4. cert-manager automatically provisions TLS certificates via HTTP-01 challenge
 
-> ⚠️ For clusters behind NAT/Tailscale (like 72602), HTTP-01 validation requires the domain to resolve to the public IP and port 80/443 to reach the cluster. This works because ECS forwards 80/443 → minipc NodePort.
+> ⚠️ For clusters behind NAT/SSH reverse tunnel (like 72602), HTTP-01 validation requires the domain to resolve to the public IP and port 80/443 to reach the cluster. This works because ECS forwards 80/443 → minipc NodePort via SSH reverse tunnel (managed by autossh systemd services).
 
 ### Prerequisites
 
