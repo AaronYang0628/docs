@@ -6,6 +6,13 @@
           type: uptimekuma
           url: https://uptime.72602.online
           slug: 72602-minipc-ssh
+    - SSH At ZJLAB:
+        icon: terminal
+        description: SSH Service At ZJLAB (10023/10024)
+        widget:
+          type: uptimekuma
+          url: https://uptime.72602.online
+          slug: zjlab-ssh
     - Clash At 72602:
         icon: clash
         href: http://clash.72602.online/ui
@@ -56,11 +63,6 @@
         href: https://n8n.72602.online
         description: https://n8n.72602.online
         siteMonitor: https://n8n.72602.online
-    - Opencode:
-        icon: opencode
-        href: https://ops.agent.72602.online
-        description: https://ops.agent.72602.online
-        siteMonitor: https://ops.agent.72602.online
     - Port Blog Ingress:
         href: http://ops.docs.72602.online
         icon: hugo

@@ -126,8 +126,11 @@ data:
   services.yaml: "- Basic Services:\n    - SSH At 72602:\n        icon: terminal\n
     \       description: SSH Service At 72602 Home\n        widget:\n          type:
     uptimekuma\n          url: https://uptime.72602.online\n          slug: 72602-minipc-ssh\n
-    \   - Clash At 72602:\n        icon: clash\n        href: http://clash.72602.online/ui\n
-    \       description: http://clash.72602.online/ui\n        siteMonitor: http://clash.72602.online/ui\n
+    \   - SSH At ZJLAB:\n        icon: terminal\n        description: SSH Service
+    At ZJLAB (10023/10024)\n        widget:\n          type: uptimekuma\n          url:
+    https://uptime.72602.online\n          slug: zjlab-ssh\n    - Clash At 72602:\n
+    \       icon: clash\n        href: http://clash.72602.online/ui\n        description:
+    http://clash.72602.online/ui\n        siteMonitor: http://clash.72602.online/ui\n
     \   - Clash At ECS:\n        icon: clash\n        href: http://47.110.67.161:56396/ui\n
     \       description: http://47.110.67.161:56396\n        siteMonitor: http://47.110.67.161:56396/ui\n
     \   - Sub2API-WZ:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n
@@ -147,15 +150,13 @@ data:
     \       href: https://sub2api.72602.online\n        description: https://sub2api.72602.online\n
     \       siteMonitor: https://sub2api.72602.online\n    - N8N Ingress:\n        icon:
     n8n\n        href: https://n8n.72602.online\n        description: https://n8n.72602.online\n
-    \       siteMonitor: https://n8n.72602.online\n    - Opencode:\n        icon:
-    opencode\n        href: https://ops.agent.72602.online\n        description: https://ops.agent.72602.online\n
-    \       siteMonitor: https://ops.agent.72602.online\n    - Port Blog Ingress:\n
-    \       href: http://ops.docs.72602.online\n        icon: hugo\n        description:
-    http://ops.docs.72602.online\n        siteMonitor: http://ops.docs.72602.online\n
-    \   - Langfuse Ingress:\n        href: https://langfuse.72602.online\n        icon:
-    sh-langfuse\n        description: https://langfuse.72602.online\n        siteMonitor:
-    https://langfuse.72602.online\n- External Links:\n    - ZJLAB Nanhu:\n        href:
-    https://zjic.zhejianglab.com/portal/navigation\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
+    \       siteMonitor: https://n8n.72602.online\n    - Port Blog Ingress:\n        href:
+    http://ops.docs.72602.online\n        icon: hugo\n        description: http://ops.docs.72602.online\n
+    \       siteMonitor: http://ops.docs.72602.online\n    - Langfuse Ingress:\n        href:
+    https://langfuse.72602.online\n        icon: sh-langfuse\n        description:
+    https://langfuse.72602.online\n        siteMonitor: https://langfuse.72602.online\n-
+    External Links:\n    - ZJLAB Nanhu:\n        href: https://zjic.zhejianglab.com/portal/navigation\n
+    \       icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
     \       description: https://zjic.zhejianglab.com/portal/navigation\n        siteMonitor:
     https://zjic.zhejianglab.com/portal/navigation\n    - ZJLAB Haina:\n        href:
     https://open-sci-datahub.zero2x.org/home\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n

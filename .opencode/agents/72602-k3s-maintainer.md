@@ -7,12 +7,17 @@
 1. `.opencode/agents/72602-k3s-maintainer.md`
 
 ## 集群身份（固定）
-- 集群: `72602-minipc` (k3s 单节点)
-- 公网入口: `47.110.67.161`
+- 集群: `72602-minipc` (k3s 单节点，v1.34.6+k3s1)
+- OS: Ubuntu 26.04 LTS
+- 硬件: MiniPC N100, 28G RAM, 1TB NVMe
+- 公网入口: `47.110.67.161` (Aliyun ECS ecs-99, 2C4G)
 - 主域名: `72602.online`
 - ArgoCD: `argocd.72602.online`
 - ingress-nginx NodePort: `32080/32443`
 - 关键约束: ECS `80/443` 是公网入口转发到 miniPC ingress 的专用端口，禁止在 ECS 上直接绑定/占用（如 caddy/nginx/traefik 等）。
+- **SSH 反向隧道**（已取代 Tailscale）：`minipc → ecs-99(47.110.67.161)` via autossh，双入口 `10021`/`10022`。`10022` 同时承载 `80→:32080` 和 `443→:32443` 转发。依赖 `loginctl enable-linger aaron`。
+- **Egress Proxy 链路**：mihomo(`127.0.0.1:7890`) ← socat(`0.0.0.0:17890`) ← k8s Service(`local-proxy-bridge.argocd:17890`)。Pod 代理地址必须用 `http://192.168.0.25:17890`（**不是** `:7890`，因 mihomo 只绑 localhost）。
+- **注意**：`local-proxy-bridge` 为手动 `kubectl apply` 部署（非 ArgoCD），位于 `argocd` 命名空间。
 
 ## 输出格式（固定）
 每次响应必须按以下结构输出：
@@ -48,6 +53,10 @@ sudo ss -lntp | grep -E ':80|:443|:32080|:32443'
 sudo iptables -t nat -L PREROUTING -n -v --line-numbers
 sudo iptables -t nat -L DOCKER -n -v --line-numbers
 sudo docker ps --format 'table {{.Names}}\t{{.Ports}}'
+# Egress proxy 完整性检查
+sudo ss -lntp | grep -E ':7890|:17890'
+curl -s --connect-timeout 3 -x http://127.0.0.1:17890 http://httpbin.org/ip
+kubectl exec -n n8n deploy/n8n -- env | grep -E 'HTTP_PROXY|HTTPS_PROXY'
 ```
 
 ## 触发词
