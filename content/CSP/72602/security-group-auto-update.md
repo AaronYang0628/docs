@@ -1,0 +1,84 @@
++++
+title = "ECS Security Group"
+weight = 5
++++
+# 安全组 IP 自动更新
+
+## 背景
+
+72602-minipc 的 ISP 不定期更换公网 IP，而阿里云 ECS (ecs-99) 安全组限制了 SSH 端口只能从特定 IP 访问。
+
+当公网 IP 变化时：
+- SSH 反向隧道断开
+- 无法通过 `ssh aaron@47.110.67.161 -p 10022` 访问
+- 无法直接 `ssh root@47.110.67.161`
+
+## 解决方案
+
+定时检测公网 IP，变化时自动更新阿里云安全组规则。
+
+## 工作原理
+
+```
+每 5 分钟 ──> 获取公网 IP ──> 与上次对比
+                │
+                ├── 未变化 ──> 退出
+                │
+                └── 已变化 ──> 删除旧 auto-updated-ip 规则
+                              ──> 添加新 /32 规则（22, 10021-10024）
+                              ──> 钉钉通知
+```
+
+## 受影响的端口
+
+| 端口 | 用途 |
+|------|------|
+| 22 | ECS SSH 直接连接、反向隧道 |
+| 10021 | 预留 |
+| 10022 | SSH 反向隧道（72602-minipc 入口） |
+| 10023 | 预留 |
+| 10024 | 预留 |
+
+## 文件位置
+
+| 文件 | 说明 |
+|------|------|
+| `/home/aaron/bin/update-sg-ip.sh` | 主脚本 |
+| `/home/aaron/.aliyun-keys` | 阿里云 AccessKey（chmod 600） |
+| `/etc/systemd/system/update-sg-ip.service` | systemd 服务 |
+| `/etc/systemd/system/update-sg-ip.timer` | systemd 定时器（每 5 分钟，开机 30 秒后首次触发） |
+| `/tmp/last_public_ip` | 上次公网 IP 缓存 |
+
+## 常用命令
+
+```bash
+# 查看定时器状态
+systemctl status update-sg-ip.timer
+
+# 手动触发一次更新
+sudo systemctl start update-sg-ip.service
+
+# 查看执行日志
+journalctl -u update-sg-ip.service -f
+
+# 查看脚本输出
+cat /tmp/update-sg-ip.log
+
+# 手动运行脚本
+~/bin/update-sg-ip.sh
+```
+
+## 钉钉通知
+
+脚本支持钉钉机器人通知。需要设置 DING_TOKEN 环境变量或修改脚本中的 `DING_TOKEN` 变量：
+
+```bash
+# 在 ~/.aliyun-keys 中添加：
+DING_TOKEN=你的钉钉机器人access_token
+```
+
+## 凭证安全
+
+阿里云 AccessKey 存储在 `/home/aaron/.aliyun-keys`，权限 600。
+建议使用 RAM 子账号并仅授予 ECS 安全组相关权限。
+定期轮换 AccessKey。AccessKey 获取：阿里云控制台 → 头像 → AccessKey 管理。

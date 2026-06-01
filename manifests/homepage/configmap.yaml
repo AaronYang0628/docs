@@ -161,7 +161,9 @@ data:
     https://zjic.zhejianglab.com/portal/navigation\n    - ZJLAB Haina:\n        href:
     https://open-sci-datahub.zero2x.org/home\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
     \       description: https://open-sci-datahub.zero2x.org/home\n        siteMonitor:
-    https://open-sci-datahub.zero2x.org/home\n        \n- Conatiners: []\n"
+    https://open-sci-datahub.zero2x.org/home\n    - Browserless:\n        href: https://www.browserless.io/account/dashboard\n
+    \       icon: si-browserless\n        description: Browserless Dashboard\n         \n-
+    Conatiners: []\n"
   settings.yaml: |-
     title: 72602 Homepage
     theme: gray

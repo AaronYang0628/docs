@@ -84,5 +84,9 @@
         icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png
         description: https://open-sci-datahub.zero2x.org/home
         siteMonitor: https://open-sci-datahub.zero2x.org/home
-        
+    - Browserless:
+        href: https://www.browserless.io/account/dashboard
+        icon: si-browserless
+        description: Browserless Dashboard
+         
 - Conatiners: []
