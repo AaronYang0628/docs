@@ -117,6 +117,68 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 - Root cause: HTTP_PROXY 指向 `192.168.0.25:7890`，但 mihomo 只监听 `127.0.0.1:7890`（`allow-lan: false`）。Pod 无法直连 mihomo 的 LAN IP。
 - Fix baseline: HTTP_PROXY/HTTPS_PROXY 必须使用 socat 桥接端口 `192.168.0.25:17890`（或 k8s Service `10.43.19.4:17890`），该端口由 socat 转发至 `127.0.0.1:7890`。
 
+- Symptom: n8n 社区节点（community nodes）在 Pod 重启后消失，日志报 `Unrecognized node type`。
+- Root cause: Helm chart 的 initContainer 使用 `node:20-alpine` 镜像，缺少 Python，安装含 native 依赖的包（如 `isolated-vm`）时 npm install 失败。同时 initContainer args 由 chart 模板生成，每次 ArgoCD sync 覆盖用户手动修改。
+- Fix baseline:
+  1. initContainer 的 npm install 命令加 `--ignore-scripts` 跳过 native build
+  2. ArgoCD `ignoreDifferences` 锁定 initContainer 的 `args` 和 `env`，防止 chart 覆盖
+  3. 哈希检查文件存在 emptyDir 自身（非 PVC），确保每次 Pod 重启都触发重新安装
+
+## n8n Community Nodes 运维
+
+### 当前安装的包
+
+| 包名 | 用途 |
+|------|------|
+| `n8n-nodes-globals` | 全局变量节点 |
+| `n8n-nodes-wechat-formatter` | 微信公众号格式化 |
+| `n8n-nodes-browserless-api` | Browserless 浏览器自动化 |
+
+包列表定义在 ArgoCD Helm values 的 `nodes.external.packages`。
+
+### 增删社区包
+
+```bash
+# 1. 编辑 ArgoCD Application 的 Helm values
+kubectl edit app -n argocd n8n
+# 找到 nodes.external.packages，添加或删除包名
+
+# 2. 同步 ArgoCD
+argocd login --insecure argocd.72602.online --username admin --password $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)
+argocd app sync n8n --grpc-web
+
+# 3. Pod 重启后 initContainer 自动安装新包列表
+```
+
+### 手动紧急修复（跳过 ArgoCD）
+
+当 ArgoCD sync 后社区节点丢失，且不想等 initContainer 完成：
+
+```bash
+# 在每个 Pod 内手动安装
+kubectl exec -n n8n deploy/n8n -- sh -c \
+  "cd /home/node/.n8n/nodes && npm install --ignore-scripts n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+
+kubectl exec -n n8n statefulset/n8n-worker -- sh -c \
+  "cd /home/node/.n8n/nodes && npm install --ignore-scripts n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+
+# 强制 n8n 进程重载社区节点
+kubectl delete pods -n n8n -l app.kubernetes.io/component=main
+kubectl delete pods -n n8n -l app.kubernetes.io/component=worker
+```
+
+### ArgoCD ignoreDifferences 说明
+
+n8n 应用的 ArgoCD `ignoreDifferences` 锁定了以下字段不被 chart 模板覆盖：
+
+| 资源 | 锁定字段 |
+|------|---------|
+| `Deployment/n8n` | `initContainers[0].args`, `initContainers[0].env` |
+| `StatefulSet/n8n-worker` | 同上 |
+| `Deployment/n8n-webhook` | `initContainers[1].args`, `initContainers[1].env` |
+
+如需修改 initContainer 参数，直接 `kubectl edit` 对应资源即可，ArgoCD 不会回滚。
+
 ## Host-Level Services
 
 | Service | Port | Bind | Description |
