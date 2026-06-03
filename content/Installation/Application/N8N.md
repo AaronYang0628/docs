@@ -495,22 +495,91 @@ kubectl -n database get svc postgresql-hl
 - n8n Pod reaches `Running` and UI becomes accessible.
 {{% /expand %}}
 
-{{% expand title="Q2: Webhook URL or HTTPS callback does not work" %}}
+{{% expand title="Q3: Community nodes fail — \"Unrecognized node type\" after pod restart" %}}
 **Symptom**
-- External webhook calls fail or timeout.
+- Webhook 或 workflow 报 `Unrecognized node type: n8n-nodes-xxx`
+- 社区包在 Pod 重启后消失
 
-**Check**
-```bash
-kubectl -n n8n get ingress
-kubectl -n n8n describe ingress
-kubectl -n basic-components get pods | grep ingress
+**Root cause**
+- Helm chart 内置 initContainer 使用 `node:20-alpine`，缺少 Python
+- 含 native 依赖的包（如 `isolated-vm`）npm install 失败，导致所有社区包未安装
+- 对 webhook pod，chart 默认不提供社区节点 volume/initContainer
+
+**Fix (permanent, survives ArgoCD sync)**
+{{< tabs groupid="n8n-community-fix" >}}
+{{< tab title="72602" >}}
+核心思路：chart 内置 initContainer 空跑，自定义 initContainer 注入到 `main/worker/webhook.initContainers`。
+
+```yaml
+nodes:
+  external:
+    packages: []   # 清空 chart 内置包列表，避免 native build 失败
+main:
+  volumes:
+    - name: community-node-modules
+      emptyDir: {}
+  volumeMounts:
+    - name: community-node-modules
+      mountPath: /home/node/.n8n/nodes
+  initContainers:
+    - name: npm-install-community
+      image: node:20-alpine
+      command: ['/bin/sh', '-c']
+      args:
+        - |
+          export COMMUNITY_PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+          mkdir -p /nodesdata/nodes
+          echo "$COMMUNITY_PACKAGES" | sha256sum > /nodesdata/nodes/packages.hash.new
+          if [ ! -f /nodesdata/nodes/packages.hash ] || ! cmp /nodesdata/nodes/packages.hash /nodesdata/nodes/packages.hash.new; then
+            npm install --loglevel info --no-save --ignore-scripts $COMMUNITY_PACKAGES --prefix /nodesdata/nodes
+            mv /nodesdata/nodes/packages.hash.new /nodesdata/nodes/packages.hash
+          fi
+      env:
+        - name: HTTP_PROXY
+          value: http://192.168.0.25:17890
+        - name: HTTPS_PROXY
+          value: http://192.168.0.25:17890
+      volumeMounts:
+        - name: community-node-modules
+          mountPath: /nodesdata/nodes
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+# worker 和 webhook 同样添加上述 volumes/volumeMounts/initContainers
+worker:
+  volumes: ...
+  volumeMounts: ...
+  initContainers: ...
+webhook:
+  volumes: ...
+  volumeMounts: ...
+  initContainers: ...
 ```
 
-**Fix**
-- Verify `WEBHOOK_URL` matches ingress host.
-- Confirm ingress class is `nginx` and TLS secret exists.
-- Check DNS/hosts mapping for your environment domain (`n8n.dev.72602.online` for ZJ, `n8n.72602.online` for 72602).
+> `--ignore-scripts` 是关键：跳过 `isolated-vm` 等 native 依赖编译，`node:20-alpine` 不含 Python 也能装。
+{{< /tab >}}
+{{< tab title="ZJ" >}}
+同上，只需修改：
+- `HTTP_PROXY`/`HTTPS_PROXY` 按 ZJ 集群代理地址填写
+- `COMMUNITY_PACKAGES` 按需调整
+{{< /tab >}}
+{{< /tabs >}}
+
+**Manual emergency fix (quick)**
+```bash
+# 在每个 Pod 内手动安装
+kubectl exec -n n8n deploy/n8n -- sh -c \
+  "cd /home/node/.n8n/nodes && npm install --ignore-scripts n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+kubectl exec -n n8n statefulset/n8n-worker -- sh -c \
+  "cd /home/node/.n8n/nodes && npm install --ignore-scripts n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+# 重启 n8n 加载新节点
+kubectl delete pods -n n8n -l app.kubernetes.io/component=main
+kubectl delete pods -n n8n -l app.kubernetes.io/component=worker
+```
 
 **Expected**
-- Webhook endpoint returns 2xx/expected response.
+- `kubectl exec -n n8n deploy/n8n -- ls /home/node/.n8n/nodes/node_modules/ | grep n8n` 有输出
+- Webhook 返回正常响应（非 `Unrecognized node type`）
 {{% /expand %}}
+
