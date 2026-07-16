@@ -1,56 +1,41 @@
 #!/bin/sh
-set -euo pipefail
+set -eu
 
-# ------------------------------------------------------------------
-# opencode web docker entrypoint
-# ------------------------------------------------------------------
+WORKSPACE="${OPENCODE_WORKSPACE:-/workspace}"
+SSH_SECRET_DIR="${OPENCODE_SSH_SECRET_DIR:-/run/secrets/opencode-ssh}"
+GIT_CREDENTIALS_FILE="${OPENCODE_GIT_CREDENTIALS_FILE:-/run/secrets/opencode-git/.git-credentials}"
 
-# 1. Setup AI provider credentials
-if [ -n "${OPS_MODEL_SECRET:-}" ]; then
-    mkdir -p "$HOME/.local/share/opencode"
-    cat > "$HOME/.local/share/opencode/auth.json" <<EOF
-{
-  "openai": {
-    "type": "api",
-    "key": "${OPS_MODEL_SECRET}"
-  }
-}
-EOF
+if [ ! -d "$WORKSPACE/.opencode" ]; then
+    echo "Missing project configuration: $WORKSPACE/.opencode" >&2
+    exit 1
 fi
 
-# 2. Setup git SSH key for doc agent
-if [ -n "${GIT_SSH_KEY:-}" ]; then
-    mkdir -p "$HOME/.ssh"
-    printf '%s\n' "$GIT_SSH_KEY" > "$HOME/.ssh/id_ed25519"
-    chmod 600 "$HOME/.ssh/id_ed25519"
-    ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+if [ -f "$SSH_SECRET_DIR/id_rsa" ]; then
+    install -d -m 0700 "$HOME/.ssh"
+    install -m 0600 "$SSH_SECRET_DIR/id_rsa" "$HOME/.ssh/id_rsa"
+    if [ -f "$SSH_SECRET_DIR/known_hosts" ]; then
+        install -m 0644 "$SSH_SECRET_DIR/known_hosts" "$HOME/.ssh/known_hosts"
+    fi
+fi
+
+git config --global --add safe.directory "$WORKSPACE"
+
+if [ -f "$GIT_CREDENTIALS_FILE" ]; then
+    install -m 0600 "$GIT_CREDENTIALS_FILE" "$HOME/.git-credentials"
+    git config --global credential.helper store
 fi
 
 if [ -n "${GIT_USER_NAME:-}" ]; then
-    git config --global user.name "${GIT_USER_NAME}"
+    git config --global user.name "$GIT_USER_NAME"
 fi
 if [ -n "${GIT_USER_EMAIL:-}" ]; then
-    git config --global user.email "${GIT_USER_EMAIL}"
+    git config --global user.email "$GIT_USER_EMAIL"
 fi
 
-# 3. Merge API key into opencode config (ConfigMap is read-only, write to user dir)
-CONFIG_TEMPLATE="${OPENCODE_CONFIG_TEMPLATE:-${OPENCODE_WORKSPACE:-/app/repo-baked}/.opencode/opencode.json}"
-USER_CONFIG="$HOME/.config/opencode/opencode.json"
-if [ -f "$CONFIG_TEMPLATE" ] && [ -n "${OPS_MODEL_SECRET:-}" ]; then
-    mkdir -p "$HOME/.config/opencode"
-    sed "s/___INJECT_FROM_ENV___/${OPS_MODEL_SECRET}/g" "$CONFIG_TEMPLATE" > "$USER_CONFIG"
-fi
-
-# 4. Set workspace from baked-in repo
-WORKSPACE="${OPENCODE_WORKSPACE:-/app/repo-baked}"
-
-# 4. Try to pull latest changes (best-effort, cluster may be offline)
-if [ -d "$WORKSPACE/.git" ]; then
-    cd "$WORKSPACE"
-    git pull --rebase 2>/dev/null || true
+if [ -z "${OPENAI_API_KEY:-}" ]; then
+    echo "Warning: OPENAI_API_KEY is not set; model requests will fail" >&2
 fi
 
 cd "$WORKSPACE"
-
-echo "Starting opencode web from $(pwd) ..."
+echo "Starting OpenCode from $WORKSPACE"
 exec "$@"

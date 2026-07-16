@@ -2,3 +2,5 @@
 *.lock
 /-p
 themes/hugo-theme-relearn
+.env
+.direnv/

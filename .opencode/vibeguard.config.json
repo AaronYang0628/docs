@@ -1,0 +1,37 @@
+{
+  "enabled": true,
+  "debug": false,
+  "placeholder_prefix": "__VG_",
+  "session": {
+    "ttl": "1h",
+    "max_mappings": 10000
+  },
+  "patterns": {
+    "keywords": [],
+    "regex": [
+      {
+        "pattern": "sk-[A-Za-z0-9_-]{20,}",
+        "category": "API_KEY"
+      },
+      {
+        "pattern": "(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]+",
+        "category": "GITHUB_TOKEN"
+      },
+      {
+        "pattern": "Bearer[ ]+[A-Za-z0-9._~+/-]+=*",
+        "category": "BEARER_TOKEN"
+      }
+    ],
+    "builtin": [
+      "china_phone",
+      "china_id"
+    ],
+    "exclude": [
+      "72602.online",
+      "zverse.space",
+      "zhejianglab.com",
+      "localhost",
+      "127.0.0.1"
+    ]
+  }
+}

@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencode
+  namespace: application
+  labels:
+    app.kubernetes.io/name: opencode
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opencode
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opencode
+    spec:
+      serviceAccountName: ops-agent-sa
+      imagePullSecrets:
+        - name: aliyun-registry
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: opencode
+          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/opencode-agent:1.18.2-20260716.4
+          imagePullPolicy: IfNotPresent
+          args:
+            - opencode
+            - serve
+            - --hostname
+            - 0.0.0.0
+            - --port
+            - "4000"
+            - --print-logs
+            - --log-level
+            - INFO
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-model
+                  key: api-key
+            - name: GIT_USER_NAME
+              value: AaronYang0628
+            - name: GIT_USER_EMAIL
+              value: aaron@72602.online
+            - name: OPENCODE_WORKSPACE
+              value: /workspace
+            - name: OPENCODE_DISABLE_AUTOUPDATE
+              value: "true"
+            - name: OPENCODE_GIT_CREDENTIALS_FILE
+              value: /run/secrets/opencode-git/.git-credentials
+            - name: HTTP_PROXY
+              value: http://192.168.0.25:17890
+            - name: HTTPS_PROXY
+              value: http://192.168.0.25:17890
+            - name: NO_PROXY
+              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech
+            - name: no_proxy
+              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech
+            - name: OPENCODE_SERVER_USERNAME
+              value: aaron
+            - name: OPENCODE_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-basic-auth
+                  key: password
+          ports:
+            - name: opencode-http
+              containerPort: 4000
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/health >/dev/null
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/health >/dev/null
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: data
+              mountPath: /home/opencode/.local/share/opencode
+            - name: ssh
+              mountPath: /run/secrets/opencode-ssh
+              readOnly: true
+            - name: git-credentials
+              mountPath: /run/secrets/opencode-git
+              readOnly: true
+        - name: title-proxy
+          image: m.daocloud.io/docker.io/library/nginx:1.28-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - nginx
+          args:
+            - -g
+            - daemon off;
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: proxy-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: workspace
+          hostPath:
+            path: /home/aaron/Ops/docs
+            type: Directory
+        - name: data
+          persistentVolumeClaim:
+            claimName: opencode-data
+        - name: ssh
+          secret:
+            secretName: opencode-ssh
+            defaultMode: 0440
+        - name: git-credentials
+          secret:
+            secretName: opencode-git-credentials
+            defaultMode: 0440
+        - name: proxy-config
+          configMap:
+            name: opencode-proxy

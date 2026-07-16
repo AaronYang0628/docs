@@ -23,9 +23,9 @@ ops.docs.72602.online         A  47.110.67.161
 sub2api.72602.online          A  47.110.67.161
 home.72602.online             A  47.110.67.161
 n8n.72602.online              A  47.110.67.161
-webhook.72602.online          A  47.110.67.161
+webhook.n8n.72602.online      A  47.110.67.161
+ops.agent.72602.online        A  47.110.67.161
 uptime.72602.online           A  47.110.67.161
-langfuse.72602.online         A  47.110.67.161
 clash.72602.online            A  47.110.67.161
 api.minio.72602.online        A  47.110.67.161
 console.minio.72602.online    A  47.110.67.161

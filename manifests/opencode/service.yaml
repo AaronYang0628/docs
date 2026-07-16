@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencode
+  namespace: application
+  labels:
+    app.kubernetes.io/name: opencode
+spec:
+  selector:
+    app.kubernetes.io/name: opencode
+  ports:
+    - name: http
+      port: 4000
+      protocol: TCP
+      targetPort: http

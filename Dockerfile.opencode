@@ -1,43 +1,54 @@
-FROM node:20-alpine AS builder
+FROM m.daocloud.io/docker.io/library/node:20-bookworm-slim AS builder
+
+ARG OPENCODE_VERSION=1.18.2
+
 RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     npm config set proxy false && \
     npm config set https-proxy false && \
-    npm install -g opencode-ai@1.14.33 && \
+    npm install -g "opencode-ai@${OPENCODE_VERSION}" && \
     npm cache clean --force
 
-FROM alpine:3.19 AS runtime
+FROM m.daocloud.io/docker.io/library/node:20-bookworm-slim AS runtime
+
+ARG KUBECTL_VERSION=v1.34.6
+
 RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
-    apk add --no-cache \
-    git \
-    openssh-client \
-    curl \
-    bash \
-    jq \
-    libstdc++ \
-    gcompat \
-    nodejs \
-    npm \
-    && curl -LO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl" \
-    && chmod +x kubectl && mv kubectl /usr/local/bin/ && \
-    mkdir -p /root/.config/opencode && \
-    cd /root/.config/opencode && \
-    npm init -y >/dev/null 2>&1 && \
-    npm install opencode-plugin-langfuse@0.1.8 2>&1 | tail -3
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      bash \
+      ca-certificates \
+      curl \
+      git \
+      jq \
+      openssh-client \
+      tini && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256" && \
+    printf '%s  kubectl\n' "$(cat kubectl.sha256)" | sha256sum -c - && \
+    install -m 0755 kubectl /usr/local/bin/kubectl && \
+    rm kubectl kubectl.sha256 && \
+    groupmod --new-name opencode node && \
+    usermod --login opencode --home /home/opencode --move-home --shell /bin/bash node
 
-COPY --from=builder /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode /usr/local/bin/opencode
+COPY --from=builder /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64/bin/opencode /usr/local/bin/opencode
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-# Clone repo at build time so runtime doesn't need full clone
-# Use host's proxy since cluster has restricted network access
-RUN git clone --depth 1 --branch main \
-        https://github.com/AaronYang0628/docs.git /app/repo-baked && \
-    cd /app/repo-baked && \
-    git remote set-url origin https://github.com/AaronYang0628/docs.git
+RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh && \
+    mkdir -p /home/opencode/.cache/opencode /workspace && \
+    chown -R opencode:opencode /home/opencode /workspace
 
-WORKDIR /app
-EXPOSE 3000
+USER opencode
+ENV HOME=/home/opencode \
+    XDG_CACHE_HOME=/home/opencode/.cache \
+    OPENCODE_DISABLE_AUTOUPDATE=true
 
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Resolve plugins during the image build so Pod startup does not depend on npm.
+RUN OPENCODE_CONFIG_CONTENT='{"plugin":["opencode-vibeguard@0.1.0","@tarquinen/opencode-dcp@3.1.14"],"share":"disabled"}' \
+    opencode debug config >/dev/null
 
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["opencode", "web", "--hostname", "0.0.0.0", "--port", "3000", "--print-logs", "--log-level", "INFO"]
+WORKDIR /workspace
+EXPOSE 4000
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
+CMD ["opencode", "serve", "--hostname", "0.0.0.0", "--port", "4000", "--print-logs", "--log-level", "INFO"]

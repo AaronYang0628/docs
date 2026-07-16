@@ -29,6 +29,11 @@ spec:
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: home.72602.online,localhost:30000
+            - name: HOMEPAGE_VAR_ARGOCD_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-widget-secrets
+                  key: argocd-key
           ports:
             - name: http
               containerPort: 3000
