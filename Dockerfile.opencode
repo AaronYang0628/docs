@@ -10,7 +10,13 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
 
 FROM m.daocloud.io/docker.io/library/node:20-bookworm-slim AS runtime
 
+ARG OPS_AGENT_VERSION=0.1.0
+ARG OPENCODE_VERSION=1.18.2
 ARG KUBECTL_VERSION=v1.34.6
+
+LABEL org.opencontainers.image.title="Ops Agent" \
+      org.opencontainers.image.version="${OPS_AGENT_VERSION}" \
+      io.opencode.version="${OPENCODE_VERSION}"
 
 RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     apt-get update && \

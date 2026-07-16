@@ -3,14 +3,15 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REGISTRY="crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com"
-IMAGE_REPOSITORY="${REGISTRY}/ay-dev/opencode-agent"
-IMAGE_TAG="${IMAGE_TAG:-1.18.2-20260716.4}"
+IMAGE_REPOSITORY="${REGISTRY}/ay-dev/ops-agent"
+IMAGE_TAG="${IMAGE_TAG:-0.1.0}"
 IMAGE="${IMAGE_REPOSITORY}:${IMAGE_TAG}"
 BUILD_PROXY="${BUILD_PROXY:-http://host.containers.internal:17890}"
 
 podman build \
   --file "$ROOT_DIR/Dockerfile.opencode" \
   --tag "$IMAGE" \
+  --build-arg "OPS_AGENT_VERSION=$IMAGE_TAG" \
   --build-arg "HTTP_PROXY=$BUILD_PROXY" \
   --build-arg "HTTPS_PROXY=$BUILD_PROXY" \
   "$ROOT_DIR"
