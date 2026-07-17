@@ -28,7 +28,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: opencode
-          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/ops-agent:0.1.0
+          image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/ops-agent:0.2.1
           imagePullPolicy: IfNotPresent
           args:
             - opencode
@@ -71,6 +71,13 @@ spec:
                 secretKeyRef:
                   name: opencode-basic-auth
                   key: password
+            - name: ARGOCD_SERVER
+              value: argo-cd-argocd-server.argocd.svc.cluster.local:443
+            - name: ARGOCD_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-argocd
+                  key: auth-token
           ports:
             - name: opencode-http
               containerPort: 4000

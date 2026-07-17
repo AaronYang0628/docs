@@ -1,25 +1,6 @@
 ---
 description: Maintains this Hugo operations handbook; use after cluster work or when creating, correcting, restructuring, or validating pages under content/.
 mode: subagent
-permission:
-  read: allow
-  glob: allow
-  grep: allow
-  edit:
-    "*": deny
-    "content/**": allow
-  skill:
-    "*": deny
-    "hugo-relearn-authoring": allow
-    "hugo-runbook-authoring": allow
-  bash:
-    "*": ask
-    "hugo*": allow
-    "git status*": allow
-    "git diff*": allow
-    "git add *": allow
-    "git commit *": allow
-    "git push*": allow
 ---
 
 # Hugo Operations Documentation Maintainer

@@ -85,9 +85,48 @@
       }
     }
   },
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "task": "allow",
+    "external_directory": "allow",
+    "todowrite": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "lsp": "allow",
+    "doom_loop": "allow",
+    "skill": "allow",
+    "bash": {
+      "*": "allow",
+      "kubectl delete *": "ask",
+      "kubectl * delete *": "ask",
+      "kubectl drain *": "ask",
+      "kubectl * drain *": "ask",
+      "kubectl cordon *": "ask",
+      "kubectl * cordon *": "ask",
+      "kubectl taint *": "ask",
+      "kubectl * taint *": "ask",
+      "ssh * kubectl * delete *": "ask",
+      "ssh * kubectl * drain *": "ask",
+      "ssh * kubectl * cordon *": "ask",
+      "ssh * kubectl * taint *": "ask",
+      "sudo *": "ask",
+      "* sudo *": "ask",
+      "systemctl *": "ask",
+      "* systemctl *": "ask",
+      "rm -rf *": "ask",
+      "git reset --hard*": "ask",
+      "git push *--force*": "ask"
+    }
+  },
   "plugin": [
     "opencode-vibeguard@0.1.0",
-    "@tarquinen/opencode-dcp@3.1.14"
+    "@tarquinen/opencode-dcp@3.1.14",
+    "@prevalentware/opencode-goal-plugin@0.1.24"
   ],
   "share": "disabled",
   "compaction": {

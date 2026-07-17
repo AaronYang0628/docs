@@ -8,15 +8,13 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     npm install -g "opencode-ai@${OPENCODE_VERSION}" && \
     npm cache clean --force
 
+FROM m.daocloud.io/quay.io/argoproj/argocd:v3.3.8 AS argocd
+
 FROM m.daocloud.io/docker.io/library/node:20-bookworm-slim AS runtime
 
-ARG OPS_AGENT_VERSION=0.1.0
+ARG OPS_AGENT_VERSION=0.2.1
 ARG OPENCODE_VERSION=1.18.2
 ARG KUBECTL_VERSION=v1.34.6
-
-LABEL org.opencontainers.image.title="Ops Agent" \
-      org.opencontainers.image.version="${OPS_AGENT_VERSION}" \
-      io.opencode.version="${OPENCODE_VERSION}"
 
 RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     apt-get update && \
@@ -38,6 +36,7 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY && \
     usermod --login opencode --home /home/opencode --move-home --shell /bin/bash node
 
 COPY --from=builder /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64/bin/opencode /usr/local/bin/opencode
+COPY --from=argocd /usr/local/bin/argocd /usr/local/bin/argocd
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh && \
@@ -50,8 +49,13 @@ ENV HOME=/home/opencode \
     OPENCODE_DISABLE_AUTOUPDATE=true
 
 # Resolve plugins during the image build so Pod startup does not depend on npm.
-RUN OPENCODE_CONFIG_CONTENT='{"plugin":["opencode-vibeguard@0.1.0","@tarquinen/opencode-dcp@3.1.14"],"share":"disabled"}' \
+RUN OPENCODE_CONFIG_CONTENT='{"plugin":["opencode-vibeguard@0.1.0","@tarquinen/opencode-dcp@3.1.14","@prevalentware/opencode-goal-plugin@0.1.24"],"share":"disabled"}' \
     opencode debug config >/dev/null
+
+LABEL org.opencontainers.image.title="Ops Agent" \
+      org.opencontainers.image.version="${OPS_AGENT_VERSION}" \
+      io.opencode.version="${OPENCODE_VERSION}" \
+      io.argoproj.argocd.version="3.3.8"
 
 WORKDIR /workspace
 EXPOSE 4000

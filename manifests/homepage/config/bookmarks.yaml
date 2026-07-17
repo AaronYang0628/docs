@@ -31,10 +31,6 @@
         - abbr: Ali
           icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/aliyun.png
           href: https://home.console.aliyun.com/home/dashboard/ProductAndService
-    - Tailscale:
-        - abbr: TS
-          icon: tailscale
-          href: https://tailscale.com
     - OperatorHub:
         - abbr: OSH
           icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/operator_hub.png

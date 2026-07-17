@@ -36,6 +36,10 @@ if [ -z "${OPENAI_API_KEY:-}" ]; then
     echo "Warning: OPENAI_API_KEY is not set; model requests will fail" >&2
 fi
 
+if ! grep -qF "alias argocd='argocd --server" "$HOME/.bashrc" 2>/dev/null; then
+    printf "\nalias argocd='argocd --server \"$ARGOCD_SERVER\" --insecure --grpc-web'\n" >> "$HOME/.bashrc"
+fi
+
 cd "$WORKSPACE"
 echo "Starting OpenCode from $WORKSPACE"
 exec "$@"
