@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: opencode-proxy
+  name: ops-agent-proxy
   namespace: application
 data:
   nginx.conf: |

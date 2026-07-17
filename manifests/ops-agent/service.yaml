@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: opencode
+  name: ops-agent
   namespace: application
   labels:
-    app.kubernetes.io/name: opencode
+    app.kubernetes.io/name: ops-agent
 spec:
   selector:
-    app.kubernetes.io/name: opencode
+    app.kubernetes.io/name: ops-agent
   ports:
     - name: http
       port: 4000

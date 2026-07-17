@@ -9,7 +9,7 @@ IMAGE="${IMAGE_REPOSITORY}:${IMAGE_TAG}"
 BUILD_PROXY="${BUILD_PROXY:-http://host.containers.internal:17890}"
 
 podman build \
-  --file "$ROOT_DIR/Dockerfile.opencode" \
+  --file "$ROOT_DIR/Dockerfile.ops-agent" \
   --tag "$IMAGE" \
   --build-arg "OPS_AGENT_VERSION=$IMAGE_TAG" \
   --build-arg "HTTP_PROXY=$BUILD_PROXY" \
