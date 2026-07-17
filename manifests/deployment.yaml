@@ -1,19 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hugo-docs
+  name: ops-docs
+  labels:
+    app.kubernetes.io/name: ops-docs
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: hugo-docs
+      app.kubernetes.io/name: ops-docs
   template:
     metadata:
       labels:
-        app: hugo-docs
+        app.kubernetes.io/name: ops-docs
     spec:
       containers:
-        - name: nginx
+        - name: ops-docs
           image: m.daocloud.io/docker.io/library/nginx:alpine
           ports:
             - containerPort: 80

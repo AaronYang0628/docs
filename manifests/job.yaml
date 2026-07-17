@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: docs-content-build
+  name: ops-docs-build
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
@@ -27,7 +27,7 @@ spec:
               chmod -R g+rwX "${SITE_OUTPUT_DIR}" "${SITE_SOURCE_DIR}" || true
           envFrom:
             - configMapRef:
-                name: hugo-docs-config
+                name: ops-docs-config
           volumeMounts:
             - name: src
               mountPath: /src
@@ -46,7 +46,7 @@ spec:
               test -f "${SITE_OUTPUT_DIR}/index.html"
           envFrom:
             - configMapRef:
-                name: hugo-docs-config
+                name: ops-docs-config
           volumeMounts:
             - name: output
               mountPath: /output
