@@ -32,7 +32,7 @@
         href: https://ops.agent.72602.online
         description: Cluster Operations Agent
         namespace: application
-        app: opencode
+        app: ops-agent
         showStats: true
 - Basic Services:
     - SSH At 72602:

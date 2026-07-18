@@ -132,8 +132,8 @@ data:
     \       namespace: monitor\n        app: uptime-kuma\n        showStats: true\n
     \   - Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.online\n
     \       description: Cluster Operations Agent\n        namespace: application\n
-    \       app: opencode\n        showStats: true\n- Basic Services:\n    - SSH At
-    72602:\n        icon: terminal\n        description: SSH Service At 72602 Home\n
+    \       app: ops-agent\n        showStats: true\n- Basic Services:\n    - SSH
+    At 72602:\n        icon: terminal\n        description: SSH Service At 72602 Home\n
     \       widget:\n          type: uptimekuma\n          url: https://uptime.72602.online\n
     \         slug: 72602-minipc-ssh\n    - Clash At 72602:\n        icon: clash\n
     \       href: http://clash.72602.online/ui\n        description: http://clash.72602.online/ui\n
