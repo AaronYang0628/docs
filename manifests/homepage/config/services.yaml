@@ -1,0 +1,97 @@
+- Cluster Management:
+    - Homepage:
+        icon: homepage
+        href: http://home.72602.online
+        description: 72602 Cluster Dashboard
+        namespace: monitor
+        app: homepage
+        showStats: true
+    - ArgoCD:
+        icon: argo-cd
+        description: GitOps Applications
+        href: https://argocd.72602.online
+        siteMonitor: https://argocd.72602.online
+        namespace: argocd
+        app: argocd-server
+        showStats: true
+        widget:
+          type: argocd
+          url: https://argocd.72602.online
+          key: "{{HOMEPAGE_VAR_ARGOCD_KEY}}"
+          insecure: true
+    - Uptime Kuma:
+        icon: sh-uptime-kuma
+        href: https://uptime.72602.online
+        description: Service Availability
+        siteMonitor: https://uptime.72602.online
+        namespace: monitor
+        app: uptime-kuma
+        showStats: true
+    - Ops Agent:
+        icon: terminal
+        href: https://ops.agent.72602.online
+        description: Cluster Operations Agent
+        namespace: application
+        app: opencode
+        showStats: true
+- Basic Services:
+    - SSH At 72602:
+        icon: terminal
+        description: SSH Service At 72602 Home
+        widget:
+          type: uptimekuma
+          url: https://uptime.72602.online
+          slug: 72602-minipc-ssh
+    - Clash At 72602:
+        icon: clash
+        href: http://clash.72602.online/ui
+        description: http://clash.72602.online/ui
+        siteMonitor: http://clash.72602.online/ui
+    - Clash At ECS:
+        icon: clash
+        href: http://47.110.67.161:56396/ui
+        description: http://47.110.67.161:56396
+        siteMonitor: http://47.110.67.161:56396/ui
+    - Sub2API-WZ:
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
+        href: https://sub2api.home.geekcity.tech:32443
+        description: https://sub2api.home.geekcity.tech:32443
+        siteMonitor: https://sub2api.home.geekcity.tech:32443
+    - Minio Ingress:
+        icon: minio
+        href: https://console.minio.72602.online
+        description: https://console.minio.72602.online
+        siteMonitor: https://console.minio.72602.online
+- 72602 Hosted:
+    - Sub2API-AY:
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
+        href: https://sub2api.72602.online
+        description: https://sub2api.72602.online
+        siteMonitor: https://sub2api.72602.online
+    - N8N Ingress:
+        icon: n8n
+        href: https://n8n.72602.online
+        description: https://n8n.72602.online
+        siteMonitor: https://n8n.72602.online
+    - Port Blog Ingress:
+        href: http://ops.docs.72602.online
+        icon: hugo
+        description: http://ops.docs.72602.online
+        siteMonitor: http://ops.docs.72602.online
+- External Links:
+    - ZJLAB Nanhu:
+        href: https://zjic.zhejianglab.com/portal/navigation
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png
+        description: https://zjic.zhejianglab.com/portal/navigation
+        siteMonitor: https://zjic.zhejianglab.com/portal/navigation
+    - ZJLAB Haina:
+        href: https://open-sci-datahub.zero2x.org/home
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png
+        description: https://open-sci-datahub.zero2x.org/home
+        siteMonitor: https://open-sci-datahub.zero2x.org/home
+    - Browserless:
+        href: https://www.browserless.io/account/dashboard
+        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/browserless.png
+        description: Browserless Dashboard
+         
+- Conatiners: []
