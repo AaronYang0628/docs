@@ -12,7 +12,7 @@ FROM m.daocloud.io/quay.io/argoproj/argocd:v3.3.8 AS argocd
 
 FROM m.daocloud.io/docker.io/library/node:20-bookworm-slim AS runtime
 
-ARG OPS_AGENT_VERSION=0.2.1
+ARG OPS_AGENT_VERSION=0.2.2
 ARG OPENCODE_VERSION=1.18.2
 ARG KUBECTL_VERSION=v1.34.6
 

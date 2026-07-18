@@ -16,6 +16,13 @@ if [ -f "$SSH_SECRET_DIR/id_rsa" ]; then
     if [ -f "$SSH_SECRET_DIR/known_hosts" ]; then
         install -m 0644 "$SSH_SECRET_DIR/known_hosts" "$HOME/.ssh/known_hosts"
     fi
+    if [ -f "$SSH_SECRET_DIR/config" ]; then
+        install -m 0600 "$SSH_SECRET_DIR/config" "$HOME/.ssh/config"
+    fi
+    if [ -f "$SSH_SECRET_DIR/zjlab.conf" ]; then
+        install -d -m 0700 "$HOME/.ssh/config.d"
+        install -m 0600 "$SSH_SECRET_DIR/zjlab.conf" "$HOME/.ssh/config.d/zjlab.conf"
+    fi
 fi
 
 git config --global --add safe.directory "$WORKSPACE"
