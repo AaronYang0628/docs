@@ -6,220 +6,147 @@ draft = true
 weight = 270
 +++
 
-
 ### 🚀Installation
 
-{{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
+<!-- Keep only environments and installation methods that were actually used. -->
 
-{{< tab title="📦Helm" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_helm_preliminary.md" %}}
+{{< tabs groupid="environment" style="primary" title="Environment" icon="server" >}}
 
-  <p> <b>1.get helm repo </b></p>
+{{< tab title="ZJLAB" >}}
+  {{< tabs groupid="install-method-zjlab" title="Install By" icon="thumbtack" >}}
 
-  {{% notice style="transparent" %}}
-  ```bash
-  helm repo add xxxxx https://xxxx
-  helm repo update
-  ```
-  {{% /notice %}}
+  {{% tab title="🐙ArgoCD" %}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
-  <p> <b>2.install chart </b></p>
+  <p> <b>1.prepare</b> `xxxxx-credentials` </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  helm install xxxxx/chart-name --generate-name --version a.b.c
-  ```
-  {{% /notice %}}
-
-  {{% notice style="important" title="Using AY Helm Mirror" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
-  {{% /notice %}}
-
-{{< /tab >}}
-
-{{< tab title="🐙ArgoCD" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_argo_cd_preliminary.md" %}}
-
-  <p> <b>1.prepare</b> `xxxxx-credentials.yaml` </p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-
+  kubectl -n application create secret generic xxxxx-credentials \
+    --from-literal=password='<replace-me>'
   ```
   {{% /notice %}}
 
   <p> <b>2.prepare</b> `deploy-xxxxx.yaml` </p>
 
-{{< tabs >}}
-
-{{< tab title="ZJ" style="transparent" >}}
-
   {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n argocd apply -f -<< EOF
-  
-  EOF
-  ```
-  {{% /notice %}}
-{{< /tab >}}
-
-{{< tab title="72602" style="transparent" >}}
-
-  {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n argocd apply -f -<< EOF
-  
+  ```bash
+  kubectl -n argocd apply -f - <<'EOF'
+  apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: xxxxx
+    namespace: argocd
+  spec: {}
   EOF
   ```
   {{% /notice %}}
 
-{{< /tab >}}
-{{< /tabs >}}
-
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>3.sync by argocd</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/xxxx
+  argocd app sync argocd/xxxxx
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
-
-{{< /tab >}}
-
-
-{{< tab title="🐳Docker" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_container_preliminary.md" %}}
-
-  <p> <b>1.init server </b></p> 
+  <p> <b>4.verify</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
-
+  kubectl -n application get pods,svc,ingress
   ```
   {{% /notice %}}
-  
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
+  {{% /tab %}}
+
+  {{% tab title="🐳Docker" %}}
+  {{% include "/Installation/SNIPPET/_container_preliminary.md" %}}
+
+  <p> <b>1.run container</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  docker run -d --name xxxxx xxxxx:tag
+  ```
   {{% /notice %}}
 
+  <p> <b>2.verify</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  docker ps --filter name=xxxxx
+  ```
+  {{% /notice %}}
+  {{% /tab %}}
+
+  {{< /tabs >}}
 {{< /tab >}}
 
+{{< tab title="72602" >}}
+  {{< tabs groupid="install-method-72602" title="Install By" icon="thumbtack" >}}
 
-{{< tab title="♻️Argo Workflow" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_argo_wf_preliminary.md" %}}
+  {{% tab title="🐙ArgoCD" %}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
-  <p> <b>1.prepare `argocd-login-credentials` </b></p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  kubectl get namespaces database > /dev/null 2>&1 || kubectl create namespace database
-  ```
-  {{% /notice %}}
-
-
-  <p> <b>2.apply rolebinding to k8s </b></p>
-
-  {{% notice style="transparent" %}}
-  {{% include "content\Installation\SNIPPET\_argo_wf_rbac.md" %}}
-  {{% /notice %}}
-
-  <p> <b>4.prepare `deploy-xxxx-flow.yaml` </b></p>
-
-  {{% notice style="transparent" %}}
-  ```yaml
-
-  ```
-  {{% /notice %}}
-
-
-  <p> <b>5.submit to argo workflow client</b></p> 
+  <p> <b>1.prepare</b> `deploy-xxxxx.yaml` </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argo -n business-workflows submit deploy-xxxx-flow.yaml
+  kubectl -n argocd apply -f deploy-xxxxx.yaml
   ```
   {{% /notice %}}
 
-
-  <p> <b>7.decode password</b></p> 
+  <p> <b>2.sync by argocd</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl -n application get secret xxxx-credentials -o jsonpath='{.data.xxx-password}' | base64 -d
+  argocd app sync argocd/xxxxx
   ```
   {{% /notice %}}
 
+  <p> <b>3.verify</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application get pods,svc,ingress
+  ```
+  {{% /notice %}}
+  {{% /tab %}}
+
+  {{% tab title="📦Helm" %}}
+  {{% include "/Installation/SNIPPET/_helm_preliminary.md" %}}
+
+  <p> <b>1.install chart</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  helm upgrade --install xxxxx repo/chart \
+    --namespace application \
+    --create-namespace
+  ```
+  {{% /notice %}}
+
+  <p> <b>2.verify</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  helm -n application status xxxxx
+  ```
+  {{% /notice %}}
+  {{% /tab %}}
+
+  {{< /tabs >}}
 {{< /tab >}}
-
-{{< tab title="📑manifests" style="transparent" >}}
-  {{% include "content\Installation\SNIPPET\_manifests_preliminary.md" %}}
-
-  <p> <b>1.init server </b></p> 
-
-  {{% notice style="transparent" %}}
-  ```bash
-
-  ```
-  {{% /notice %}}
-  
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
-
-{{< /tab >}}
-
 
 {{< /tabs >}}
-
-
 
 ### 🛎️FAQ
 
-{{% expand title="Q1: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
+{{% expand title="Q1: deployment verification failed" %}}
 
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
+```bash
+kubectl -n application get events --sort-by=.lastTimestamp
 ```
 
-> the possibilities are endless (almost - including other shortcodes may or may not work)
-{{% /expand %}}
-
-
-{{% expand title="Q2: Show me almost **endless** possibilities" %}}
-You can add standard markdown syntax:
-
-- multiple paragraphs
-- bullet point lists
-- _emphasized_, **bold** and even **_bold emphasized_** text
-- [links](https://example.com)
-- etc.
-
-```plaintext
-...and even source code
-```
-
-> the possibilities are endless (almost - including other shortcodes may or may not work)
+Record the verified symptom, root cause, corrected operation, rollback, and expected result here.
 {{% /expand %}}

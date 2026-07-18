@@ -6,10 +6,11 @@ weight = 14
 
 ### 🚀Installation
 
-{{< tabs groupid="xxxx" style="primary" title="Install By" icon="thumbtack" >}}
+{{< tabs groupid="environment" style="primary" title="Environment" icon="server" >}}
 
-
-{{< tab title="🐙ArgoCD (ZJ)" style="transparent" >}}
+{{< tab title="ZJLAB" >}}
+  {{< tabs groupid="install-method-zjlab" title="Install By" icon="thumbtack" >}}
+  {{% tab title="🐙ArgoCD" %}}
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
@@ -17,7 +18,7 @@ weight = 14
   
 
   {{% notice style="transparent" %}}
-  ```shell
+  ```bash
   kubectl get namespaces n8n > /dev/null 2>&1 || kubectl create namespace n8n
   N8N_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.password}' | base64 -d)
   kubectl -n n8n create secret generic n8n-middleware-credential \
@@ -233,9 +234,13 @@ weight = 14
   {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
   {{% /notice %}}
 
+  {{% /tab %}}
+  {{< /tabs >}}
 {{< /tab >}}
 
-{{< tab title="🐙ArgoCD (72602)" style="transparent" >}}
+{{< tab title="72602" >}}
+  {{< tabs groupid="install-method-72602" title="Install By" icon="thumbtack" >}}
+  {{% tab title="🐙ArgoCD" %}}
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
@@ -243,7 +248,7 @@ weight = 14
   
 
   {{% notice style="transparent" %}}
-  ```shell
+  ```bash
   kubectl get namespaces n8n > /dev/null 2>&1 || kubectl create namespace n8n
   N8N_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.password}' | base64 -d)
   kubectl -n n8n create secret generic n8n-middleware-credential \
@@ -290,8 +295,8 @@ weight = 14
           main:
             count: 1
             extraEnvVars:
-              HTTP_PROXY: "http://47.110.67.161:30890"
-              HTTPS_PROXY: "http://47.110.67.161:30890"
+              HTTP_PROXY: "http://192.168.0.25:17890"
+              HTTPS_PROXY: "http://192.168.0.25:17890"
               NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
               no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
               NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
@@ -318,7 +323,7 @@ weight = 14
             volumes:
               - name: downloads-volume
                 hostPath:
-                  path: /mnt/e/N8N_DATA
+                  path: /run/media/aaron/DATA
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
@@ -336,8 +341,8 @@ weight = 14
             waitMainNodeReady:
               enabled: false
             extraEnvVars:
-              HTTP_PROXY: "http://47.110.67.161:30890"
-              HTTPS_PROXY: "http://47.110.67.161:30890"
+              HTTP_PROXY: "http://192.168.0.25:17890"
+              HTTPS_PROXY: "http://192.168.0.25:17890"
               NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
               no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
               NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
@@ -358,7 +363,7 @@ weight = 14
             volumes:
               - name: downloads-volume
                 hostPath:
-                  path: /mnt/e/N8N_DATA
+                  path: /run/media/aaron/DATA
                   type: DirectoryOrCreate
             volumeMounts:
               - name: downloads-volume
@@ -401,7 +406,7 @@ weight = 14
             className: nginx
             annotations:
               kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: letsencrypt
+              cert-manager.io/cluster-issuer: lets-encrypt
               nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
               nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
@@ -465,8 +470,9 @@ weight = 14
   {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
   {{% /notice %}}
 
+  {{% /tab %}}
+  {{< /tabs >}}
 {{< /tab >}}
-
 
 {{< /tabs >}}
 
@@ -582,4 +588,3 @@ kubectl delete pods -n n8n -l app.kubernetes.io/component=worker
 - `kubectl exec -n n8n deploy/n8n -- ls /home/node/.n8n/nodes/node_modules/ | grep n8n` 有输出
 - Webhook 返回正常响应（非 `Unrecognized node type`）
 {{% /expand %}}
-
