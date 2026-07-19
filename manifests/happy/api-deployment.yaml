@@ -30,7 +30,14 @@ spec:
         - name: api
           image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/happy-server:3f161de
           imagePullPolicy: IfNotPresent
+          command:
+            - pnpm
+            - --filter
+            - happy-server-self-host
+            - start
           env:
+            - name: COREPACK_HOME
+              value: /tmp/corepack
             - name: NODE_ENV
               value: production
             - name: HOST

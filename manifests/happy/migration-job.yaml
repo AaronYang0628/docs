@@ -3,7 +3,8 @@ kind: Job
 metadata:
   name: happy-migrate
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 spec:
   backoffLimit: 4
   ttlSecondsAfterFinished: 86400
@@ -27,13 +28,18 @@ spec:
           command:
             - /bin/sh
             - -c
-            - pnpm --filter happy-server exec prisma migrate deploy
+            - pnpm --filter happy-server-self-host exec prisma migrate deploy
           env:
+            - name: COREPACK_HOME
+              value: /tmp/corepack
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: happy-server
                   key: database-url
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -46,3 +52,6 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
