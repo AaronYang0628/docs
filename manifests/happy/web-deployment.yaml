@@ -18,6 +18,12 @@ spec:
     spec:
       imagePullSecrets:
         - name: aliyun-registry
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: web
           image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/happy-web:3f161de
