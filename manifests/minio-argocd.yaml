@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: storage
+  source:
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    chart: minio
+    targetRevision: 16.0.10
+    helm:
+      releaseName: minio
+      values: |
+        global:
+          imageRegistry: ""
+          imagePullSecrets: []
+          storageClass: ""
+          security:
+            allowInsecureImages: true
+          compatibility:
+            openshift:
+              adaptSecurityContext: auto
+        image:
+          registry: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com
+          repository: ay-mirror/minio
+          tag: 2025.4.22-debian-12-r1
+        clientImage:
+          registry: docker.io
+          repository: bitnami/minio-client
+        mode: standalone
+        defaultBuckets: ""
+        auth:
+          existingSecret: minio-secret
+        statefulset:
+          updateStrategy:
+            type: RollingUpdate
+          podManagementPolicy: Parallel
+          replicaCount: 1
+          zones: 1
+          drivesPerNode: 1
+        resourcesPreset: micro
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 250m
+          limits:
+            memory: 1024Mi
+            cpu: 512m
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hostname: console.minio.72602.space
+          path: /
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+          tls: true
+          extraHosts:
+            - name: console.minio.72602.online
+              path: /
+              pathType: ImplementationSpecific
+          extraTls:
+            - hosts:
+                - console.minio.72602.online
+              secretName: console.minio.72602.online-tls
+        apiIngress:
+          enabled: true
+          ingressClassName: nginx
+          hostname: api.minio.72602.space
+          path: /
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+          tls: true
+          extraHosts:
+            - name: api.minio.72602.online
+              path: /
+              pathType: ImplementationSpecific
+          extraTls:
+            - hosts:
+                - api.minio.72602.online
+              secretName: api.minio.72602.online-tls
+        persistence:
+          enabled: true
+          storageClass: local-path
+          mountPath: /bitnami/minio/data
+          accessModes:
+            - ReadWriteOnce
+          size: 8Gi
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

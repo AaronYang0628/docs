@@ -49,7 +49,7 @@ spec:
             - name: GIT_USER_NAME
               value: AaronYang0628
             - name: GIT_USER_EMAIL
-              value: aaron@72602.online
+              value: aaron@72602.space
             - name: OPENCODE_WORKSPACE
               value: /workspace
             - name: OPENCODE_DISABLE_AUTOUPDATE

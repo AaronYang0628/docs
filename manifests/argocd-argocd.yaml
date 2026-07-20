@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  source:
+    repoURL: https://argoproj.github.io/argo-helm
+    chart: argo-cd
+    targetRevision: 9.5.4
+    helm:
+      releaseName: argo-cd
+      values: |
+        crds:
+          install: true
+          keep: false
+        global:
+          domain: argocd.72602.space
+          revisionHistoryLimit: 3
+          image:
+            repository: m.daocloud.io/quay.io/argoproj/argocd
+            imagePullPolicy: IfNotPresent
+        configs:
+          cm:
+            url: https://argocd.72602.space
+            additionalUrls: |
+              - https://argocd.72602.online
+            accounts.readonly: apiKey
+            accounts.readonly.enabled: "true"
+          rbac:
+            policy.csv: |
+              p, role:readonly, applications, get, */*, allow
+              p, role:readonly, projects, get, *, allow
+              p, role:readonly, repositories, get, *, allow
+              p, role:readonly, clusters, get, *, allow
+              g, readonly, role:readonly
+            policy.default: ""
+        redis:
+          enabled: true
+          image:
+            repository: m.daocloud.io/docker.io/library/redis
+          exporter:
+            enabled: false
+            image:
+              repository: m.daocloud.io/bitnami/redis-exporter
+          metrics:
+            enabled: false
+        redis-ha:
+          enabled: false
+          image:
+            repository: m.daocloud.io/docker.io/library/redis
+          configmapTest:
+            repository: m.daocloud.io/docker.io/koalaman/shellcheck
+          haproxy:
+            enabled: false
+            image:
+              repository: m.daocloud.io/docker.io/library/haproxy
+          exporter:
+            enabled: false
+            image: m.daocloud.io/docker.io/oliver006/redis_exporter
+        dex:
+          enabled: true
+          image:
+            repository: m.daocloud.io/ghcr.io/dexidp/dex
+        controller:
+          extraArgs:
+            - --repo-server-timeout-seconds=900
+        repoServer:
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            timeoutSeconds: 5
+            failureThreshold: 6
+            periodSeconds: 10
+          readinessProbe:
+            timeoutSeconds: 5
+            failureThreshold: 6
+            periodSeconds: 10
+          env:
+            - name: ARGOCD_EXEC_TIMEOUT
+              value: 900s
+            - name: HTTP_PROXY
+              value: http://argocd-egress-proxy.argocd.svc.cluster.local:17890
+            - name: HTTPS_PROXY
+              value: http://argocd-egress-proxy.argocd.svc.cluster.local:17890
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,.svc,.cluster.local,10.42.0.0/16,10.43.0.0/16,192.168.0.0/16,100.64.0.0/10,kubernetes.default.svc,argocd-repo-server,argocd-redis,argocd-server
+        server:
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+              cert-manager.io/cluster-issuer: lets-encrypt
+              nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+            hostname: argocd.72602.space
+            path: /
+            pathType: Prefix
+            tls: false
+            extraHosts:
+              - name: argocd.72602.online
+                path: /
+                pathType: Prefix
+            extraTls:
+              - hosts:
+                  - argocd.72602.space
+                secretName: argocd.72602.space-tls
+              - hosts:
+                  - argocd.72602.online
+                secretName: argocd.72602.online-tls
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

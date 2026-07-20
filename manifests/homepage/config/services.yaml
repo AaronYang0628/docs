@@ -1,7 +1,7 @@
 - Cluster Management:
     - Homepage:
         icon: homepage
-        href: http://home.72602.online
+        href: http://port.72602.space
         description: 72602 Cluster Dashboard
         namespace: monitor
         app: homepage
@@ -9,27 +9,27 @@
     - ArgoCD:
         icon: argo-cd
         description: GitOps Applications
-        href: https://argocd.72602.online
-        siteMonitor: https://argocd.72602.online
+        href: https://argocd.72602.space
+        siteMonitor: https://argocd.72602.space
         namespace: argocd
         app: argocd-server
         showStats: true
         widget:
           type: argocd
-          url: https://argocd.72602.online
+          url: https://argocd.72602.space
           key: "{{HOMEPAGE_VAR_ARGOCD_KEY}}"
           insecure: true
     - Uptime Kuma:
         icon: sh-uptime-kuma
-        href: https://uptime.72602.online
+        href: https://uptime.72602.space
         description: Service Availability
-        siteMonitor: https://uptime.72602.online
+        siteMonitor: https://uptime.72602.space
         namespace: monitor
         app: uptime-kuma
         showStats: true
     - Ops Agent:
         icon: terminal
-        href: https://ops.agent.72602.online
+        href: https://ops.agent.72602.space
         description: Cluster Operations Agent
         namespace: application
         app: ops-agent
@@ -40,13 +40,13 @@
         description: SSH Service At 72602 Home
         widget:
           type: uptimekuma
-          url: https://uptime.72602.online
+          url: https://uptime.72602.space
           slug: 72602-minipc-ssh
     - Clash At 72602:
         icon: clash
-        href: http://clash.72602.online/ui
-        description: http://clash.72602.online/ui
-        siteMonitor: http://clash.72602.online/ui
+        href: http://clash.72602.space/ui
+        description: http://clash.72602.space/ui
+        siteMonitor: http://clash.72602.space/ui
     - Clash At ECS:
         icon: clash
         href: http://47.110.67.161:56396/ui
@@ -59,25 +59,25 @@
         siteMonitor: https://sub2api.home.geekcity.tech:32443
     - Minio Ingress:
         icon: minio
-        href: https://console.minio.72602.online
-        description: https://console.minio.72602.online
-        siteMonitor: https://console.minio.72602.online
+        href: https://console.minio.72602.space
+        description: https://console.minio.72602.space
+        siteMonitor: https://console.minio.72602.space
 - 72602 Hosted:
     - Sub2API-AY:
         icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
-        href: https://sub2api.72602.online
-        description: https://sub2api.72602.online
-        siteMonitor: https://sub2api.72602.online
+        href: https://sub2api.72602.space
+        description: https://sub2api.72602.space
+        siteMonitor: https://sub2api.72602.space
     - N8N Ingress:
         icon: n8n
-        href: https://n8n.72602.online
-        description: https://n8n.72602.online
-        siteMonitor: https://n8n.72602.online
+        href: https://n8n.72602.space
+        description: https://n8n.72602.space
+        siteMonitor: https://n8n.72602.space
     - Port Blog Ingress:
-        href: http://ops.docs.72602.online
+        href: https://ops.docs.72602.space
         icon: hugo
-        description: http://ops.docs.72602.online
-        siteMonitor: http://ops.docs.72602.online
+        description: https://ops.docs.72602.space
+        siteMonitor: https://ops.docs.72602.space
 - External Links:
     - ZJLAB Nanhu:
         href: https://zjic.zhejianglab.com/portal/navigation

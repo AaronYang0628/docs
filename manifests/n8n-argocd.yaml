@@ -1,0 +1,348 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: n8n
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: n8n
+  source:
+    repoURL: https://community-charts.github.io/helm-charts
+    chart: n8n
+    targetRevision: 1.16.36
+    helm:
+      releaseName: n8n
+      values: |
+        global:
+          security:
+            allowInsecureImages: true
+        image:
+          repository: m.daocloud.io/docker.io/n8nio/n8n
+        log:
+          level: info
+        existingEncryptionKeySecret: n8n-encryption-key-existing
+        timezone: Asia/Shanghai
+        db:
+          type: postgresdb
+        externalPostgresql:
+          host: postgresql-hl.database.svc.cluster.local
+          port: 5432
+          username: n8n
+          database: n8n
+          existingSecret: n8n-middleware-credential
+        main:
+          count: 1
+          editorBaseUrl: https://n8n.72602.space
+          extraEnvVars:
+            HTTP_PROXY: http://192.168.0.25:17890
+            HTTPS_PROXY: http://192.168.0.25:17890
+            NO_PROXY: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com
+            no_proxy: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com
+            NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+            N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+            N8N_FILE_SYSTEM_ALLOWED_PATHS: /data
+            EXECUTIONS_TIMEOUT: "300"
+            EXECUTIONS_TIMEOUT_MAX: "600"
+            DB_POSTGRESDB_POOL_SIZE: "10"
+            CACHE_ENABLED: "true"
+            N8N_CONCURRENCY_PRODUCTION_LIMIT: "5"
+            NODE_TLS_REJECT_UNAUTHORIZED: "0"
+            N8N_SECURE_COOKIE: "false"
+            QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
+            N8N_COMMUNITY_PACKAGES_ENABLED: "true"
+            N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
+            N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
+            N8N_LICENSE_RENEW_ON_INIT: "true"
+          persistence:
+            enabled: true
+            accessMode: ReadWriteOnce
+            storageClass: local-path
+            size: 5Gi
+          volumes:
+            - name: downloads-volume
+              hostPath:
+                path: /run/media/aaron/DATA
+                type: DirectoryOrCreate
+            - name: community-node-modules
+              emptyDir: {}
+          volumeMounts:
+            - name: downloads-volume
+              mountPath: /data
+            - name: community-node-modules
+              mountPath: /home/node/.n8n/nodes
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          initContainers:
+            - name: npm-install-community
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  export PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter"
+                  export COMMUNITY_PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+                  mkdir -p /nodesdata/nodes
+                  echo "$PACKAGES" | sha256sum > /nodesdata/nodes/packages.hash.new
+                  if [ ! -f /nodesdata/nodes/packages.hash ] || ! cmp /nodesdata/nodes/packages.hash /nodesdata/nodes/packages.hash.new; then
+                    if [ -n "$COMMUNITY_PACKAGES" ]; then
+                      npm install --loglevel info --no-save --ignore-scripts $COMMUNITY_PACKAGES --prefix /nodesdata/nodes
+                    fi
+                    mv /nodesdata/nodes/packages.hash.new /nodesdata/nodes/packages.hash
+                  else
+                    rm /nodesdata/nodes/packages.hash.new
+                  fi
+              env:
+                - name: HTTP_PROXY
+                  value: http://192.168.0.25:17890
+                - name: HTTPS_PROXY
+                  value: http://192.168.0.25:17890
+              volumeMounts:
+                - name: community-node-modules
+                  mountPath: /nodesdata/nodes
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+        worker:
+          mode: queue
+          count: 2
+          waitMainNodeReady:
+            enabled: false
+          extraEnvVars:
+            HTTP_PROXY: http://192.168.0.25:17890
+            HTTPS_PROXY: http://192.168.0.25:17890
+            NO_PROXY: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com
+            no_proxy: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com
+            NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+            N8N_FILE_SYSTEM_ALLOWED_PATHS: /data
+            EXECUTIONS_TIMEOUT: "300"
+            EXECUTIONS_TIMEOUT_MAX: "600"
+            DB_POSTGRESDB_POOL_SIZE: "5"
+            QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
+            N8N_COMMUNITY_PACKAGES_ENABLED: "true"
+            N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
+            N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
+            N8N_LICENSE_RENEW_ON_INIT: "true"
+          persistence:
+            enabled: true
+            accessMode: ReadWriteOnce
+            storageClass: local-path
+            size: 50Gi
+          volumes:
+            - name: downloads-volume
+              hostPath:
+                path: /run/media/aaron/DATA
+                type: DirectoryOrCreate
+            - name: community-node-modules
+              emptyDir: {}
+          volumeMounts:
+            - name: downloads-volume
+              mountPath: /data
+            - name: community-node-modules
+              mountPath: /home/node/.n8n/nodes
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+          initContainers:
+            - name: npm-install-community
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  export PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter"
+                  export COMMUNITY_PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+                  mkdir -p /nodesdata/nodes
+                  echo "$PACKAGES" | sha256sum > /nodesdata/nodes/packages.hash.new
+                  if [ ! -f /nodesdata/nodes/packages.hash ] || ! cmp /nodesdata/nodes/packages.hash /nodesdata/nodes/packages.hash.new; then
+                    if [ -n "$COMMUNITY_PACKAGES" ]; then
+                      npm install --loglevel info --no-save --ignore-scripts $COMMUNITY_PACKAGES --prefix /nodesdata/nodes
+                    fi
+                    mv /nodesdata/nodes/packages.hash.new /nodesdata/nodes/packages.hash
+                  else
+                    rm /nodesdata/nodes/packages.hash.new
+                  fi
+              env:
+                - name: HTTP_PROXY
+                  value: http://192.168.0.25:17890
+                - name: HTTPS_PROXY
+                  value: http://192.168.0.25:17890
+              volumeMounts:
+                - name: community-node-modules
+                  mountPath: /nodesdata/nodes
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+        nodes:
+          builtin:
+            enabled: true
+            modules:
+              - crypto
+              - fs
+          external:
+            allowAll: true
+            packages: []
+          initContainer:
+            image:
+              tag: 20-alpine
+              repository: node
+        npmRegistry:
+          enabled: true
+          url: https://registry.npmmirror.com
+        redis:
+          enabled: true
+          image:
+            registry: m.daocloud.io/docker.io
+            repository: bitnamilegacy/redis
+          master:
+            resourcesPreset: small
+            persistence:
+              enabled: true
+              accessMode: ReadWriteOnce
+              storageClass: local-path
+              size: 50Gi
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+            nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+            nginx.ingress.kubernetes.io/proxy-body-size: 50m
+            nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
+            nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+          hosts:
+            - host: n8n.72602.space
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - n8n.72602.space
+                - webhook.n8n.72602.space
+              secretName: n8n.72602.space-tls
+        webhook:
+          mode: queue
+          url: https://webhook.n8n.72602.space
+          autoscaling:
+            enabled: false
+          waitMainNodeReady:
+            enabled: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 512m
+              memory: 512Mi
+          volumes:
+            - name: community-node-modules
+              emptyDir: {}
+          volumeMounts:
+            - name: community-node-modules
+              mountPath: /home/node/.n8n/nodes
+          initContainers:
+            - name: npm-install
+              image: node:20
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  export PACKAGES="$N8N_NODES_PACKAGES"
+                  export COMMUNITY_PACKAGES="$N8N_NODES_PACKAGES"
+                  mkdir -p /nodesdata/nodes
+                  echo "$PACKAGES" | sha256sum > /nodesdata/nodes/packages.hash.new
+                  if [ ! -f /nodesdata/nodes/packages.hash ] || ! cmp /nodesdata/nodes/packages.hash /nodesdata/nodes/packages.hash.new; then
+                    if [ -n "$COMMUNITY_PACKAGES" ]; then
+                      npm install --loglevel info --no-save --ignore-scripts $COMMUNITY_PACKAGES --prefix /nodesdata/nodes
+                    fi
+                    mv /nodesdata/nodes/packages.hash.new /nodesdata/nodes/packages.hash
+                  else
+                    rm /nodesdata/nodes/packages.hash.new
+                  fi
+              env:
+                - name: HTTP_PROXY
+                  value: http://192.168.0.25:17890
+                - name: HTTPS_PROXY
+                  value: http://192.168.0.25:17890
+                - name: N8N_NODES_PACKAGES
+                  value: n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api
+              volumeMounts:
+                - name: community-node-modules
+                  mountPath: /nodesdata/nodes
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+            - name: npm-install-community
+              image: node:20-alpine
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  export PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter"
+                  export COMMUNITY_PACKAGES="n8n-nodes-globals n8n-nodes-wechat-formatter n8n-nodes-browserless-api"
+                  mkdir -p /nodesdata/nodes
+                  echo "$PACKAGES" | sha256sum > /nodesdata/nodes/packages.hash.new
+                  if [ ! -f /nodesdata/nodes/packages.hash ] || ! cmp /nodesdata/nodes/packages.hash /nodesdata/nodes/packages.hash.new; then
+                    if [ -n "$COMMUNITY_PACKAGES" ]; then
+                      npm install --loglevel info --no-save --ignore-scripts $COMMUNITY_PACKAGES --prefix /nodesdata/nodes
+                    fi
+                    mv /nodesdata/nodes/packages.hash.new /nodesdata/nodes/packages.hash
+                  else
+                    rm /nodesdata/nodes/packages.hash.new
+                  fi
+              env:
+                - name: HTTP_PROXY
+                  value: http://192.168.0.25:17890
+                - name: HTTPS_PROXY
+                  value: http://192.168.0.25:17890
+              volumeMounts:
+                - name: community-node-modules
+                  mountPath: /nodesdata/nodes
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=false

@@ -37,11 +37,11 @@ spec:
         ingress:
           enabled: true
           ingressClassName: nginx
-          hostname: sub2api.72602.online
+          hostname: sub2api.72602.space
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
           tls: true
-          tlsSecret: sub2api.72602.online-tls
+          tlsSecret: sub2api.72602.space-tls
 
         sub2api:
           auth:

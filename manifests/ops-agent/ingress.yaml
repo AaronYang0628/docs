@@ -11,6 +11,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
+    - host: ops.agent.72602.space
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ops-agent
+                port:
+                  name: http
     - host: ops.agent.72602.online
       http:
         paths:
@@ -22,6 +32,9 @@ spec:
                 port:
                   name: http
   tls:
+    - hosts:
+        - ops.agent.72602.space
+      secretName: ops.agent.72602.space-tls
     - hosts:
         - ops.agent.72602.online
       secretName: ops.agent.72602.online-tls

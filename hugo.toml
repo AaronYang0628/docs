@@ -114,6 +114,5 @@ weight = 17
 [[menu.shortcuts]]
 name = " <i class='fa-solid fa-blog'></i>  72602 Site"
 identifier = "72602 Site"
-url = "https://port.72602.online"
+url = "http://port.72602.space"
 weight = 18
-

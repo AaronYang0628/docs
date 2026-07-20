@@ -8,6 +8,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
+    - host: uptime.72602.space
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: uptime-kuma
+                port:
+                  number: 3001
     - host: uptime.72602.online
       http:
         paths:
@@ -19,6 +29,9 @@ spec:
                 port:
                   number: 3001
   tls:
+    - hosts:
+        - uptime.72602.space
+      secretName: uptime.72602.space-tls
     - hosts:
         - uptime.72602.online
       secretName: uptime.72602.online-tls
