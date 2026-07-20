@@ -27,8 +27,6 @@ spec:
         configs:
           cm:
             url: https://argocd.72602.space
-            additionalUrls: |
-              - https://argocd.72602.online
             accounts.readonly: apiKey
             accounts.readonly.enabled: "true"
           rbac:
@@ -106,17 +104,10 @@ spec:
             path: /
             pathType: Prefix
             tls: false
-            extraHosts:
-              - name: argocd.72602.online
-                path: /
-                pathType: Prefix
             extraTls:
               - hosts:
                   - argocd.72602.space
                 secretName: argocd.72602.space-tls
-              - hosts:
-                  - argocd.72602.online
-                secretName: argocd.72602.online-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

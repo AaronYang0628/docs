@@ -58,14 +58,6 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
           tls: true
-          extraHosts:
-            - name: console.minio.72602.online
-              path: /
-              pathType: ImplementationSpecific
-          extraTls:
-            - hosts:
-                - console.minio.72602.online
-              secretName: console.minio.72602.online-tls
         apiIngress:
           enabled: true
           ingressClassName: nginx
@@ -74,14 +66,6 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
           tls: true
-          extraHosts:
-            - name: api.minio.72602.online
-              path: /
-              pathType: ImplementationSpecific
-          extraTls:
-            - hosts:
-                - api.minio.72602.online
-              secretName: api.minio.72602.online-tls
         persistence:
           enabled: true
           storageClass: local-path

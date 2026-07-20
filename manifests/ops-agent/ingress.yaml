@@ -21,20 +21,7 @@ spec:
                 name: ops-agent
                 port:
                   name: http
-    - host: ops.agent.72602.online
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: ops-agent
-                port:
-                  name: http
   tls:
     - hosts:
         - ops.agent.72602.space
       secretName: ops.agent.72602.space-tls
-    - hosts:
-        - ops.agent.72602.online
-      secretName: ops.agent.72602.online-tls

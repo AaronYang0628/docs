@@ -18,16 +18,6 @@ spec:
                 name: ops-docs
                 port:
                   number: 80
-    - host: ops.docs.72602.online
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: ops-docs
-                port:
-                  number: 80
   tls:
     - hosts:
         - ops.docs.72602.space
