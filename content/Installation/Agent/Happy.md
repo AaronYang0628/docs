@@ -96,20 +96,26 @@ weight = 152
 
   Verified strict-TLS results: Web `/` returns `200`; API `/health` returns `200`; API `/` returns its expected literal response; and the Socket.IO WebSocket upgrade returns `101`. Certificates `happy.72602.online-tls` and `happy-api.72602.online-tls` are `Ready` from ClusterIssuer `lets-encrypt` and expire on `2026-10-18`.
 
-  <p> <b>7.connect</b> Happy CLI to the self-hosted server </p>
+  <p> <b>7.connect</b> Happy CLI 1.2.0 to OpenCode ACP </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  npm install -g happy
+  npm install -g happy@1.2.0
+
+  happy --version
+  opencode --version
 
   export HAPPY_SERVER_URL='https://happy-api.72602.online'
   export HAPPY_WEBAPP_URL='https://happy.72602.online'
 
   cd /path/to/project
-  happy codex
-  # or: happy claude
+  happy acp opencode
   ```
   {{% /notice %}}
+
+  On `72602-minipc`, `~/.happy/settings.json` persists `serverUrl` as `https://happy-api.72602.online` and `webappUrl` as `https://happy.72602.online`; the environment variables above provide the supported per-shell override. OpenCode is upgraded to `1.18.3`, and the user-level `~/.config/opencode/opencode.jsonc` pins `model` to `opencode/big-pickle`.
+
+  The Happy daemon can be managed with `happy daemon start`, `happy daemon status`, `happy daemon list`, `happy daemon logs`, and `happy daemon stop`.
   {{% /tab %}}
 
   {{< /tabs >}}
@@ -139,6 +145,24 @@ pnpm --filter happy-server-self-host exec prisma migrate deploy
 ```
 
 The API container also sets `COREPACK_HOME=/tmp/corepack` because its root filesystem is read-only.
+{{% /expand %}}
+
+{{% expand title="Q3: OpenCode ACP turns fail or wait for five minutes" %}}
+
+Launch the supported integration with `happy acp opencode`. In Happy Web, select `opencode/big-pickle`. A verified unqualified run completed in `7.21s`, and a direct ACP `end_turn` completed in about `5.2s`.
+
+Avoid `opencode/deepseek-v4-flash-free`: it returned an upstream Internal Server Error and left Happy waiting for its fixed five-minute turn timeout. In Happy 1.2.0, this ACP timeout is hardcoded and not configurable. Do not patch the minified distribution or use draft pull-request builds as a workaround.
+{{% /expand %}}
+
+{{% expand title="Q4: Cancelling an OpenCode turn closes the session" %}}
+
+This is upstream Happy issue [#1458](https://github.com/slopus/happy/issues/1458). After cancelling a turn, restart the session with:
+
+```bash
+happy acp opencode
+```
+
+Do not patch the minified distribution or replace the installed CLI with a draft pull-request build.
 {{% /expand %}}
 
 ### ↩️Rollback

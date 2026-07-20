@@ -83,6 +83,8 @@ weight = 151
 
 All three are subagents and inherit the model selected by the active conversation. Cluster agents verify live state before following a runbook and delegate verified documentation updates to the Hugo agent.
 
+Aliyun operations for `72602-k3s-maintainer` are documented by the public `.opencode/skills/aliyun-72602-operations/SKILL.md`, introduced in commit `96a9354`.
+
 ### 🔌Plugins
 
 - `opencode-vibeguard@0.1.0`: redacts configured credential patterns before model requests.

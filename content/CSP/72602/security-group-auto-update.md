@@ -49,6 +49,17 @@ weight = 5
 | `/etc/systemd/system/update-sg-ip.timer` | systemd 定时器（每 5 分钟，开机 30 秒后首次触发） |
 | `/tmp/last_public_ip` | 上次公网 IP 缓存 |
 
+## 可恢复备份
+
+脱敏后的可恢复备份位于私有仓库 `/home/aaron/Ops/ops-private`，对应提交 `8abb81d`，包含：
+
+- `scripts/update-sg-ip.sh`
+- systemd service、timer 和 `env.example`
+- `runbooks/72602/security-group-updater.md`
+- `.gitignore`
+
+该提交未包含 AccessKey、钉钉 token 或真实安全组 ID。备份操作未修改现网脚本、systemd units 或 timer。
+
 ## AliDNS 环境
 
 - 官方 AliDNS SDK 使用独立虚拟环境 `/home/aaron/.local/venvs/alidns`。
