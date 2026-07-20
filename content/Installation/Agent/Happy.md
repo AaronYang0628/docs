@@ -80,7 +80,7 @@ weight = 152
   ```
   {{% /notice %}}
 
-  Expected current result: the child app is at revision `0dae0d8` and reports `Synced/Healthy`; `happy-api` and `happy-web` are each `1/1 Ready`; the `happy-files` PVC is `20Gi` on `local-path`; and both Certificates are `Pending` until DNS records resolve.
+  Verified state at review time: the child app was at revision `0dae0d8` and reported `Synced/Healthy`; `happy-api` and `happy-web` were each `1/1 Ready`; the `happy-files` PVC was `20Gi` on `local-path`; and both Certificates were `Pending` while DNS returned `NXDOMAIN`.
 
   <p> <b>6.verify</b> public endpoints after DNS propagation </p>
 
