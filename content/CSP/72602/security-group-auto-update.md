@@ -17,6 +17,8 @@ weight = 5
 
 定时检测公网 IP，变化时自动更新阿里云安全组规则。
 
+所有阿里云安全组和 AliDNS 操作统一从 `72602-minipc` 执行。
+
 ## 工作原理
 
 ```
@@ -46,6 +48,13 @@ weight = 5
 | `/etc/systemd/system/update-sg-ip.service` | systemd 服务 |
 | `/etc/systemd/system/update-sg-ip.timer` | systemd 定时器（每 5 分钟，开机 30 秒后首次触发） |
 | `/tmp/last_public_ip` | 上次公网 IP 缓存 |
+
+## AliDNS 环境
+
+- 官方 AliDNS SDK 使用独立虚拟环境 `/home/aaron/.local/venvs/alidns`。
+- SDK 或依赖需要下载时，使用 HTTP 代理 `http://192.168.0.25:17890`。
+- 当前凭证具备 `72602.online` 区域的 AliDNS 记录管理能力，也具备 ECS 安全组变更能力。
+- DNS 变更前应限定目标区域和记录，并在变更后分别执行权威 DNS 与公共 DNS 验证。
 
 ## 常用命令
 
@@ -78,5 +87,6 @@ DING_TOKEN=你的钉钉机器人access_token
 ## 凭证安全
 
 阿里云 AccessKey 存储在 `/home/aaron/.aliyun-keys`，权限 600。
-建议使用 RAM 子账号并仅授予 ECS 安全组相关权限。
+当前同一 AccessKey 同时具备 ECS 安全组和 AliDNS 变更权限；后续应拆分为两个最小权限 RAM 身份。
+`/home/aaron/bin/update-sg-ip.sh` 当前权限为 0775，仍可由组写入；应收紧为 0755。此项为待执行的加固建议，并非已完成状态。
 定期轮换 AccessKey。AccessKey 获取：阿里云控制台 → 头像 → AccessKey 管理。

@@ -18,12 +18,12 @@ weight = 152
 
   {{% notice style="transparent" %}}
   ```text
-  happy.72602.online      A  47.110.67.161
-  happy-api.72602.online  A  47.110.67.161
+  happy.72602.online      A  47.110.67.161  TTL 600
+  happy-api.72602.online  A  47.110.67.161  TTL 600
   ```
   {{% /notice %}}
 
-  Both records are required before cert-manager can complete the HTTP-01 challenges. They currently return `NXDOMAIN`, so both Certificates remain `Pending`.
+  Both AliDNS records in the `72602.online` zone resolve to `47.110.67.161`; authoritative and public DNS verification passed. These records must remain available for cert-manager HTTP-01 validation and public access.
 
   <p> <b>2.prepare</b> database and runtime Secrets </p>
 
@@ -80,9 +80,9 @@ weight = 152
   ```
   {{% /notice %}}
 
-  Verified state at review time: the child app was at revision `0dae0d8` and reported `Synced/Healthy`; `happy-api` and `happy-web` were each `1/1 Ready`; the `happy-files` PVC was `20Gi` on `local-path`; and both Certificates were `Pending` while DNS returned `NXDOMAIN`.
+  Verified state: the `happy` ArgoCD application reports `Synced/Healthy`, and the `happy-api` and `happy-web` workloads are each `1/1 Ready`.
 
-  <p> <b>6.verify</b> public endpoints after DNS propagation </p>
+  <p> <b>6.verify</b> certificates and public endpoints </p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -94,7 +94,7 @@ weight = 152
   ```
   {{% /notice %}}
 
-  Expected result after propagation: both names resolve to `47.110.67.161`, API health returns `200`, and both Certificates are `Ready=True`.
+  Verified strict-TLS results: Web `/` returns `200`; API `/health` returns `200`; API `/` returns its expected literal response; and the Socket.IO WebSocket upgrade returns `101`. Certificates `happy.72602.online-tls` and `happy-api.72602.online-tls` are `Ready` from ClusterIssuer `lets-encrypt` and expire on `2026-10-18`.
 
   <p> <b>7.connect</b> Happy CLI to the self-hosted server </p>
 
