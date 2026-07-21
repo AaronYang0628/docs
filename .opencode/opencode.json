@@ -1,6 +1,9 @@
 {
   "model": "openai/gpt-5.6-sol",
   "small_model": "openai/gpt-5.6-sol",
+  "instructions": [
+    ".opencode/OPS_AGENT.md"
+  ],
   "enabled_providers": [
     "openai",
     "grok"

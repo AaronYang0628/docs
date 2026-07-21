@@ -87,7 +87,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/health >/dev/null
+                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/global/health | grep -q '"healthy":true'
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
@@ -97,7 +97,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/health >/dev/null
+                - curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" http://127.0.0.1:4000/global/health | grep -q '"healthy":true'
             initialDelaySeconds: 20
             periodSeconds: 20
             timeoutSeconds: 3
