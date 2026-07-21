@@ -11,8 +11,8 @@ This section is the single source of truth for `72602` cluster operations.
 ## Topology
 
 - Public ECS: `47.110.67.161` (2C4G, Aliyun Hongkong)
-- Domain: `72602.online`
-- ArgoCD host: `argocd.72602.online`
+- Active ingress domain: `72602.space`; legacy `.72602.online` routes are retired
+- ArgoCD host: `argocd.72602.space`
 - k3s node: `72602-minipc` (`192.168.0.25`, MiniPC N100 28G+1TB NVMe)
 - SSH reverse tunnel: `:10021` (main), `:10022` (backup, also carries `80/443`)
 - Ingress NodePort: `32080` (HTTP), `32443` (HTTPS)
@@ -38,23 +38,23 @@ All traffic reaches ECS via SSH reverse tunnel established from minipc. ECS side
 
 ## DNS Setup
 
-All subdomains under `72602.online` use A records pointing to `47.110.67.161`:
+Active service records use `72602.space` and point to `47.110.67.161`:
 
 | Host | Type | Value | Service |
 |---|---|---|---|
-| `72602.online` | A | `47.110.67.161` | Hugo Docs (root) |
-| `argocd` | A | `47.110.67.161` | ArgoCD UI |
-| `ops.docs` | A | `47.110.67.161` | Hugo Docs |
-| `txt2img.agent` | A | `47.110.67.161` | Open WebUI |
-| `sub2api` | A | `47.110.67.161` | AI API proxy |
-| `home` | A | `47.110.67.161` | Homepage dashboard |
-| `n8n` | A | `47.110.67.161` | N8N workflow |
-| `webhook.n8n` | A | `47.110.67.161` | N8N webhook receiver |
-| `ops.agent` | A | `47.110.67.161` | OpenCode operations agent |
-| `uptime` | A | `47.110.67.161` | Uptime Kuma |
-| `clash` | A | `47.110.67.161` | Clash/mihomo panel |
-| `api.minio` | A | `47.110.67.161` | MinIO S3 API |
-| `console.minio` | A | `47.110.67.161` | MinIO Console |
+| `argocd.72602.space` | A | `47.110.67.161` | ArgoCD UI |
+| `ops.docs.72602.space` | A | `47.110.67.161` | Hugo Docs |
+| `sub2api.72602.space` | A | `47.110.67.161` | AI API proxy |
+| `port.72602.space` | A | `47.110.67.161` | Homepage dashboard |
+| `n8n.72602.space` | A | `47.110.67.161` | N8N workflow |
+| `webhook.n8n.72602.space` | A | `47.110.67.161` | N8N webhook receiver |
+| `ops.agent.72602.space` | A | `47.110.67.161` | OpenCode operations agent |
+| `uptime.72602.space` | A | `47.110.67.161` | Uptime Kuma |
+| `clash.72602.space` | A | `47.110.67.161` | Clash/mihomo panel |
+| `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
+| `console.minio.72602.space` | A | `47.110.67.161` | MinIO Console |
+
+`txt2img.agent.72602.online` is retired. Its stale DNS record and certificate remain for cleanup after confirming no restoration is planned; there is no workload, Argo CD Application, or Ingress.
 
 DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 
@@ -62,24 +62,23 @@ DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 
 | App | Namespace | Type | Source | Ingress |
 |---|---|---|---|---|
-| argocd | argocd | Helm (arco-cd) | argo-cd 9.5.4 | argocd.72602.online |
+| argocd | argocd | Helm (arco-cd) | argo-cd 9.5.4 | argocd.72602.space |
 | cert-manager | basic-components | Helm (Jetstack) | cert-manager 1.20.2 | internal |
-| ingress-nginx | basic-components | Helm | ingress-nginx 4.15.1 | all *.72602.online |
-| ops-docs | application | manifests (Git) | docs.git/main | ops.docs.72602.online, 72602.online |
-| homepage | monitor | manifests (Git) | docs.git/main | home.72602.online |
-| uptime-kuma | monitor | manifests (Git) | docs.git/main | uptime.72602.online |
-| open-webui | ai | Helm (open-webui) | open-webui 14.5.0 | txt2img.agent.72602.online |
-| sub2api | application | Helm (ghcr) | sub2api 0.1.1 | sub2api.72602.online |
+| ingress-nginx | basic-components | Helm | ingress-nginx 4.15.1 | shared ingress controller |
+| ops-docs | application | manifests (Git) | docs.git/main | ops.docs.72602.space |
+| homepage | monitor | manifests (Git) | docs.git/main | port.72602.space |
+| uptime-kuma | monitor | manifests (Git) | docs.git/main | uptime.72602.space |
+| sub2api | application | Helm (ghcr) | sub2api 0.1.1 | sub2api.72602.space |
 | postgresql | database | Helm (Bitnami) | postgresql 18.1.8 | internal |
 | redis-shared | storage | Helm (Bitnami) | redis 18.16.0 | internal |
-| minio | storage | Helm | minio 16.0.10 | console.minio, api.minio |
-| n8n | n8n | Helm (community) | n8n 1.16.36 | n8n.72602.online, webhook.n8n.72602.online |
+| minio | storage | Helm | minio 16.0.10 | console.minio.72602.space, api.minio.72602.space |
+| n8n | n8n | Helm (community) | n8n 1.16.36 | n8n.72602.space, webhook.n8n.72602.space |
 
 ### Non-ArgoCD (手动部署)
 
 | Deployment | Namespace | Image | Ingress |
 |---|---|---|---|
-| ops-agent | application | ay-dev/ops-agent:0.2.2 | ops.agent.72602.online |
+| ops-agent | application | ay-dev/ops-agent:0.2.2 | ops.agent.72602.space |
 
 ## Network Proxy
 
@@ -120,7 +119,7 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 |---|---|---|---|
 | mihomo (clash) HTTP proxy | `7890` | `127.0.0.1` | Egress proxy, `allow-lan: false` |
 | mihomo (clash) SOCKS5 | `7891` | `127.0.0.1` | SOCKS5 proxy |
-| mihomo external controller | `9090` | `0.0.0.0` | Clash API/UI, exposed via `clash.72602.online` |
+| mihomo external controller | `9090` | `0.0.0.0` | Clash API/UI, exposed via `clash.72602.space` |
 | socat bridge | `17890` | `0.0.0.0` | Forwards to `127.0.0.1:7890`, k8s pod accessible |
 | autossh tunnel (main) | `10021`→ECS | - | Reverse tunnel to ECS |
 | autossh tunnel (backup) | `10022→ECS` | - | Reverse tunnel + HTTP/HTTPS forwarding |
@@ -171,8 +170,8 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 
 ```bash
 # 公网入口
-curl -vI http://argocd.72602.online
-curl -vkI https://argocd.72602.online
+curl -vI http://argocd.72602.space
+curl -vkI https://argocd.72602.space
 
 # k8s 资源
 kubectl get ingress -A -o wide

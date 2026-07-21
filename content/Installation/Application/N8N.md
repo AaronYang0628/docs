@@ -244,23 +244,26 @@ weight = 14
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
   4. Database postgresql has been installed, if not check 🔗<a href="/docs/installation/database/postgresql/index.html" target="_blank">link</a> </p></br>
 
-  <p> <b>1.prepare</b> `n8n-middleware-credentials.yaml` </p>
+  <p> <b>1.verify retained credentials and storage</b> </p>
   
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl get namespaces n8n > /dev/null 2>&1 || kubectl create namespace n8n
-  N8N_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.password}' | base64 -d)
-  kubectl -n n8n create secret generic n8n-middleware-credential \
-  --from-literal=postgres-password="${N8N_PASSWORD}"
+  kubectl get namespace n8n
+  kubectl -n n8n get secret n8n-middleware-credential n8n-encryption-key-existing
+  kubectl -n n8n get pvc
   ```
+  {{% /notice %}}
+
+  {{% notice style="important" %}}
+  The live credentials and PVCs are retained state. Do not delete, recreate, or replace them when updating the Argo CD Application.
   {{% /notice %}}
 
   <p> <b>2.prepare</b> `deploy-n8n.yaml` </p>
 
   {{% notice style="transparent" %}}
-  ```yaml
-  kubectl -n argocd apply -f - <<EOF
+  ```bash
+  kubectl -n argocd apply -f - <<'EOF'
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
@@ -268,6 +271,19 @@ weight = 14
     namespace: argocd
   spec:
     project: default
+    ignoreDifferences:
+      - group: ""
+        kind: Secret
+        name: n8n-redis
+        namespace: n8n
+        jsonPointers:
+          - /data/redis-password
+      - group: apps
+        kind: StatefulSet
+        name: n8n-redis-master
+        namespace: n8n
+        jqPathExpressions:
+          - .spec.template.metadata.annotations."checksum/secret"
     source:
       repoURL: https://community-charts.github.io/helm-charts
       targetRevision: 1.16.36
@@ -282,7 +298,7 @@ weight = 14
             repository: m.daocloud.io/docker.io/n8nio/n8n
           log:
             level: info
-          encryptionKey: "72602-n8n"
+          existingEncryptionKeySecret: n8n-encryption-key-existing
           timezone: Asia/Shanghai
           db:
             type: postgresdb
@@ -294,6 +310,7 @@ weight = 14
             existingSecret: "n8n-middleware-credential"
           main:
             count: 1
+            editorBaseUrl: "https://n8n.72602.space"
             extraEnvVars:
               HTTP_PROXY: "http://192.168.0.25:17890"
               HTTPS_PROXY: "http://192.168.0.25:17890"
@@ -309,7 +326,6 @@ weight = 14
               N8N_CONCURRENCY_PRODUCTION_LIMIT: "5"
               NODE_TLS_REJECT_UNAUTHORIZED: "0"
               N8N_SECURE_COOKIE: "false"
-              WEBHOOK_URL: "https://webhook.n8n.72602.online"
               QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
               N8N_COMMUNITY_PACKAGES_ENABLED: "true"
               N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
@@ -414,22 +430,22 @@ weight = 14
               nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
               nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
             hosts:
-              - host: n8n.72602.online
+              - host: n8n.72602.space
                 paths:
                   - path: /
                     pathType: Prefix
-              - host: webhook.n8n.72602.online
+              - host: webhook.n8n.72602.space
                 paths:
                   - path: /
                     pathType: Prefix
             tls:
               - hosts:
-                  - n8n.72602.online
-                  - webhook.n8n.72602.online
-                secretName: n8n.72602.online-tls
+                  - n8n.72602.space
+                  - webhook.n8n.72602.space
+                secretName: n8n.72602.space-tls
           webhook:
             mode: queue
-            url: "https://webhook.n8n.72602.online"
+            url: "https://webhook.n8n.72602.space"
             autoscaling:
               enabled: false
             waitMainNodeReady:
@@ -448,6 +464,7 @@ weight = 14
       syncOptions:
         - CreateNamespace=true
         - ApplyOutOfSyncOnly=false
+        - RespectIgnoreDifferences=true
   EOF
   ```
   {{% /notice %}}
@@ -499,6 +516,33 @@ kubectl -n database get svc postgresql-hl
 
 **Expected**
 - n8n Pod reaches `Running` and UI becomes accessible.
+{{% /expand %}}
+
+{{% expand title="Q2: 72602 Argo CD reports Redis Secret and checksum drift" %}}
+**Symptom**
+- `Secret/n8n-redis` and `StatefulSet/n8n-redis-master` repeatedly report drift even though Redis is healthy.
+
+**Root cause**
+- The Redis subchart renders a generated password when no fixed password is supplied. A new desired render changes `/data/redis-password` and the derived pod-template `checksum/secret` without indicating live credential corruption.
+
+**Fix**
+- Preserve all live n8n credentials and PVCs. Do not delete, recreate, or replace them to resolve this drift.
+- Keep `ignoreDifferences` limited to `/data/redis-password` and the Redis StatefulSet's `checksum/secret`, with `RespectIgnoreDifferences=true`.
+- Review the remaining diff, then sync the Application only when it contains the intended values change.
+
+```bash
+argocd app diff argocd/n8n --insecure --grpc-web --refresh
+argocd app sync argocd/n8n --insecure --grpc-web
+argocd app get argocd/n8n --insecure --grpc-web
+kubectl -n n8n rollout status deployment/n8n --timeout=300s
+kubectl -n n8n rollout status statefulset/n8n-redis-master --timeout=300s
+```
+
+**Rollback**
+- Remove only the two `ignoreDifferences` entries and `RespectIgnoreDifferences=true`, then reapply the Application. This restores drift reporting without changing the Secret or PVC.
+
+**Expected**
+- Argo CD reports `Synced` and `Healthy`; n8n and Redis remain Ready, and the existing PVCs remain `Bound`.
 {{% /expand %}}
 
 {{% expand title="Q3: Community nodes fail — \"Unrecognized node type\" after pod restart" %}}
