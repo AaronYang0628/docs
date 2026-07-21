@@ -34,6 +34,14 @@
         namespace: application
         app: ops-agent
         showStats: true
+    - Grafana:
+        icon: grafana
+        href: https://grafana.72602.space
+        description: Agent and cluster observability
+        siteMonitor: https://grafana.72602.space
+        namespace: monitor
+        app: grafana
+        showStats: true
 - Basic Services:
     - SSH At 72602:
         icon: terminal

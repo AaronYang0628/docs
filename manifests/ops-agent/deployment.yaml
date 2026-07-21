@@ -61,9 +61,9 @@ spec:
             - name: HTTPS_PROXY
               value: http://192.168.0.25:17890
             - name: NO_PROXY
-              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech
+              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech,alloy.monitor.svc.cluster.local,prometheus-server.monitor.svc.cluster.local,tempo.monitor.svc.cluster.local,loki-gateway.monitor.svc.cluster.local,grafana.monitor.svc.cluster.local
             - name: no_proxy
-              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech
+              value: 127.0.0.1,localhost,10.0.0.0/8,192.168.0.25,.svc,.cluster.local,sub2api.home.geekcity.tech,alloy.monitor.svc.cluster.local,prometheus-server.monitor.svc.cluster.local,tempo.monitor.svc.cluster.local,loki-gateway.monitor.svc.cluster.local,grafana.monitor.svc.cluster.local
             - name: OPENCODE_SERVER_USERNAME
               value: aaron
             - name: OPENCODE_SERVER_PASSWORD
@@ -78,6 +78,22 @@ spec:
                 secretKeyRef:
                   name: opencode-argocd
                   key: auth-token
+            - name: OTEL_SERVICE_NAME
+              value: ops-agent
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=application,deployment.environment=72602,agent.project=ops-agent
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.monitor.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
+            - name: OTEL_LOGS_EXPORTER
+              value: none
+            - name: OTEL_BSP_SCHEDULE_DELAY
+              value: "5000"
           ports:
             - name: opencode-http
               containerPort: 4000

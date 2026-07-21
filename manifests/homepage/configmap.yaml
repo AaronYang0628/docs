@@ -132,15 +132,18 @@ data:
     \       namespace: monitor\n        app: uptime-kuma\n        showStats: true\n
     \   - Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.space\n
     \       description: Cluster Operations Agent\n        namespace: application\n
-    \       app: ops-agent\n        showStats: true\n- Basic Services:\n    - SSH
-    At 72602:\n        icon: terminal\n        description: SSH Service At 72602 Home\n
-    \       widget:\n          type: uptimekuma\n          url: https://uptime.72602.space\n
-    \         slug: 72602-minipc-ssh\n    - Clash At 72602:\n        icon: clash\n
-    \       href: http://clash.72602.space/ui\n        description: http://clash.72602.space/ui\n
-    \       siteMonitor: http://clash.72602.space/ui\n    - Clash At ECS:\n        icon:
-    clash\n        href: http://47.110.67.161:56396/ui\n        description: http://47.110.67.161:56396\n
-    \       siteMonitor: http://47.110.67.161:56396/ui\n    - Sub2API-WZ:\n        icon:
-    https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n
+    \       app: ops-agent\n        showStats: true\n    - Grafana:\n        icon:
+    grafana\n        href: https://grafana.72602.space\n        description: Agent
+    and cluster observability\n        siteMonitor: https://grafana.72602.space\n
+    \       namespace: monitor\n        app: grafana\n        showStats: true\n- Basic
+    Services:\n    - SSH At 72602:\n        icon: terminal\n        description: SSH
+    Service At 72602 Home\n        widget:\n          type: uptimekuma\n          url:
+    https://uptime.72602.space\n          slug: 72602-minipc-ssh\n    - Clash At 72602:\n
+    \       icon: clash\n        href: http://clash.72602.space/ui\n        description:
+    http://clash.72602.space/ui\n        siteMonitor: http://clash.72602.space/ui\n
+    \   - Clash At ECS:\n        icon: clash\n        href: http://47.110.67.161:56396/ui\n
+    \       description: http://47.110.67.161:56396\n        siteMonitor: http://47.110.67.161:56396/ui\n
+    \   - Sub2API-WZ:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n
     \       href: https://sub2api.home.geekcity.tech:32443\n        description: https://sub2api.home.geekcity.tech:32443\n
     \       siteMonitor: https://sub2api.home.geekcity.tech:32443\n    - Minio Ingress:\n
     \       icon: minio\n        href: https://console.minio.72602.space\n        description:

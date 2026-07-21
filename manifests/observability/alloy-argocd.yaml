@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitor
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: 1.10.1
+    helm:
+      releaseName: alloy
+      values: |
+        controller:
+          type: deployment
+          replicas: 1
+        alloy:
+          enableReporting: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          extraPorts:
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              port: 4318
+              targetPort: 4318
+              protocol: TCP
+          configMap:
+            content: |
+              otelcol.receiver.otlp "default" {
+                grpc {
+                  endpoint = "0.0.0.0:4317"
+                }
+                http {
+                  endpoint = "0.0.0.0:4318"
+                }
+                output {
+                  traces  = [otelcol.processor.batch.default.input]
+                  metrics = [otelcol.processor.batch.default.input]
+                  logs    = [otelcol.processor.batch.default.input]
+                }
+              }
+
+              otelcol.processor.batch "default" {
+                output {
+                  traces  = [otelcol.exporter.otlp.tempo.input]
+                  metrics = [otelcol.exporter.prometheus.default.receiver]
+                  logs    = [otelcol.exporter.loki.default.input]
+                }
+              }
+
+              otelcol.exporter.otlp "tempo" {
+                client {
+                  endpoint = "tempo.monitor.svc.cluster.local:4317"
+                  tls {
+                    insecure = true
+                  }
+                }
+              }
+
+              otelcol.exporter.prometheus "default" {
+                forward_to = [prometheus.remote_write.default.receiver]
+              }
+
+              prometheus.remote_write "default" {
+                endpoint {
+                  url = "http://prometheus-server.monitor.svc.cluster.local/api/v1/write"
+                }
+              }
+
+              otelcol.exporter.loki "default" {
+                forward_to = [loki.write.default.receiver]
+              }
+
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki-gateway.monitor.svc.cluster.local/loki/api/v1/push"
+                }
+              }
+
+              logging {
+                level  = "info"
+                format = "logfmt"
+              }
+        service:
+          enabled: true
+          type: ClusterIP
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -18,7 +18,7 @@ spec:
         app.kubernetes.io/name: homepage
       annotations:
         configmap.reloader.stakater.com/reload: "homepage"
-        checksum/homepage-config: "9d312462511fd29d9f17fe583ac0a04e9039cdec73bd96c050f1919b6a70e323"
+        checksum/homepage-config: "5c6f0702899805788c819c221917cfa524b3361c2b81846a43081ea53e646963"
     spec:
       serviceAccountName: homepage
       automountServiceAccountToken: true

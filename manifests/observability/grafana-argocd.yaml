@@ -1,0 +1,110 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitor
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 10.5.15
+    helm:
+      releaseName: grafana
+      values: |
+        adminUser: aaron
+        admin:
+          existingSecret: grafana-admin
+          userKey: admin-user
+          passwordKey: admin-password
+        persistence:
+          enabled: true
+          type: pvc
+          size: 5Gi
+          storageClassName: local-path
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        service:
+          type: ClusterIP
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+          hosts:
+            - grafana.72602.space
+          path: /
+          tls:
+            - secretName: grafana.72602.space-tls
+              hosts:
+                - grafana.72602.space
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                uid: prometheus
+                access: proxy
+                url: http://prometheus-server.monitor.svc.cluster.local
+                isDefault: true
+                editable: false
+              - name: Tempo
+                type: tempo
+                uid: tempo
+                access: proxy
+                url: http://tempo.monitor.svc.cluster.local:3100
+                editable: false
+                jsonData:
+                  tracesToLogsV2:
+                    datasourceUid: loki
+                    spanStartTimeShift: "-1h"
+                    spanEndTimeShift: "1h"
+                    filterByTraceID: true
+                  serviceMap:
+                    datasourceUid: prometheus
+                  nodeGraph:
+                    enabled: true
+              - name: Loki
+                type: loki
+                uid: loki
+                access: proxy
+                url: http://loki-gateway.monitor.svc.cluster.local
+                editable: false
+                jsonData:
+                  derivedFields:
+                    - name: TraceID
+                      matcherRegex: "trace_id=(\\w+)"
+                      url: "$${__value.raw}"
+                      datasourceUid: tempo
+        dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+              - name: agent
+                orgId: 1
+                folder: Agent
+                type: file
+                disableDeletion: false
+                editable: true
+                options:
+                  path: /var/lib/grafana/dashboards/agent
+        dashboardsConfigMaps:
+          agent: grafana-agent-dashboard
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
