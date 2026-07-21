@@ -1,0 +1,563 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: application
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filing-site
+  namespace: application
+  labels:
+    app.kubernetes.io/name: filing-site
+data:
+  nginx.conf: |
+    worker_processes 1;
+    error_log /var/log/nginx/error.log warn;
+    pid /tmp/nginx.pid;
+    events { worker_connections 128; }
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+      sendfile on;
+      keepalive_timeout 30;
+      server_tokens off;
+      access_log off;
+      gzip on;
+      gzip_types text/css application/javascript image/svg+xml;
+      server {
+        listen 8080;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+        location = /healthz {
+          add_header Content-Type text/plain;
+          return 200 'ok';
+        }
+        location / {
+          try_files $uri $uri/ /index.html;
+        }
+      }
+    }
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="description" content="72602云端 — 家庭照片文件信息存放" />
+      <title>72602云端</title>
+      <style>
+        :root {
+          --ink: #0f1419;
+          --ink-soft: #3d4a5c;
+          --muted: #6b7a8f;
+          --line: rgba(15, 20, 25, 0.08);
+          --card: rgba(255, 255, 255, 0.72);
+          --card-border: rgba(255, 255, 255, 0.55);
+          --accent: #1f6f8b;
+          --accent-2: #c47b3a;
+          --ok: #2f6f4e;
+          --glow-a: #7eb8c9;
+          --glow-b: #e8b07a;
+          --glow-c: #b8c4a0;
+          --shadow: 0 24px 80px rgba(15, 20, 25, 0.12);
+          --radius: 28px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { min-height: 100%; }
+        body {
+          font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+          color: var(--ink);
+          background:
+            radial-gradient(1200px 700px at 12% -10%, rgba(126, 184, 201, 0.45), transparent 55%),
+            radial-gradient(900px 600px at 92% 8%, rgba(232, 176, 122, 0.38), transparent 50%),
+            radial-gradient(800px 500px at 50% 110%, rgba(184, 196, 160, 0.35), transparent 55%),
+            linear-gradient(165deg, #f4f1ea 0%, #eef3f6 48%, #f7f0e8 100%);
+          overflow-x: hidden;
+        }
+        .noise {
+          pointer-events: none;
+          position: fixed;
+          inset: 0;
+          opacity: 0.035;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          z-index: 0;
+        }
+        .wrap {
+          position: relative;
+          z-index: 1;
+          min-height: 100vh;
+          display: grid;
+          place-items: center;
+          padding: 40px 20px 56px;
+        }
+        .shell {
+          width: min(920px, 100%);
+          display: grid;
+          gap: 22px;
+        }
+        .topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 0 8px;
+        }
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+        .mark {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
+          background:
+            linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35)),
+            linear-gradient(135deg, var(--glow-a), var(--glow-b));
+          box-shadow: 0 10px 30px rgba(31, 111, 139, 0.22);
+          display: grid;
+          place-items: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .mark::after {
+          content: "";
+          width: 18px;
+          height: 18px;
+          border: 2.5px solid var(--ink);
+          border-radius: 6px;
+          transform: rotate(18deg);
+          opacity: 0.85;
+        }
+        .mark::before {
+          content: "";
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--ink);
+          top: 12px;
+          right: 11px;
+          opacity: 0.7;
+        }
+        .status {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          border-radius: 999px;
+          background: rgba(47, 111, 78, 0.1);
+          color: var(--ok);
+          font-size: 13px;
+          font-weight: 600;
+          border: 1px solid rgba(47, 111, 78, 0.16);
+        }
+        .status i {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: currentColor;
+          box-shadow: 0 0 0 4px rgba(47, 111, 78, 0.12);
+          animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.85); opacity: 0.7; }
+        }
+        .hero {
+          position: relative;
+          border-radius: var(--radius);
+          background: var(--card);
+          border: 1px solid var(--card-border);
+          box-shadow: var(--shadow);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          overflow: hidden;
+          padding: clamp(28px, 5vw, 48px);
+        }
+        .hero::before {
+          content: "";
+          position: absolute;
+          inset: auto -20% -40% auto;
+          width: 420px;
+          height: 420px;
+          background: radial-gradient(circle, rgba(126,184,201,0.35), transparent 68%);
+          pointer-events: none;
+        }
+        .hero::after {
+          content: "";
+          position: absolute;
+          inset: -30% auto auto -15%;
+          width: 320px;
+          height: 320px;
+          background: radial-gradient(circle, rgba(232,176,122,0.28), transparent 70%);
+          pointer-events: none;
+        }
+        .kicker {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--accent);
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+        .kicker span {
+          width: 28px;
+          height: 1.5px;
+          background: linear-gradient(90deg, var(--accent), transparent);
+        }
+        h1 {
+          position: relative;
+          font-size: clamp(2.2rem, 5vw, 3.4rem);
+          line-height: 1.08;
+          letter-spacing: -0.03em;
+          margin-bottom: 14px;
+          font-weight: 700;
+        }
+        h1 em {
+          font-style: normal;
+          background: linear-gradient(120deg, var(--accent) 10%, #2a4a5c 45%, var(--accent-2) 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+        .lead {
+          position: relative;
+          max-width: 52ch;
+          color: var(--ink-soft);
+          font-size: clamp(1rem, 2.2vw, 1.125rem);
+          line-height: 1.75;
+          margin-bottom: 28px;
+        }
+        .lead strong { color: var(--ink); font-weight: 600; }
+        .grid {
+          position: relative;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+        .card {
+          border-radius: 20px;
+          padding: 18px 18px 16px;
+          background: rgba(255,255,255,0.55);
+          border: 1px solid rgba(15,20,25,0.06);
+          min-height: 118px;
+        }
+        .card .label {
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--muted);
+          margin-bottom: 10px;
+        }
+        .card .value {
+          font-size: 1.05rem;
+          font-weight: 600;
+          line-height: 1.35;
+          word-break: break-all;
+        }
+        .card .sub {
+          margin-top: 8px;
+          font-size: 13px;
+          color: var(--muted);
+          line-height: 1.5;
+        }
+        .panel {
+          border-radius: var(--radius);
+          background: rgba(15, 20, 25, 0.92);
+          color: #f4f1ea;
+          padding: clamp(24px, 4vw, 36px);
+          box-shadow: var(--shadow);
+          display: grid;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 28px;
+          align-items: start;
+        }
+        .panel h2 {
+          font-size: 1.15rem;
+          font-weight: 600;
+          margin-bottom: 12px;
+          letter-spacing: -0.01em;
+        }
+        .panel p {
+          color: rgba(244, 241, 234, 0.78);
+          line-height: 1.75;
+          font-size: 0.98rem;
+        }
+        .panel .en {
+          border-left: 1px solid rgba(244,241,234,0.12);
+          padding-left: 28px;
+        }
+        .panel .tag {
+          display: inline-block;
+          margin-bottom: 12px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #e8b07a;
+        }
+        .meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 20px;
+        }
+        .chip {
+          border-radius: 999px;
+          padding: 8px 12px;
+          font-size: 12px;
+          font-weight: 500;
+          color: rgba(244,241,234,0.88);
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+        footer {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 10px 20px;
+          padding: 4px 8px 0;
+          color: var(--muted);
+          font-size: 13px;
+          line-height: 1.6;
+        }
+        footer a {
+          color: inherit;
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+        }
+        footer a:hover { border-bottom-color: currentColor; color: var(--ink-soft); }
+        @media (max-width: 800px) {
+          .grid { grid-template-columns: 1fr; }
+          .panel { grid-template-columns: 1fr; }
+          .panel .en {
+            border-left: 0;
+            border-top: 1px solid rgba(244,241,234,0.12);
+            padding-left: 0;
+            padding-top: 22px;
+          }
+          .topbar { align-items: flex-start; flex-direction: column; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="noise" aria-hidden="true"></div>
+      <main class="wrap">
+        <div class="shell">
+          <div class="topbar">
+            <div class="brand">
+              <div class="mark" aria-hidden="true"></div>
+              <div>72602.space</div>
+            </div>
+            <div class="status"><i></i>备案审核中 · Filing under review</div>
+          </div>
+
+          <section class="hero">
+            <div class="kicker"><span></span> Personal Cloud Archive</div>
+            <h1>欢迎来到 <em>72602云端</em></h1>
+            <p class="lead">
+              这里是一个安静的私人站点，用于<strong>存放家中的照片文件信息</strong>。
+              不对外提供开放注册，不发布商业内容，只保留家庭影像与说明资料。
+            </p>
+            <div class="grid">
+              <article class="card">
+                <div class="label">网站名称 / Name</div>
+                <div class="value">72602云端</div>
+                <div class="sub">Personal photo archive</div>
+              </article>
+              <article class="card">
+                <div class="label">域名 / Domain</div>
+                <div class="value">72602.space</div>
+                <div class="sub">Website application service</div>
+              </article>
+              <article class="card">
+                <div class="label">服务地址 / Address</div>
+                <div class="value">47.110.67.161</div>
+                <div class="sub">中文简体 · English</div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div>
+              <div class="tag">网站内容</div>
+              <h2>家庭照片文件信息</h2>
+              <p>
+                本站用于集中整理和保存家庭照片相关的文件信息，例如影像目录、拍摄说明与归档备注。
+                内容仅供站点所有者个人使用与管理，不面向公众提供社交、论坛或交易功能。
+              </p>
+              <div class="meta">
+                <span class="chip">服务类型 · 网站应用服务</span>
+                <span class="chip">网站内容 · 其他</span>
+                <span class="chip">用途 · 家庭照片归档</span>
+              </div>
+            </div>
+            <div class="en">
+              <div class="tag">About</div>
+              <h2>Home photo file information</h2>
+              <p>
+                This site stores home photo file information for personal archiving —
+                catalogs, notes, and related records. It is a private utility page for
+                filing review and personal use, not a public social platform.
+              </p>
+            </div>
+          </section>
+
+          <footer>
+            <div>© 72602云端 · 个人站点 / Personal site</div>
+            <div>
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">工业和信息化部备案管理系统</a>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filing-site
+  namespace: application
+  labels:
+    app.kubernetes.io/name: filing-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: filing-site
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: filing-site
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+              readOnly: true
+            - name: conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: run
+              mountPath: /var/cache/nginx
+            - name: log
+              mountPath: /var/log/nginx
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: html
+          configMap:
+            name: filing-site
+            items:
+              - key: index.html
+                path: index.html
+        - name: conf
+          configMap:
+            name: filing-site
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: log
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filing-site
+  namespace: application
+  labels:
+    app.kubernetes.io/name: filing-site
+spec:
+  selector:
+    app.kubernetes.io/name: filing-site
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: filing-site
+  namespace: application
+  labels:
+    app.kubernetes.io/name: filing-site
+  annotations:
+    cert-manager.io/cluster-issuer: lets-encrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - 72602.space
+      secretName: 72602.space-tls
+  rules:
+    - host: 72602.space
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: filing-site
+                port:
+                  number: 80
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: filing-site
+                port:
+                  number: 80
