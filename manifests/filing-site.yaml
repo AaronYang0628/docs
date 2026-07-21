@@ -45,382 +45,316 @@ data:
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta name="description" content="72602云端 — 家庭照片文件信息存放" />
+      <meta name="description" content="72602云端 — 门牌 72602 的家庭照片小站" />
       <title>72602云端</title>
       <style>
         :root {
-          --ink: #0f1419;
-          --ink-soft: #3d4a5c;
-          --muted: #6b7a8f;
-          --line: rgba(15, 20, 25, 0.08);
-          --card: rgba(255, 255, 255, 0.72);
-          --card-border: rgba(255, 255, 255, 0.55);
-          --accent: #1f6f8b;
-          --accent-2: #c47b3a;
-          --ok: #2f6f4e;
-          --glow-a: #7eb8c9;
-          --glow-b: #e8b07a;
-          --glow-c: #b8c4a0;
-          --shadow: 0 24px 80px rgba(15, 20, 25, 0.12);
-          --radius: 28px;
+          --ink: #1c1917;
+          --soft: #57534e;
+          --muted: #78716c;
+          --paper: #faf7f2;
+          --card: rgba(255, 252, 247, 0.78);
+          --line: rgba(28, 25, 23, 0.08);
+          --teal: #0f766e;
+          --clay: #c2410c;
+          --sand: #d6d3d1;
+          --shadow: 0 30px 80px rgba(28, 25, 23, 0.10);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { min-height: 100%; }
         body {
-          font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+          font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
           color: var(--ink);
           background:
-            radial-gradient(1200px 700px at 12% -10%, rgba(126, 184, 201, 0.45), transparent 55%),
-            radial-gradient(900px 600px at 92% 8%, rgba(232, 176, 122, 0.38), transparent 50%),
-            radial-gradient(800px 500px at 50% 110%, rgba(184, 196, 160, 0.35), transparent 55%),
-            linear-gradient(165deg, #f4f1ea 0%, #eef3f6 48%, #f7f0e8 100%);
-          overflow-x: hidden;
+            radial-gradient(900px 520px at 8% 0%, rgba(15, 118, 110, 0.14), transparent 60%),
+            radial-gradient(800px 480px at 100% 10%, rgba(194, 65, 12, 0.10), transparent 55%),
+            radial-gradient(700px 420px at 50% 100%, rgba(214, 211, 209, 0.55), transparent 60%),
+            linear-gradient(180deg, #f7f3ec 0%, #f3efe8 45%, #efeae2 100%);
         }
-        .noise {
+        .grain {
           pointer-events: none;
           position: fixed;
           inset: 0;
-          opacity: 0.035;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          opacity: 0.04;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
           z-index: 0;
         }
-        .wrap {
+        .page {
           position: relative;
           z-index: 1;
-          min-height: 100vh;
-          display: grid;
-          place-items: center;
-          padding: 40px 20px 56px;
+          width: min(980px, calc(100% - 32px));
+          margin: 0 auto;
+          padding: 36px 0 64px;
         }
-        .shell {
-          width: min(920px, 100%);
-          display: grid;
-          gap: 22px;
-        }
-        .topbar {
+        header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 16px;
-          padding: 0 8px;
+          margin-bottom: 28px;
         }
-        .brand {
+        .logo {
           display: flex;
           align-items: center;
           gap: 12px;
-          font-weight: 600;
-          letter-spacing: 0.02em;
+          font-weight: 650;
+          letter-spacing: 0.01em;
         }
-        .mark {
-          width: 42px;
-          height: 42px;
-          border-radius: 14px;
-          background:
-            linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35)),
-            linear-gradient(135deg, var(--glow-a), var(--glow-b));
-          box-shadow: 0 10px 30px rgba(31, 111, 139, 0.22);
+        .plate {
+          min-width: 54px;
+          height: 36px;
+          padding: 0 10px;
+          border-radius: 8px;
+          border: 1.5px solid rgba(28,25,23,0.18);
+          background: linear-gradient(180deg, #fffdf9, #f3efe8);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 8px 18px rgba(28,25,23,0.06);
           display: grid;
           place-items: center;
-          position: relative;
-          overflow: hidden;
+          font-variant-numeric: tabular-nums;
+          font-size: 14px;
+          letter-spacing: 0.12em;
+          font-weight: 700;
         }
-        .mark::after {
-          content: "";
-          width: 18px;
-          height: 18px;
-          border: 2.5px solid var(--ink);
-          border-radius: 6px;
-          transform: rotate(18deg);
-          opacity: 0.85;
-        }
-        .mark::before {
-          content: "";
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: var(--ink);
-          top: 12px;
-          right: 11px;
-          opacity: 0.7;
-        }
-        .status {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          border-radius: 999px;
-          background: rgba(47, 111, 78, 0.1);
-          color: var(--ok);
+        .quiet {
+          color: var(--muted);
           font-size: 13px;
-          font-weight: 600;
-          border: 1px solid rgba(47, 111, 78, 0.16);
-        }
-        .status i {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: currentColor;
-          box-shadow: 0 0 0 4px rgba(47, 111, 78, 0.12);
-          animation: pulse 2.4s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(0.85); opacity: 0.7; }
         }
         .hero {
           position: relative;
-          border-radius: var(--radius);
-          background: var(--card);
-          border: 1px solid var(--card-border);
-          box-shadow: var(--shadow);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
           overflow: hidden;
-          padding: clamp(28px, 5vw, 48px);
+          border-radius: 32px;
+          background: var(--card);
+          border: 1px solid rgba(255,255,255,0.7);
+          box-shadow: var(--shadow);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          padding: clamp(28px, 5vw, 52px);
+          margin-bottom: 18px;
         }
         .hero::before {
           content: "";
           position: absolute;
-          inset: auto -20% -40% auto;
-          width: 420px;
-          height: 420px;
-          background: radial-gradient(circle, rgba(126,184,201,0.35), transparent 68%);
-          pointer-events: none;
+          width: 280px;
+          height: 280px;
+          right: -60px;
+          top: -80px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(15,118,110,0.16), transparent 70%);
         }
-        .hero::after {
-          content: "";
-          position: absolute;
-          inset: -30% auto auto -15%;
-          width: 320px;
-          height: 320px;
-          background: radial-gradient(circle, rgba(232,176,122,0.28), transparent 70%);
-          pointer-events: none;
-        }
-        .kicker {
+        .eyebrow {
           position: relative;
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          color: var(--accent);
+          gap: 10px;
+          color: var(--teal);
           font-size: 13px;
           font-weight: 600;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          margin-bottom: 18px;
+          margin-bottom: 16px;
         }
-        .kicker span {
-          width: 28px;
-          height: 1.5px;
-          background: linear-gradient(90deg, var(--accent), transparent);
+        .eyebrow::before {
+          content: "";
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--teal);
+          box-shadow: 0 0 0 5px rgba(15,118,110,0.12);
         }
         h1 {
           position: relative;
-          font-size: clamp(2.2rem, 5vw, 3.4rem);
-          line-height: 1.08;
+          font-size: clamp(2.1rem, 5vw, 3.35rem);
+          line-height: 1.12;
           letter-spacing: -0.03em;
-          margin-bottom: 14px;
-          font-weight: 700;
-        }
-        h1 em {
-          font-style: normal;
-          background: linear-gradient(120deg, var(--accent) 10%, #2a4a5c 45%, var(--accent-2) 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
+          max-width: 14ch;
+          margin-bottom: 18px;
+          font-weight: 720;
         }
         .lead {
           position: relative;
+          max-width: 46ch;
+          color: var(--soft);
+          font-size: clamp(1.02rem, 2.1vw, 1.15rem);
+          line-height: 1.85;
+          margin-bottom: 10px;
+        }
+        .lead-en {
+          position: relative;
           max-width: 52ch;
-          color: var(--ink-soft);
-          font-size: clamp(1rem, 2.2vw, 1.125rem);
-          line-height: 1.75;
+          color: var(--muted);
+          font-size: 0.95rem;
+          line-height: 1.7;
           margin-bottom: 28px;
         }
-        .lead strong { color: var(--ink); font-weight: 600; }
-        .grid {
+        .family {
           position: relative;
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 14px;
+          gap: 12px;
         }
-        .card {
-          border-radius: 20px;
-          padding: 18px 18px 16px;
-          background: rgba(255,255,255,0.55);
-          border: 1px solid rgba(15,20,25,0.06);
-          min-height: 118px;
+        .person {
+          border-radius: 22px;
+          padding: 18px 16px 16px;
+          background: rgba(255,255,255,0.62);
+          border: 1px solid var(--line);
+          min-height: 148px;
         }
-        .card .label {
+        .person .who {
           font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.06em;
+          font-weight: 650;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--muted);
           margin-bottom: 10px;
         }
-        .card .value {
-          font-size: 1.05rem;
-          font-weight: 600;
-          line-height: 1.35;
-          word-break: break-all;
+        .person h2 {
+          font-size: 1.25rem;
+          margin-bottom: 8px;
+          letter-spacing: -0.02em;
         }
-        .card .sub {
-          margin-top: 8px;
-          font-size: 13px;
-          color: var(--muted);
-          line-height: 1.5;
+        .person p {
+          color: var(--soft);
+          font-size: 0.92rem;
+          line-height: 1.65;
         }
-        .panel {
-          border-radius: var(--radius);
-          background: rgba(15, 20, 25, 0.92);
-          color: #f4f1ea;
-          padding: clamp(24px, 4vw, 36px);
-          box-shadow: var(--shadow);
+        .person.aaron { background: linear-gradient(180deg, rgba(15,118,110,0.08), rgba(255,255,255,0.55)); }
+        .person.licorice { background: linear-gradient(180deg, rgba(194,65,12,0.08), rgba(255,255,255,0.55)); }
+        .person.yakult { background: linear-gradient(180deg, rgba(234,179,8,0.12), rgba(255,255,255,0.55)); }
+        .story {
           display: grid;
-          grid-template-columns: 1.2fr 1fr;
-          gap: 28px;
-          align-items: start;
+          grid-template-columns: 1.35fr 1fr;
+          gap: 18px;
         }
-        .panel h2 {
-          font-size: 1.15rem;
-          font-weight: 600;
+        .block {
+          border-radius: 28px;
+          padding: clamp(22px, 3.5vw, 32px);
+          background: rgba(255,252,247,0.72);
+          border: 1px solid rgba(255,255,255,0.65);
+          box-shadow: 0 18px 50px rgba(28,25,23,0.06);
+        }
+        .block h3 {
+          font-size: 1.05rem;
           margin-bottom: 12px;
           letter-spacing: -0.01em;
         }
-        .panel p {
-          color: rgba(244, 241, 234, 0.78);
-          line-height: 1.75;
+        .block p {
+          color: var(--soft);
+          line-height: 1.8;
           font-size: 0.98rem;
         }
-        .panel .en {
-          border-left: 1px solid rgba(244,241,234,0.12);
-          padding-left: 28px;
+        .block + .block h3 { color: var(--teal); }
+        .notes {
+          display: grid;
+          gap: 12px;
+          margin-top: 14px;
         }
-        .panel .tag {
-          display: inline-block;
-          margin-bottom: 12px;
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #e8b07a;
-        }
-        .meta {
-          display: flex;
-          flex-wrap: wrap;
+        .note {
+          display: grid;
+          grid-template-columns: 18px 1fr;
           gap: 10px;
-          margin-top: 20px;
+          align-items: start;
+          color: var(--soft);
+          font-size: 0.94rem;
+          line-height: 1.65;
         }
-        .chip {
-          border-radius: 999px;
-          padding: 8px 12px;
-          font-size: 12px;
-          font-weight: 500;
-          color: rgba(244,241,234,0.88);
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.08);
+        .note i {
+          width: 8px;
+          height: 8px;
+          margin-top: 8px;
+          border-radius: 50%;
+          background: var(--clay);
+          opacity: 0.75;
         }
         footer {
+          margin-top: 22px;
+          padding: 0 6px;
           display: flex;
           flex-wrap: wrap;
           justify-content: space-between;
-          gap: 10px 20px;
-          padding: 4px 8px 0;
+          gap: 10px 18px;
           color: var(--muted);
           font-size: 13px;
-          line-height: 1.6;
         }
         footer a {
           color: inherit;
           text-decoration: none;
-          border-bottom: 1px solid transparent;
         }
-        footer a:hover { border-bottom-color: currentColor; color: var(--ink-soft); }
-        @media (max-width: 800px) {
-          .grid { grid-template-columns: 1fr; }
-          .panel { grid-template-columns: 1fr; }
-          .panel .en {
-            border-left: 0;
-            border-top: 1px solid rgba(244,241,234,0.12);
-            padding-left: 0;
-            padding-top: 22px;
-          }
-          .topbar { align-items: flex-start; flex-direction: column; }
+        footer a:hover { color: var(--ink); }
+        @media (max-width: 820px) {
+          .family, .story { grid-template-columns: 1fr; }
+          h1 { max-width: none; }
+          header { align-items: flex-start; flex-direction: column; }
         }
       </style>
     </head>
     <body>
-      <div class="noise" aria-hidden="true"></div>
-      <main class="wrap">
-        <div class="shell">
-          <div class="topbar">
-            <div class="brand">
-              <div class="mark" aria-hidden="true"></div>
-              <div>72602.space</div>
-            </div>
-            <div class="status"><i></i>备案审核中 · Filing under review</div>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="page">
+        <header>
+          <div class="logo">
+            <div class="plate" title="门牌号">72602</div>
+            <div>云端</div>
           </div>
+          <div class="quiet">a small home on the internet</div>
+        </header>
 
-          <section class="hero">
-            <div class="kicker"><span></span> Personal Cloud Archive</div>
-            <h1>欢迎来到 <em>72602云端</em></h1>
-            <p class="lead">
-              这里是一个安静的私人站点，用于<strong>存放家中的照片文件信息</strong>。
-              不对外提供开放注册，不发布商业内容，只保留家庭影像与说明资料。
+        <section class="hero">
+          <div class="eyebrow">来自门牌 72602</div>
+          <h1>把家里的光，收进云里。</h1>
+          <p class="lead">
+            72602 是我们家的门牌号。这个小站不卖东西，也不热闹——
+            只想给家里的照片、片段和随手记下的日子，留一个安静的位置。
+          </p>
+          <p class="lead-en">
+            Named after our door number. A quiet place for home photos, little notes,
+            and the days we want to keep.
+          </p>
+
+          <div class="family">
+            <article class="person aaron">
+              <div class="who">Me</div>
+              <h2>Aaron</h2>
+              <p>家里的程序员兼兼职摄影师。负责按快门，也负责把文件塞进「云端」别弄丢。</p>
+            </article>
+            <article class="person licorice">
+              <div class="who">My love</div>
+              <h2>Licorice</h2>
+              <p>我的妻子。镜头前最好看的人，也是相册里出现频率最高的名字。</p>
+            </article>
+            <article class="person yakult">
+              <div class="who">Coming soon</div>
+              <h2>Yakult · 养乐多</h2>
+              <p>十月将与我们见面的小男孩。相册已经预留好他的第一页。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="story">
+          <div class="block">
+            <h3>这里放什么</h3>
+            <p>
+              门前的树影、晚饭后的客厅、旅行里拍糊的一张、以及以后养乐多的小手小脚。
+              72602 云端更像家里的抽屉：不是秀场，只是把值得留下的影像和说明，轻轻叠好。
             </p>
-            <div class="grid">
-              <article class="card">
-                <div class="label">网站名称 / Name</div>
-                <div class="value">72602云端</div>
-                <div class="sub">Personal photo archive</div>
-              </article>
-              <article class="card">
-                <div class="label">域名 / Domain</div>
-                <div class="value">72602.space</div>
-                <div class="sub">Website application service</div>
-              </article>
-              <article class="card">
-                <div class="label">服务地址 / Address</div>
-                <div class="value">47.110.67.161</div>
-                <div class="sub">中文简体 · English</div>
-              </article>
+            <div class="notes">
+              <div class="note"><i></i><span>家庭照片与影像目录</span></div>
+              <div class="note"><i></i><span>拍摄日期、地点和一句随手备注</span></div>
+              <div class="note"><i></i><span>只给我们自己慢慢回看</span></div>
             </div>
-          </section>
+          </div>
+          <div class="block">
+            <h3>Why 72602</h3>
+            <p>
+              Every home has a number on the door. Ours is 72602.
+              This site keeps our photo file information in one calm place —
+              for Aaron, Licorice, and Yakult, who will join us this October.
+            </p>
+          </div>
+        </section>
 
-          <section class="panel">
-            <div>
-              <div class="tag">网站内容</div>
-              <h2>家庭照片文件信息</h2>
-              <p>
-                本站用于集中整理和保存家庭照片相关的文件信息，例如影像目录、拍摄说明与归档备注。
-                内容仅供站点所有者个人使用与管理，不面向公众提供社交、论坛或交易功能。
-              </p>
-              <div class="meta">
-                <span class="chip">服务类型 · 网站应用服务</span>
-                <span class="chip">网站内容 · 其他</span>
-                <span class="chip">用途 · 家庭照片归档</span>
-              </div>
-            </div>
-            <div class="en">
-              <div class="tag">About</div>
-              <h2>Home photo file information</h2>
-              <p>
-                This site stores home photo file information for personal archiving —
-                catalogs, notes, and related records. It is a private utility page for
-                filing review and personal use, not a public social platform.
-              </p>
-            </div>
-          </section>
-
-          <footer>
-            <div>© 72602云端 · 个人站点 / Personal site</div>
-            <div>
-              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">工业和信息化部备案管理系统</a>
-            </div>
-          </footer>
-        </div>
-      </main>
+        <footer>
+          <div>© 72602云端 · door no. 72602</div>
+          <div>72602.space</div>
+        </footer>
+      </div>
     </body>
     </html>
 ---
