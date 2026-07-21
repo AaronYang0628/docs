@@ -86,6 +86,8 @@ spec:
           env:
             - name: ARGOCD_EXEC_TIMEOUT
               value: 900s
+            - name: ARGOCD_GIT_MODULES_ENABLED
+              value: "false"
             - name: HTTP_PROXY
               value: http://argocd-egress-proxy.argocd.svc.cluster.local:17890
             - name: HTTPS_PROXY
