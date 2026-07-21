@@ -7,6 +7,19 @@ metadata:
     argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
   project: default
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: n8n-redis
+      namespace: n8n
+      jsonPointers:
+        - /data/redis-password
+    - group: apps
+      kind: StatefulSet
+      name: n8n-redis-master
+      namespace: n8n
+      jqPathExpressions:
+        - .spec.template.metadata.annotations."checksum/secret"
   destination:
     server: https://kubernetes.default.svc
     namespace: n8n
@@ -348,3 +361,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=false
+      - RespectIgnoreDifferences=true
