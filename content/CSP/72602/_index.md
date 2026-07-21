@@ -54,7 +54,7 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 | `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
 | `console.minio.72602.space` | A | `47.110.67.161` | MinIO Console |
 
-`txt2img.agent.72602.online` is retired. Its stale DNS record and certificate remain for cleanup after confirming no restoration is planned; there is no workload, Argo CD Application, or Ingress.
+`txt2img.agent.72602.online` is retired. Its DNS record, certificate, TLS Secret, and unreferenced `ai` data claims have been removed.
 
 DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 
