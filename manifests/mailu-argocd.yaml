@@ -48,6 +48,8 @@ spec:
         front:
           hostPort:
             enabled: true
+          updateStrategy:
+            type: Recreate
           externalService:
             enabled: false
         redis:

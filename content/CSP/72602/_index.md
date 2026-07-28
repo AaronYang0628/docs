@@ -35,6 +35,10 @@ All traffic reaches ECS via SSH reverse tunnel established from minipc. ECS side
 - `10022 -> minipc:22` (72602 backup SSH, also carries `80`→`32080`, `443`→`32443`)
 - `80 -> minipc:32080` (HTTP via SSH reverse tunnel on 10022)
 - `443 -> minipc:32443` (HTTPS via SSH reverse tunnel on 10022)
+- `25 -> minipc:25` (SMTP via SSH reverse tunnel on 10022)
+- `465 -> minipc:465` (SMTPS via SSH reverse tunnel on 10022)
+- `587 -> minipc:587` (submission via SSH reverse tunnel on 10022)
+- `993 -> minipc:993` (IMAPS via SSH reverse tunnel on 10022)
 
 ## DNS Setup
 
@@ -53,6 +57,19 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 | `clash.72602.space` | A | `47.110.67.161` | Clash/mihomo panel |
 | `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
 | `console.minio.72602.space` | A | `47.110.67.161` | MinIO Console |
+
+Mail records are managed in the `72602.space` zone with TTL `600`:
+
+| RR | Type | Value | Priority |
+|---|---|---|---|
+| `mail` | A | `47.110.67.161` | |
+| `@` | MX | `mail.72602.space.` | `10` |
+| `@` | TXT | `v=spf1 mx -all` | |
+| `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:admin@72602.space` | |
+
+The mail records were verified through AliDNS, both authoritative nameservers, and
+public resolvers `1.1.1.1` and `8.8.8.8`. DKIM is intentionally deferred until
+Mailu generates the selector and public key.
 
 `txt2img.agent.72602.online` is retired. Its DNS record, certificate, TLS Secret, and unreferenced `ai` data claims have been removed.
 
@@ -123,6 +140,7 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 | socat bridge | `17890` | `0.0.0.0` | Forwards to `127.0.0.1:7890`, k8s pod accessible |
 | autossh tunnel (main) | `10021`→ECS | - | Reverse tunnel to ECS |
 | autossh tunnel (backup) | `10022→ECS` | - | Reverse tunnel + HTTP/HTTPS forwarding |
+| Mailu front host ports | `25,465,587,993` | `0.0.0.0` when ready | SMTP, SMTPS, submission, IMAPS |
 | k3s ingress HTTP | `32080` | `0.0.0.0` | NodePort for ingress HTTP |
 | k3s ingress HTTPS | `32443` | `0.0.0.0` | NodePort for ingress HTTPS |
 
@@ -136,8 +154,85 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 - `argocd-egress-proxy` 由 `ops-docs` ArgoCD Application 管理，并为 repo-server 提供 Git/Helm 出站代理。
 - mihomo `allow-lan: false` 意味着 **Pod 代理地址必须是 socat 桥接端口 `17890`，不能用 `7890`**。
 - SSH 隧道依赖 `loginctl enable-linger` 保持用户级 systemd 服务运行。
+- ECS must allow inbound TCP `25,465,587,993` from `0.0.0.0/0` and UFW must
+  allow the same ports before testing public mail delivery. Preserve the existing
+  default firewall policies and unrelated rules.
+
+## Mailu Public Mail Path
+
+- The live route is `Internet -> ECS 47.110.67.161 -> reverse-tunnel-ecs-10022 -> 72602-minipc:25,465,587,993 -> Mailu front`.
+- ECS listens on `25,465,587,993` through `sshd` reverse forwarding, and the
+  `reverse-tunnel-ecs-10022.service` is active. The `10021` service is independent
+  and must not be restarted during mail changes.
+- `Certificate/mail.72602.space-tls` is Ready and its ACME Order is valid.
+  Mailu admin, Dovecot, Postfix, and the other supporting workloads are ready, but
+  `mailu-front` is currently blocked by a `403 Forbidden` response from the
+  configured image mirror for the Nginx image. Its host-port Pod is not ready, so
+  the replacement Pod may remain Pending with `no free ports`; the front Service
+  has no endpoints and the minipc has no local listener on the mail ports.
+- A public TCP connection can therefore reach the ECS listener and then reset.
+  This indicates a Mailu front/backend readiness problem, not a missing ECS
+  security-group rule or a failed reverse tunnel. Do not repeatedly restart the
+  tunnel while the front image or host-port claim is unresolved.
+
+Useful checks:
+
+```bash
+sudo ss -lntp | grep -E ':(25|465|587|993|10022)$'
+kubectl -n mailu get deploy,pod,svc,certificate,order -o wide
+kubectl -n mailu get endpoints mailu-front -o wide
+```
+
+Rollback is additive and should use the recorded DNS RecordIds and security-group
+rule IDs: delete only the four new DNS records, revoke only the four new ECS rules,
+and run `sudo ufw delete allow 25/tcp`, `465/tcp`, `587/tcp`, and `993/tcp`.
+Restore the private 10022 unit backup, run `systemctl --user daemon-reload`, and
+restart only `reverse-tunnel-ecs-10022.service`. Do not delete Mailu Secrets or
+PVCs.
 
 ## Recent Operations
+
+### 2026-07-28: read-only Mailu deployment verification
+
+- Read-only checks ran from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`).
+  `kubectl config current-context` was unset, but the in-cluster credentials reached
+  the only node `72602-minipc`, which was `Ready` at `192.168.0.25` on
+  `v1.34.6+k3s1`.
+- Ran `argocd app get ops-docs --hard-refresh --insecure --grpc-web`: revision
+  `2773ef5`, `Synced`, `Healthy`. Ran `argocd app get mailu --refresh
+  --insecure --grpc-web`: target `2.7.3`, `Synced`, `Degraded`; only the
+  `mailu-front` Deployment was `Degraded`.
+- Over approximately eight minutes, 17 read-only observations at 30-second
+  intervals showed `mailu-admin`, `mailu-dovecot`, `mailu-oletools`,
+  `mailu-postfix`, `mailu-rspamd`, `mailu-tika`, and `mailu-webmail` at `1/1`
+  Ready, with `mailu-clamav` and `mailu-redis-master` at `1/1`; all three PVCs
+  were `Bound` on `local-path` (2Gi, 100Gi, and 8Gi). `mailu-front` remained
+  `0/1` Ready with `ProgressDeadlineExceeded`, and `mailu-front` had no
+  Endpoints. The old Pod `mailu-front-85d9b6d7d4-6bd9s` used
+  `m.daocloud.io/ghcr.io/mailu/nginx:2024.06.57` and remained in
+  `ImagePullBackOff` after the mirror returned `403 Forbidden`. The replacement
+  Pod `mailu-front-5cbbf9bc99-2qc7v` used the desired
+  `ghcr.nju.edu.cn/mailu/nginx:2024.06.57` but remained `Pending` because the
+  single node had no free requested host ports. Both ReplicaSets requested
+  host ports `110,995,143,993,25,465,587`.
+- Ingress `mailu` uses class `nginx` for `mail.72602.space`. Certificate
+  `mail.72602.space-tls` is `Ready=True`, its Order is `valid`, and the
+  certificate is valid from `2026-07-28T10:22:57Z` through
+  `2026-10-26T10:22:56Z`; there is no active Challenge.
+- `getent ahostsv4 mail.72602.space` resolved the host to `47.110.67.161`.
+  Direct `https://mail.72602.space/` returned `503`. ECS TCP ports `25`,
+  `465`, `587`, and `993` accepted connections, but SMTP ports closed before
+  returning a banner and SMTPS/IMAPS TLS handshakes were reset. No authentication
+  or real mail delivery was attempted.
+- The exact blocker is the `mailu-front` image-pull `403 Forbidden` in the old
+  ReplicaSet combined with host-port contention during the single-node rolling
+  update. DNS, the issued certificate, and public ECS port reachability are not
+  the blocker. Webmail/Admin and the mail protocols are therefore not usable yet.
+  No delete, rollback, manual `apply`, or ArgoCD `sync` was run, and no Secret
+  values were read. A future fix must correct the image/rollout through the Git
+  source, then verify the front Endpoints and protocol handshakes; preserve all
+  Mailu Secrets and PVCs. Any rollback should restore the reviewed source
+  revision through ArgoCD and must not delete Mailu Secrets or PVCs.
 
 ### 2026-07-28: diagnose MinIO Console slowness and port TLS fix
 
