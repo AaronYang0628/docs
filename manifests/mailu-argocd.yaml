@@ -31,7 +31,7 @@ spec:
           existingSecret: mailu-secrets
           existingSecretPasswordKey: initial-account-password
           mode: ifmissing
-        imageRegistry: m.daocloud.io/ghcr.io
+        imageRegistry: ghcr.nju.edu.cn
         persistence:
           single_pvc: true
           size: 100Gi
