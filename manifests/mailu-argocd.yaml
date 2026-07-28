@@ -51,7 +51,13 @@ spec:
           updateStrategy:
             type: Recreate
           externalService:
-            enabled: false
+            enabled: true
+            type: ClusterIP
+            ports:
+              imaps: true
+              smtp: true
+              smtps: true
+              submission: true
         redis:
           enabled: true
           image:
