@@ -4,6 +4,9 @@ metadata:
   name: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    cert-manager.io/cluster-issuer: lets-encrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -17,3 +20,7 @@ spec:
                 name: homepage
                 port:
                   number: 3000
+  tls:
+    - hosts:
+        - port.72602.space
+      secretName: port.72602.space-tls
