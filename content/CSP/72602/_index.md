@@ -139,6 +139,35 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 
 ## Recent Operations
 
+### 2026-07-28: black-box verification of filing-site upload policy
+
+- Ran the checks with `curl` on `72602-minipc` (`hostname=72602-minipc`, context `default`). The live route is `https://72602.space/`; `GET http://72602.space/` returned `308` with `Location: https://72602.space`, and the HTTPS home returned `200 text/html` (19,881 bytes) containing `data-upload="aaron"`, `data-upload="licorice"`, and `data-upload="yakult"`.
+- Anonymous `GET https://72602.space/photos/{aaron,licorice,yakult}/` each returned `200 application/json` with `[]`; the corresponding `HEAD` requests each returned `200 application/json`.
+- The one temporary test object was `https://72602.space/photos/aaron/verification-1785228022571821377.png`, a valid 1x1 PNG of 68 bytes. Anonymous `PUT` and wrong-credential `PUT` each returned `401 text/html`; `PUT` with the temporary `uploader` credential held in shell memory since Secret creation returned `201`. The follow-up Aaron listing returned `200 application/json` and showed the file as `type=file`, `size=68`; the image GET returned `200 image/png` with 68 bytes.
+- Authenticated `DELETE` on the temporary object and authenticated `MKCOL`, `MOVE`, `COPY`, and `POST` on the Aaron directory were all rejected with `403 text/html`; no authenticated DELETE succeeded. Cleanup used `kubectl -n application exec filing-site-55cff975bf-z67xw -- rm -f -- /data/files/aaron/verification-1785228022571821377.png`. The post-cleanup Aaron listing returned `200 application/json` with `[]`, and the exact path was absent in the Pod.
+- Live resource checks passed: Deployment `filing-site` is `1/1` available, Pod `filing-site-55cff975bf-z67xw` is Running and ready with zero restarts, Ingress `filing-site` uses class `nginx` for `72602.space`, and `72602.space-tls` is Ready. PVC `filing-site-photos` is `Bound` to a `5Gi` `local-path` PV.
+- In the nginx container (`uid=101`, `gid=101`), `/data/files/aaron`, `/data/files/licorice`, and `/data/files/yakult` exist and are writable with mode `775`; `/data/.tmp` exists and is writable with mode `770`. No Kubernetes Secret value was read, no manifest was changed, no ArgoCD sync was run, and no test object was retained. Recheck with the same curl method matrix and `kubectl exec` path test; rollback is limited to deleting the exact temporary path if a test object remains. Do not delete the PVC or Secret.
+
+### 2026-07-28: sync filing-site photo albums from ops-docs
+
+- Confirmed `72602-minipc`, context `default`, node `72602-minipc` Ready at `192.168.0.25` (`v1.34.6+k3s1`); live route is `https://72602.space/` through the `nginx` ingress class.
+- Hard-refreshed `argocd/ops-docs` with `argocd app get ops-docs --hard-refresh --insecure --grpc-web` (the installed CLI is v3.3.8 and does not support `argocd app refresh --hard`), then ran `argocd app sync ops-docs --revision main --assumeYes --insecure --grpc-web`.
+- The requested baseline was `98dbe94`, but `origin/main` advanced during the operation to `07f0e515feb7379ca79516a6c31f0e41be5a04b4` (`fix: increase sub2api ingress body timeout`); the final sync used that remote `main` revision. ArgoCD finished `Succeeded`, `Synced`, and `Healthy` from `16:30:08` to `16:30:47` (+0800), with message `successfully synced (no more tasks)`.
+- `ops-docs-build` briefly remained in `Init:0/1` while `clone-repo` fetched the repository. Both `clone-repo` and `hugo` exited `0`; the hook Job reached the expected succeeded pods. No manifest fix was necessary.
+- `application/filing-site` rollout completed. Pod `filing-site-55cff975bf-z67xw` is `1/1 Running`; `init-albums` completed with exit `0`, and `nginx` is ready with zero restarts. Deployment conditions `Available=True` and `Progressing=True` are present.
+- PVC `filing-site-photos` is `Bound` to a `5Gi` `local-path` PV. Ingress annotations remain issuer `lets-encrypt`, SSL redirect enabled, body size `25m`, request buffering off, and read/send timeouts `120`; TLS Secret is `72602.space-tls`.
+- Read-only verification: `nginx -t` reported syntax ok and test successful inside the Pod; HTTPS GET `https://72602.space/` returned HTTP `200` with `text/html` from `47.110.67.161`. Recent events show successful local-path provisioning, old ReplicaSet scale-down/new ReplicaSet scale-up, and Ingress scheduled for sync.
+- No Kubernetes Secret value was read, and no PUT/upload request or resource deletion was performed. Rollback requires explicit authorization and review of the current `main`: syncing the captured pre-sync revision `98dbe94` would also roll back later commits such as `07f0e51`; do not delete the PVC or Secret.
+
+### 2026-07-28: create filing-site upload authentication Secret
+
+- Confirmed `72602-minipc` as the active node and found no existing `application/filing-site-upload-auth` Secret.
+- Generated the `uploader` password in shell memory with `openssl rand -hex 18`, generated an nginx-compatible apr1 hash with `openssl passwd -apr1`, and applied `application/filing-site-upload-auth` with key `htpasswd`. No credential material was written to disk or Git.
+- `manifests/filing-site.yaml` references this Secret for the `filing-site` Deployment, but does not define the Secret; no ArgoCD sync was required.
+- Safe verification confirmed metadata `name=filing-site-upload-auth`, `namespace=application`, `type=Opaque`, and key `htpasswd` without reading its value. The Deployment rollout succeeded with its Pod `1/1 Running`.
+- Ingress remains `nginx` at `https://72602.space/`; certificate `72602.space-tls` is Ready under `lets-encrypt`, and the public HTTPS check returned HTTP `200`.
+- Rollback, only with explicit authorization: `kubectl -n application delete secret filing-site-upload-auth`.
+
 ### 2026-07-16: reset `csst` and update N8N webhook host
 
 - Deleted and recreated the `csst` namespace. Only the namespace default ServiceAccount and `kube-root-ca.crt` ConfigMap remain.
