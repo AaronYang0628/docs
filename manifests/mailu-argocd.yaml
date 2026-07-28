@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mailu
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mailu
+  source:
+    repoURL: https://mailu.github.io/helm-charts
+    chart: mailu
+    targetRevision: 2.7.3
+    helm:
+      releaseName: mailu
+      values: |
+        hostnames:
+          - mail.72602.space
+        domain: 72602.space
+        timezone: Asia/Shanghai
+        mailuVersion: 2024.06.57
+        existingSecret: mailu-secrets
+        initialAccount:
+          enabled: true
+          username: admin
+          domain: 72602.space
+          existingSecret: mailu-secrets
+          existingSecretPasswordKey: initial-account-password
+          mode: ifmissing
+        imageRegistry: m.daocloud.io/ghcr.io
+        persistence:
+          single_pvc: true
+          size: 100Gi
+          accessModes:
+            - ReadWriteOnce
+          storageClass: local-path
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          tls: true
+          existingSecret: mail.72602.space-tls
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+        front:
+          hostPort:
+            enabled: true
+          externalService:
+            enabled: false
+        redis:
+          enabled: true
+          image:
+            registry: m.daocloud.io/docker.io
+            repository: bitnamilegacy/redis
+          auth:
+            enabled: false
+          master:
+            persistence:
+              enabled: true
+              storageClass: local-path
+              size: 8Gi
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
