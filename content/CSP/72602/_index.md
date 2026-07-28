@@ -71,10 +71,70 @@ Mail records are managed in the `72602.space` zone with TTL `600`:
 | `@` | MX | `mail.72602.space.` | `10` |
 | `@` | TXT | `v=spf1 mx -all` | |
 | `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:admin@72602.space` | |
+| `dkim._domainkey` | TXT | `v=DKIM1; k=rsa; p=<derived-public-key>` | |
 
 The mail records were verified through AliDNS, both authoritative nameservers, and
-public resolvers `1.1.1.1` and `8.8.8.8`. DKIM is intentionally deferred until
-Mailu generates the selector and public key.
+public resolvers `1.1.1.1` and `8.8.8.8`. Mailu is configured with DKIM selector
+`dkim` for `72602.space`, using `/dkim/{domain}.{selector}.key`. The current
+admin `/dkim` file is `72602.space.dkim.key`; the front `/dkim` directory is not
+used for this admin-owned key.
+
+### Mailu DKIM and PTR readiness
+
+- The domain key was generated idempotently in the admin Pod with the official
+  update import path. The input contained only the domain name and
+  `dkim_key: -generate-`; `-u -q` was used and the default replace mode was not
+  used:
+
+  ```bash
+  kubectl -n mailu exec deploy/mailu-admin -- sh -c \
+    'printf "%s\\n" "domain:" "  - name: 72602.space" \
+      "    dkim_key: -generate-" | flask mailu config-import -u -q -'
+  ```
+
+- The admin image does not contain `openssl`. A temporary `mailu-dkim-openssl`
+  Pod using the already deployed Mailu front image mounted only the
+  `mailu-storage` PVC `dkim` subPath and ran container `openssl` to derive RSA
+  public DER base64. It mounted no Secret, was deleted after derivation, and
+  emitted no private-key content. The derived public value is intentionally not
+  stored in this handbook.
+- AliDNS was queried first from `aaron@72602-minipc` with the official SDK
+  v4.6.0 in `/home/aaron/.local/venvs/alidns`, sourcing only the mode-`0600`
+  `/home/aaron/.aliyun-keys` credential file inside that SDK process. The exact
+  `dkim._domainkey` / `TXT` record was absent, so one record was created with
+  TTL `600` and value shape `v=DKIM1; k=rsa; p=<derived-public-key>`. Its
+  RecordId is `2082130099188750336`.
+- The authoritative servers `dns15.hichina.com` and `dns16.hichina.com`, and
+  public resolvers `1.1.1.1` and `8.8.8.8`, all returned the complete matching
+  TXT value with TTL `600` (410 characters). SPF, DMARC, and MX retained their
+  existing values. Mailu admin/front were Ready, all Mailu Pod restart counts
+  were zero, and no Warning events were present after the operation.
+- Roll back this newly created DNS record only with the official AliDNS SDK
+  `DeleteDomainRecord` call for RecordId `2082130099188750336`. Do not delete
+  or regenerate the Mailu key during DNS rollback. If a future operation updates
+  an existing record instead of creating one, restore that same RecordId's
+  pre-change value and TTL rather than deleting it.
+- Reverse DNS for `47.110.67.161` currently returns NXDOMAIN. Read-only ECS API
+  checks across 32 regions found no matching ECS instance or EIP under the
+  available API scope. The installed ECS SDK has no reverse-DNS/PTR operation
+  or parameter in its EIP request classes. Do not change PTR automatically;
+  identify the owning Alibaba product/resource and use its console reverse-DNS
+  action or Alibaba support path to request `mail.72602.space` if that product
+  permits it.
+
+Safe checks:
+
+```bash
+kubectl -n mailu exec deploy/mailu-admin -- sh -c 'ls -1 /dkim'
+kubectl -n mailu exec deploy/mailu-front -- sh -c 'ls -1 /dkim'
+dig @dns15.hichina.com dkim._domainkey.72602.space TXT +noall +answer +authority
+dig @dns16.hichina.com dkim._domainkey.72602.space TXT +noall +answer +authority
+dig -x 47.110.67.161 +noall +answer +authority
+```
+
+The AliDNS credential file must be sourced only inside the official SDK process;
+never print, log, copy, or commit its values. Never print Mailu Secret data,
+passwords, or DKIM private-key contents during these checks.
 
 `txt2img.agent.72602.online` is retired. Its DNS record, certificate, TLS Secret, and unreferenced `ai` data claims have been removed.
 
