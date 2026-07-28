@@ -10,7 +10,7 @@ This section is the single source of truth for `72602` cluster operations.
 
 ## Topology
 
-- Public ECS: `47.110.67.161` (2C4G, Aliyun Hongkong)
+- Public ECS: `47.110.67.161` (2C4G, `cn-hangzhou`, zone `cn-hangzhou-i`)
 - Active ingress domain: `72602.space`; legacy `.72602.online` routes are retired
 - ArgoCD host: `argocd.72602.space`
 - k3s node: `72602-minipc` (`192.168.0.25`, MiniPC N100 28G+1TB NVMe)
@@ -114,13 +114,24 @@ used for this admin-owned key.
   or regenerate the Mailu key during DNS rollback. If a future operation updates
   an existing record instead of creating one, restore that same RecordId's
   pre-change value and TTL rather than deleting it.
-- Reverse DNS for `47.110.67.161` currently returns NXDOMAIN. Read-only ECS API
-  checks across 32 regions found no matching ECS instance or EIP under the
-  available API scope. The installed ECS SDK has no reverse-DNS/PTR operation
-  or parameter in its EIP request classes. Do not change PTR automatically;
-  identify the owning Alibaba product/resource and use its console reverse-DNS
-  action or Alibaba support path to request `mail.72602.space` if that product
-  permits it.
+- Reverse DNS for `47.110.67.161` currently returns NXDOMAIN. A fresh read-only
+  ECS API check found the address as the primary public IP of running instance
+  `i-bp1caavgd1twh7wb3n63` in `cn-hangzhou` (zone `cn-hangzhou-i`); its
+  `EipAddress.AllocationId` and `EipAddress.IpAddress` are empty. The installed
+  official `aliyun-python-sdk-ecs` is `4.24.83`: `DescribeEipAddresses` found
+  no EIP allocation for this address in the 32 discovered regions. The
+  installed `DescribeNatGateways` model returned zero gateways in 31 regions;
+  `sa-east-1` returned `503 ServiceUnavailable` twice and remains unconfirmed.
+  The SDK contains `ModifyEipAddressAttributeRequest`, but its request model
+  exposes `AllocationId` and `Bandwidth` (plus common owner parameters), not
+  `ResourceId`, `RegionId`, or `ReverseDnsName`; it contains no
+  `ModifyReverseDns`, `ReverseDnsName`, `DescribeNatGatewayEipAddresses`, or
+  `DescribeNatGatewayAttribute` model. `RegionId` is supplied to `AcsClient`,
+  not as a PTR parameter in that request. Do not treat
+  `ModifyEipAddressAttribute` as a PTR operation or change PTR automatically;
+  identify the owning Alibaba product/resource and use its documented console
+  reverse-DNS action or Alibaba support path to request `mail.72602.space` if
+  that product permits it. This verification made no PTR or DNS change.
 
 Safe checks:
 
