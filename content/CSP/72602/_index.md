@@ -164,16 +164,21 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 - ECS listens on `25,465,587,993` through `sshd` reverse forwarding, and the
   `reverse-tunnel-ecs-10022.service` is active. The `10021` service is independent
   and must not be restarted during mail changes.
-- `Certificate/mail.72602.space-tls` is Ready and its ACME Order is valid.
-  Mailu admin, Dovecot, Postfix, and the other supporting workloads are ready, but
-  `mailu-front` is currently blocked by a `403 Forbidden` response from the
-  configured image mirror for the Nginx image. Its host-port Pod is not ready, so
-  the replacement Pod may remain Pending with `no free ports`; the front Service
-  has no endpoints and the minipc has no local listener on the mail ports.
-- A public TCP connection can therefore reach the ECS listener and then reset.
-  This indicates a Mailu front/backend readiness problem, not a missing ECS
-  security-group rule or a failed reverse tunnel. Do not repeatedly restart the
-  tunnel while the front image or host-port claim is unresolved.
+- `ops-docs` is currently synced and healthy at `c5d1e0a`; its child `mailu`
+  Application targets Mailu chart `2.7.3` and is synced and healthy.
+- Mailu admin, Dovecot, Postfix, front, and the supporting workloads are Ready.
+  `mailu-front` and the automatically generated `mailu-front-ext` ClusterIP
+  Services both have non-empty endpoints. The current `PORTS` ConfigMap value
+  includes `587`.
+- The running front Pod still does not listen on `587`: public STARTTLS fails,
+  and the front and front-ext ClusterIP port `587` connections are refused.
+  The ConfigMap was updated by the automatic sync, but the existing front Pod
+  did not receive a new template rollout, so a Git-sourced rollout fix is still
+  required. Do not manually restart or patch the workload during verification.
+- Public `25` returns an SMTP banner, and `465`/`993` complete TLS handshakes.
+  The non-authenticated relay probe accepted an external `RCPT TO` with `250`
+  before `DATA`; no message data was sent. This does not prove an open relay,
+  but it fails the required rejection check and requires immediate policy review.
 
 Useful checks:
 
@@ -191,6 +196,54 @@ restart only `reverse-tunnel-ecs-10022.service`. Do not delete Mailu Secrets or
 PVCs.
 
 ## Recent Operations
+
+### 2026-07-28: read-only Mailu verification after c5d1e0a
+
+- Checks ran from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`).
+  `kubectl config current-context` was unset, but in-cluster credentials reached
+  the only node `72602-minipc`, `Ready` at `192.168.0.25` on `v1.34.6+k3s1`.
+- Automatic sync completed at `2026-07-28T12:50:54Z`. Read-only ArgoCD checks
+  reported `ops-docs` `Synced`/`Healthy` at full revision
+  `c5d1e0adddaace9ad0ba2d3c57c3ef27eb0e6802` (`c5d1e0a`, history ID 24), and
+  child Application `mailu` targeting chart `2.7.3` as `Synced`/`Healthy`.
+  No manual `apply`, `sync`, `delete`, `rollback`, or restart was run.
+- Read-only observations from `12:53:05Z` through approximately `13:00Z` kept
+  all eight Mailu Deployments and both StatefulSets at `1/1` Ready. The
+  `mailu-front` rollout status completed. `mailu-front` (`10.43.76.102`) and
+  `mailu-front-ext` (`10.43.108.81`, ClusterIP) both had endpoint
+  `10.42.0.198`. The `mailu-envvars` ConfigMap reported
+  `PORTS=80,443,4190,995,993,25,465,587,4190`.
+- Certificate `mail.72602.space-tls` was `Ready=True`; its Order was `valid`,
+  with validity `2026-07-28T10:22:57Z` through `2026-10-26T10:22:56Z`, and no
+  active Challenge. Public DNS returned `mail.72602.space A 47.110.67.161`,
+  `72602.space MX 10 mail.72602.space.`, SPF `v=spf1 mx -all`, and DMARC
+  `v=DMARC1; p=none; rua=mailto:admin@72602.space`, all with TTL `600`.
+  The three PVCs were `Bound` on `local-path` with `RWO`: `2Gi` ClamAV,
+  `100Gi` Mailu storage, and `8Gi` Redis.
+- Following the HTTPS redirect, `https://mail.72602.space/` returned final
+  HTTP `200` at `/sso/login?url=/webmail/?homepage`. Port `25` returned
+  `220 mail.72602.space ESMTP ready`; ports `465` and `993` completed verified
+  TLS 1.3 handshakes for `mail.72602.space`.
+- Port `587` did not provide STARTTLS: `openssl s_client` reported no
+  `STARTTLS` and an unexpected EOF. Connections to port `587` on both front
+  ClusterIP Services and the postfix ClusterIP were refused, and the front
+  container listener list had no `587`. The ConfigMap update was not followed
+  by a new front Pod template rollout: the running Pod started at
+  `2026-07-28T12:32:36Z`, before the automatic sync, while the Deployment
+  remained `1/1` with generation and observed generation `3`. Fix the rollout
+  through Git and automatic ArgoCD reconciliation before treating submission
+  as ready.
+- A single non-authenticated relay probe sent only `EHLO`, `MAIL FROM`,
+  `RCPT TO:<nobody@example.net>`, and `QUIT`; it sent no `DATA`, credentials,
+  or message. The external RCPT received `250 2.1.5 Ok` instead of a rejection.
+  This does not prove actual delivery or an open relay, but it fails the
+  required black-box rejection check and requires immediate relay-policy review.
+- No Secret data, password, or DKIM private key was read. Remaining manual
+  actions are to fix and reverify the front submission rollout, review relay
+  policy, obtain the initial admin password through an approved secure process,
+  publish the generated DKIM public record, and confirm ECS/UFW/cloud policy
+  for outbound TCP 25 before any real delivery test. Do not delete Mailu
+  Secrets or PVCs during correction or rollback.
 
 ### 2026-07-28: read-only Mailu deployment verification
 

@@ -43,11 +43,20 @@ spec:
           ingressClassName: nginx
           tls: true
           existingSecret: mail.72602.space-tls
+          realIpHeader: ""
+          realIpFrom: 127.0.0.1/32
+          proxyProtocol:
+            imaps: true
+            smtp: true
+            smtps: true
+            submission: true
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
         front:
           hostPort:
             enabled: true
+          podAnnotations:
+            mailu.72602.space/config-version: submission-587
           updateStrategy:
             type: Recreate
           externalService:
