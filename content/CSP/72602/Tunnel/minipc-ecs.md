@@ -18,6 +18,8 @@ weight = 1
 外网任意机器                          ecs-99 (47.110.67.161)                     72602-minipc (192.168.0.25)
 ssh -p 10021 aaron@47.110.67.161  ->   0.0.0.0:10021 (sshd) --SSH reverse-->      localhost:22
 ssh -p 10022 aaron@47.110.67.161  ->   0.0.0.0:10022 (sshd) --SSH reverse-->      localhost:22
+ECS HAProxy :25/:465/:587/:993 -> 127.0.0.1:10225/:10465/:10587/:10993 (sshd)
+                                      --SSH reverse--> minipc hostPort :25/:465/:587/:993
 ```
 
 > 说明：反向隧道必须由 72602-minipc 主动发起。ECS 上看到端口监听，才表示隧道在线。
@@ -111,7 +113,7 @@ StandardError=journal
 WantedBy=default.target
 ```
 
-### 3.4 新建 service（10022 备，含 HTTP/HTTPS）
+### 3.4 10022 备入口（含 HTTP/HTTPS 和 Mailu）
 
 文件：`~/.config/systemd/user/reverse-tunnel-ecs-10022.service`
 
@@ -127,9 +129,13 @@ Environment="AUTOSSH_GATETIME=0"
 Environment="AUTOSSH_POLL=60"
 Environment="AUTOSSH_FIRST_POLL=30"
 ExecStart=/usr/bin/autossh -M 0 -N \
-  -R 0.0.0.0:10022:localhost:22 \
-  -R 0.0.0.0:80:localhost:32080 \
-  -R 0.0.0.0:443:localhost:32443 \
+   -R 0.0.0.0:10022:localhost:22 \
+   -R 0.0.0.0:80:localhost:32080 \
+   -R 0.0.0.0:443:localhost:32443 \
+  -R 127.0.0.1:10225:127.0.0.1:25 \
+  -R 127.0.0.1:10465:127.0.0.1:465 \
+  -R 127.0.0.1:10587:127.0.0.1:587 \
+  -R 127.0.0.1:10993:127.0.0.1:993 \
   ecs-99
 Restart=always
 RestartSec=10
@@ -140,7 +146,9 @@ StandardError=journal
 WantedBy=default.target
 ```
 
-> 说明：10022 的 service 额外承载 72602-minipc 的 HTTP（`32080`→`80`）和 HTTPS（`32443`→`443`）服务。如果不需要公网 Web 服务，可只保留 SSH 转发。
+> 说明：10022 的 service 额外承载 72602-minipc 的 HTTP（`32080`→`80`）、
+> HTTPS（`32443`→`443`）和 Mailu 四个 hostPort。ECS 上的四个 Mailu
+> 入口必须是 loopback-only；公网绑定由 HAProxy 完成。
 
 ### 3.5 启用并启动
 
@@ -175,6 +183,7 @@ ssh root@47.110.67.161 "ss -tlnp | grep -E '10021|10022'"
 
 - `0.0.0.0:10021`
 - `0.0.0.0:10022`
+- `127.0.0.1:10225`, `127.0.0.1:10465`, `127.0.0.1:10587`, `127.0.0.1:10993` (sshd)
 
 ### 4.2 在外网验证
 
@@ -190,6 +199,31 @@ ssh -p 10022 aaron@47.110.67.161
 
 - 云安全组来源网段是否覆盖当前出口 IP
 - ECS UFW 是否放行对应端口
+
+### 4.3 Mailu 入口验证
+
+在 ECS 上确认公网端口归 HAProxy、高位端口归 sshd：
+
+```bash
+sudo systemctl is-active haproxy
+haproxy -c -f /etc/haproxy/haproxy.cfg
+sudo ss -ltnp
+```
+
+从不发送邮件数据的测试客户端验证 banner、TLS 和 STARTTLS。relay 检查最多
+发送 `EHLO`、`MAIL FROM`、`RCPT TO`、`QUIT`，不要发送 `DATA`，不要认证。
+同时检查 ArgoCD 与 front rollout：
+
+```bash
+argocd app get ops-docs --refresh --insecure --grpc-web
+argocd app get mailu --refresh --insecure --grpc-web
+kubectl -n mailu rollout status deployment/mailu-front
+kubectl -n mailu get endpoints mailu-front mailu-front-ext
+```
+
+若 Dovecot 报 `Client not trusted`，先检查 Mailu `realIpFrom` 与 hostPort/CNI
+实际传输源是否一致。修正必须提交到 Git 并等待 ArgoCD 自动同步，不能手动
+patch、apply、sync 或重启 Mailu。
 
 ## 五、故障恢复（按顺序）
 
@@ -270,3 +304,23 @@ ECS 侧巡检仅监控 72602-minipc 的两个公开入口。
 - 告警通道为钉钉企业应用 API（非 webhook）
 - 告警消息为 Markdown 格式（标题：`🚨 ECS Tunnel Alert`）
 - 连续失败 3 次才发送告警（防抖）
+
+## 八、Mailu 代理回滚
+
+按以下顺序回滚，不恢复旧 HAProxy 配置，也不卸载 HAProxy：
+
+```bash
+# ECS
+sudo systemctl stop haproxy
+
+# 72602-minipc（使用实际保存的备份路径）
+cp /home/aaron/Ops/ops-private/backups/reverse-tunnel-ecs-10022.service.<UTC>.before-haproxy \
+  ~/.config/systemd/user/reverse-tunnel-ecs-10022.service
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+systemctl --user daemon-reload
+systemctl --user restart reverse-tunnel-ecs-10022.service
+```
+
+若还原 ECS 的 `GatewayPorts` 修正，恢复对应的
+`/var/backups/sshd_config.<UTC>.before-haproxy`，执行 `sshd -t` 后 reload
+`sshd`，再按上面步骤恢复并重启 10022。10021 不在本次回滚范围内。

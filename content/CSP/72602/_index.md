@@ -25,20 +25,25 @@ This section is the single source of truth for `72602` cluster operations.
 
 ## Traffic Path
 
-`Internet -> ECS(sshd reverse tunnel) -> minipc:k3s ingress-nginx`
+`Internet -> ECS HAProxy TCP passthrough -> ECS loopback sshd forwards -> 72602-minipc Mailu front`
 
 ## ECS Port Forwarding
 
-All traffic reaches ECS via SSH reverse tunnel established from minipc. ECS side ports:
+Web, SSH, and mail traffic reaches ECS through the corresponding reverse
+tunnels established from minipc. ECS side ports:
 
 - `10021 -> minipc:22` (72602 main SSH)
 - `10022 -> minipc:22` (72602 backup SSH, also carries `80`→`32080`, `443`→`32443`)
 - `80 -> minipc:32080` (HTTP via SSH reverse tunnel on 10022)
 - `443 -> minipc:32443` (HTTPS via SSH reverse tunnel on 10022)
-- `25 -> minipc:25` (SMTP via SSH reverse tunnel on 10022)
-- `465 -> minipc:465` (SMTPS via SSH reverse tunnel on 10022)
-- `587 -> minipc:587` (submission via SSH reverse tunnel on 10022)
-- `993 -> minipc:993` (IMAPS via SSH reverse tunnel on 10022)
+- `127.0.0.1:10225 -> minipc:25` (SMTP via SSH reverse tunnel on 10022)
+- `127.0.0.1:10465 -> minipc:465` (SMTPS via SSH reverse tunnel on 10022)
+- `127.0.0.1:10587 -> minipc:587` (submission via SSH reverse tunnel on 10022)
+- `127.0.0.1:10993 -> minipc:993` (IMAPS via SSH reverse tunnel on 10022)
+
+ECS HAProxy listens on public IPv4 and IPv6 `25`, `465`, `587`, and `993` and
+passes TCP through with PROXY v2 to the four ECS loopback backends. It does not
+terminate TLS or parse SMTP/IMAP.
 
 ## DNS Setup
 
@@ -140,7 +145,9 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 | socat bridge | `17890` | `0.0.0.0` | Forwards to `127.0.0.1:7890`, k8s pod accessible |
 | autossh tunnel (main) | `10021`→ECS | - | Reverse tunnel to ECS |
 | autossh tunnel (backup) | `10022→ECS` | - | Reverse tunnel + HTTP/HTTPS forwarding |
-| Mailu front host ports | `25,465,587,993` | `0.0.0.0` when ready | SMTP, SMTPS, submission, IMAPS |
+| ECS HAProxy | `25,465,587,993` | `0.0.0.0` and `[::]` | TCP passthrough with PROXY v2 |
+| ECS mail tunnel backends | `10225,10465,10587,10993` | `127.0.0.1` | sshd reverse forwards to minipc Mailu front |
+| Mailu front host ports | `25,465,587,993` | minipc hostPort | SMTP, SMTPS, submission, IMAPS |
 | k3s ingress HTTP | `32080` | `0.0.0.0` | NodePort for ingress HTTP |
 | k3s ingress HTTPS | `32443` | `0.0.0.0` | NodePort for ingress HTTPS |
 
@@ -160,25 +167,32 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 
 ## Mailu Public Mail Path
 
-- The live route is `Internet -> ECS 47.110.67.161 -> reverse-tunnel-ecs-10022 -> 72602-minipc:25,465,587,993 -> Mailu front`.
-- ECS listens on `25,465,587,993` through `sshd` reverse forwarding, and the
+- The live route is `Internet -> ECS 47.110.67.161:25/465/587/993 -> HAProxy TCP passthrough with PROXY v2 -> ECS 127.0.0.1:10225/10465/10587/10993 -> reverse-tunnel-ecs-10022 -> 72602-minipc Mailu front hostPort`.
+- ECS public mail ports are owned by HAProxy and the four loopback backends are
+  owned by `sshd`; the
   `reverse-tunnel-ecs-10022.service` is active. The `10021` service is independent
   and must not be restarted during mail changes.
-- `ops-docs` is currently synced and healthy at `c5d1e0a`; its child `mailu`
+- `ops-docs` is currently synced and healthy at `19e6691`; its child `mailu`
   Application targets Mailu chart `2.7.3` and is synced and healthy.
 - Mailu admin, Dovecot, Postfix, front, and the supporting workloads are Ready.
   `mailu-front` and the automatically generated `mailu-front-ext` ClusterIP
   Services both have non-empty endpoints. The current `PORTS` ConfigMap value
   includes `587`.
-- The running front Pod still does not listen on `587`: public STARTTLS fails,
-  and the front and front-ext ClusterIP port `587` connections are refused.
-  The ConfigMap was updated by the automatic sync, but the existing front Pod
-  did not receive a new template rollout, so a Git-sourced rollout fix is still
-  required. Do not manually restart or patch the workload during verification.
-- Public `25` returns an SMTP banner, and `465`/`993` complete TLS handshakes.
-  The non-authenticated relay probe accepted an external `RCPT TO` with `250`
-  before `DATA`; no message data was sent. This does not prove an open relay,
-  but it fails the required rejection check and requires immediate policy review.
+- The `19e6691` source enables PROXY protocol for `imaps`, `smtp`, `smtps`, and
+  `submission`, with `realIpFrom=127.0.0.1/32` and an empty `realIpHeader`.
+  Automatic reconciliation recreated `mailu-front`; the Deployment is `1/1`
+  Ready with endpoints for all four mail ports. Do not manually restart or
+  patch the workload during verification.
+- Current black-box verification is not healthy: `465`/`993` TLS and `587`
+  STARTTLS close with EOF, and the non-authenticated probe accepted an external
+  `RCPT TO` with `250` before `DATA`; no message data was sent. This does not
+  prove delivery, but it fails the required rejection check.
+- The live Dovecot front config has `haproxy=yes` for these listeners but trusts
+  only `127.0.0.1/32`. With Mailu `hostPort` and the k3s CNI path, the front
+  sees the transport source as `10.42.0.1` and logs `Client not trusted`. This
+  source/trust mismatch is the current blocker. Correct it through a reviewed
+  Git source change and automatic ArgoCD reconciliation; do not manually apply,
+  sync, or restart Mailu.
 
 Useful checks:
 
@@ -188,12 +202,14 @@ kubectl -n mailu get deploy,pod,svc,certificate,order -o wide
 kubectl -n mailu get endpoints mailu-front -o wide
 ```
 
-Rollback is additive and should use the recorded DNS RecordIds and security-group
-rule IDs: delete only the four new DNS records, revoke only the four new ECS rules,
-and run `sudo ufw delete allow 25/tcp`, `465/tcp`, `587/tcp`, and `993/tcp`.
-Restore the private 10022 unit backup, run `systemctl --user daemon-reload`, and
-restart only `reverse-tunnel-ecs-10022.service`. Do not delete Mailu Secrets or
-PVCs.
+Rollback for this mail proxy change is: `systemctl stop haproxy`; restore the
+saved `reverse-tunnel-ecs-10022.service` backup; run
+`systemctl --user daemon-reload`; restart only
+`reverse-tunnel-ecs-10022.service`. If reverting the required ECS sshd binding
+change, restore `/var/backups/sshd_config.20260728T142924Z.before-haproxy`, run
+`sshd -t`, reload `sshd`, then restore/restart the 10022 tunnel as needed. Do not
+restore an old HAProxy configuration or uninstall the package as part of this
+rollback, and do not delete Mailu Secrets or PVCs.
 
 ## Recent Operations
 
