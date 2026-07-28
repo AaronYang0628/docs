@@ -56,7 +56,7 @@ spec:
           hostPort:
             enabled: true
           podAnnotations:
-            mailu.72602.space/config-version: submission-587
+            mailu.72602.space/config-version: proxy-v2-10.42.0.1
           updateStrategy:
             type: Recreate
           externalService:
