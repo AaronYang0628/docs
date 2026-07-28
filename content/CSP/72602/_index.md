@@ -139,6 +139,24 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 
 ## Recent Operations
 
+### 2026-07-28: Mailu deployment blocked before resource sync
+
+- Ran the checks from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`). `kubectl config current-context` was unset, but in-cluster credentials reached `72602-minipc`, which is `Ready` at `192.168.0.25` on `v1.34.6+k3s1`. The existing `mailu` namespace and Secret metadata were left unchanged; Secret values were not read.
+- GitHub `main` contains `91986de` with `manifests/mailu-argocd.yaml`. The manifest declares the Mailu route `mail.72602.space`, using the active `72602.space` domain, `nginx`, `lets-encrypt`, and `local-path`.
+- Ran `argocd app get ops-docs --hard-refresh --insecure --grpc-web`; `argocd/ops-docs` reported `Synced`, `Healthy`, and revision `91986de`, and its output confirmed that `argocd/mailu` was created. The required `argocd app sync ops-docs --revision main --assumeYes --insecure --grpc-web` then failed before applying changes with `PermissionDenied: applications, sync, default/ops-docs, sub: readonly`.
+- No `mailu` sync was attempted, and no Helm install, deletion, or automatic rollback was performed. `argocd app get mailu --insecure --grpc-web` reported `Sync Unknown`, `Health Healthy`, and a `ComparisonError`: Helm rejected the substituted Daocloud Bitnami Redis images because `global.security.allowInsecureImages=true` is not enabled.
+- Read-only checks found no Mailu Deployment, Pod, PVC, Service, Ingress, Certificate, CertificateRequest, Order, Challenge, or namespace events. `mail.72602.space` had no DNS result, and the HTTPS probe timed out because no Mailu endpoint was deployed.
+- Rollback boundary: stop further sync; after explicit authorization, restore or revert the Git source to the pre-change known-good revision and sync through ArgoCD. Do not delete the `mailu` Secret or any PVC, and do not auto-rollback.
+- Next actions: obtain an ArgoCD identity permitted to sync `ops-docs`, review and update the Git manifest with the chart-supported insecure-image setting if the image mirror is retained, then sync `ops-docs` and `mailu` through ArgoCD. Add `mail.72602.space` DNS A record to `47.110.67.161` before validating the public endpoint.
+
+### 2026-07-28: create Mailu namespace and bootstrap Secret
+
+- Ran the checks from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`). `kubectl config current-context` was unset, but the in-cluster Kubernetes credentials reached the live node `72602-minipc`, which is `Ready` at `192.168.0.25` on `v1.34.6+k3s1`.
+- The `mailu` namespace did not exist, so `kubectl create namespace mailu` created it. A second check confirmed that `mailu/mailu-secrets` did not exist before creation.
+- Generated `secret-key` with `openssl rand -hex 32` and `initial-account-password` with `openssl rand -base64 24` in shell memory, then ran `kubectl create secret generic mailu-secrets -n mailu --from-literal=secret-key="$secret_key" --from-literal=initial-account-password="$initial_account_password"`. No credential value was written to a file, command output, logs, Git, or this documentation.
+- Safe verification confirmed namespace `mailu` is `Active`; Secret metadata is `name=mailu-secrets`, `namespace=mailu`, `type=Opaque`, and keys `initial-account-password` and `secret-key`. Secret data values were not read or output.
+- No ArgoCD sync was run, and no DNS, security-group, or reverse-tunnel changes were made. Rollback, only with explicit authorization: `kubectl -n mailu delete secret mailu-secrets`. The Secret was not deleted.
+
 ### 2026-07-28: black-box verification of filing-site upload policy
 
 - Ran the checks with `curl` on `72602-minipc` (`hostname=72602-minipc`, context `default`). The live route is `https://72602.space/`; `GET http://72602.space/` returned `308` with `Location: https://72602.space`, and the HTTPS home returned `200 text/html` (19,881 bytes) containing `data-upload="aaron"`, `data-upload="licorice"`, and `data-upload="yakult"`.
