@@ -43,7 +43,6 @@ spec:
           hostname: sub2api.72602.space
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
-            nginx.ingress.kubernetes.io/client-body-timeout: "300"
           tls: true
           tlsSecret: sub2api.72602.space-tls
 
