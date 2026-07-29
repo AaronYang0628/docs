@@ -11,7 +11,7 @@
   "provider": {
     "openai": {
       "options": {
-        "baseURL": "https://sub2api.home.geekcity.tech:32443/v1",
+        "baseURL": "https://sub2api.72602.space/v1",
         "apiKey": "{env:OPENAI_API_KEY}",
         "headerTimeout": 60000,
         "timeout": 600000,
@@ -65,28 +65,12 @@
             "high": {},
             "xhigh": {}
           }
-        },
-        "gpt-5.5": {
-          "name": "GPT-5.5",
-          "limit": {
-            "context": 1050000,
-            "output": 128000
-          },
-          "options": {
-            "store": false
-          },
-          "variants": {
-            "low": {},
-            "medium": {},
-            "high": {},
-            "xhigh": {}
-          }
         }
       }
     },
     "grok": {
       "options": {
-        "baseURL": "https://sub2api.home.geekcity.tech:32443/v1",
+        "baseURL": "https://sub2api.72602.space/v1",
         "apiKey": "{env:GROK_API_KEY}",
         "headerTimeout": 60000,
         "timeout": 600000,
