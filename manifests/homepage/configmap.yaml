@@ -150,13 +150,16 @@ data:
     https://console.minio.72602.space\n        siteMonitor: https://console.minio.72602.space\n-
     72602 Hosted:\n    - Sub2API-AY:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n
     \       href: https://sub2api.72602.space\n        description: https://sub2api.72602.space\n
-    \       siteMonitor: https://sub2api.72602.space\n    - N8N Ingress:\n        icon:
-    n8n\n        href: https://n8n.72602.space\n        description: https://n8n.72602.space\n
-    \       siteMonitor: https://n8n.72602.space\n    - Port Blog Ingress:\n        href:
-    https://ops.docs.72602.space\n        icon: hugo\n        description: https://ops.docs.72602.space\n
-    \       siteMonitor: https://ops.docs.72602.space\n- External Links:\n    - ZJLAB
-    Nanhu:\n        href: https://zjic.zhejianglab.com/portal/navigation\n        icon:
-    https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
+    \       siteMonitor: https://sub2api.72602.space\n        namespace: application\n
+    \       app: sub2api\n        showStats: true\n    - Mailu:\n        icon: https://raw.githubusercontent.com/Mailu/Mailu/master/docs/assets/logomark.png\n
+    \       href: https://mail.72602.space\n        description: https://mail.72602.space\n
+    \       siteMonitor: https://mail.72602.space\n        namespace: mailu\n        app:
+    mailu\n        showStats: true\n    - N8N Ingress:\n        icon: n8n\n        href:
+    https://n8n.72602.space\n        description: https://n8n.72602.space\n        siteMonitor:
+    https://n8n.72602.space\n    - Port Blog Ingress:\n        href: https://ops.docs.72602.space\n
+    \       icon: hugo\n        description: https://ops.docs.72602.space\n        siteMonitor:
+    https://ops.docs.72602.space\n- External Links:\n    - ZJLAB Nanhu:\n        href:
+    https://zjic.zhejianglab.com/portal/navigation\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n
     \       description: https://zjic.zhejianglab.com/portal/navigation\n        siteMonitor:
     https://zjic.zhejianglab.com/portal/navigation\n    - ZJLAB Haina:\n        href:
     https://open-sci-datahub.zero2x.org/home\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/zjlab.png\n

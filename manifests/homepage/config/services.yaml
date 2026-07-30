@@ -76,6 +76,17 @@
         href: https://sub2api.72602.space
         description: https://sub2api.72602.space
         siteMonitor: https://sub2api.72602.space
+        namespace: application
+        app: sub2api
+        showStats: true
+    - Mailu:
+        icon: https://raw.githubusercontent.com/Mailu/Mailu/master/docs/assets/logomark.png
+        href: https://mail.72602.space
+        description: https://mail.72602.space
+        siteMonitor: https://mail.72602.space
+        namespace: mailu
+        app: mailu
+        showStats: true
     - N8N Ingress:
         icon: n8n
         href: https://n8n.72602.space
