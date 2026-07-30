@@ -67,6 +67,10 @@ spec:
               smtp: true
               smtps: true
               submission: true
+        rspamd:
+          overrides:
+            greylist.conf: |
+              enabled = false;
         redis:
           enabled: true
           image:
