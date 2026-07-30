@@ -284,6 +284,30 @@ rollback, and do not delete Mailu Secrets or PVCs.
 
 ## Recent Operations
 
+### 2026-07-30: fix MinIO S3 upload HTTP 413
+
+- Symptom: Sub2API backup uploads to `api.minio.72602.space` failed with S3
+  `PutObject` HTTP `413` for an approximately 2.45 MB request. The default
+  ingress-nginx `client_max_body_size 1m` rejected the request before MinIO.
+- Fix: commit `2338bc6` added this annotation under the MinIO
+  `apiIngress.annotations` in Git:
+
+  ```yaml
+  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  ```
+
+  This change is scoped only to the MinIO API Ingress; it does not change the
+  MinIO console or the shared/global ingress configuration. ArgoCD and MinIO
+  became `Synced`/`Healthy`; generated nginx reported `client_max_body_size 0`.
+  An authenticated S3 `PutObject`/`Stat`/`Delete` smoke test passed and its
+  temporary object was removed. Sub2API backup upload was then manually
+  confirmed successful.
+- Roll back by reverting `2338bc6` in Git and allowing ArgoCD to reconcile. If
+  an emergency live reversal is required first, remove only the annotation
+  from `storage/minio-api`, then verify ArgoCD convergence. Do not delete
+  MinIO Secrets or PVCs. Do not globally disable request body limits without
+  explicit scope and security review.
+
 ### 2026-07-28: read-only Mailu verification after c5d1e0a
 
 - Checks ran from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`).

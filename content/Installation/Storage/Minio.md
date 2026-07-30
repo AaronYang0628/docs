@@ -103,26 +103,27 @@ kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-console.ay.online
+            hostname: console.minio.72602.space
             path: /?(.*)
             pathType: ImplementationSpecific
             annotations:
               kubernetes.io/ingress.class: nginx
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              cert-manager.io/cluster-issuer: lets-encrypt
             tls: true
             selfSigned: true
             extraHosts: []
           apiIngress:
             enabled: true
             ingressClassName: "nginx"
-            hostname: minio-api.ay.online
+            hostname: api.minio.72602.space
             path: /?(.*)
             pathType: ImplementationSpecific
-            annotations: 
+            annotations:
               kubernetes.io/ingress.class: nginx
               nginx.ingress.kubernetes.io/rewrite-target: /$1
-              cert-manager.io/cluster-issuer: self-signed-ca-issuer
+              cert-manager.io/cluster-issuer: lets-encrypt
+              nginx.ingress.kubernetes.io/proxy-body-size: "0"
             tls: true
             selfSigned: true
             extraHosts: []
@@ -172,7 +173,27 @@ kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/
   ```
   {{% /notice %}}
 
-  <p> <b>4.decode minio secret </b></p>
+  <p> <b>4.verify GitOps and API ingress </b></p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app get argocd/minio --refresh --insecure --grpc-web
+  kubectl -n storage get ingress minio-api \
+    -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/proxy-body-size}{"\n"}'
+  kubectl -n basic-components exec deploy/ingress-nginx-controller -- \
+    nginx -T 2>/dev/null | grep -A20 'server_name api.minio.72602.space' | \
+    grep client_max_body_size
+  ```
+  {{% /notice %}}
+
+  The ArgoCD application and MinIO resources must be `Synced`/`Healthy`, the
+  annotation must be `0`, and generated nginx must show
+  `client_max_body_size 0`. Run an authenticated S3 `PutObject`/`Stat`/`Delete`
+  smoke test against `https://api.minio.72602.space` and remove the temporary
+  object afterward. This annotation applies only to the MinIO API Ingress; do
+  not disable body limits globally without review.
+
+  <p> <b>5.decode minio secret </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -180,20 +201,20 @@ kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/
   ```
   {{% /notice %}}
 
-  <p> <b>5.visit web console </b></p>
+  <p> <b>6.visit web console </b></p>
 
   {{% notice style="note" title="Login Credentials" %}} 
 
-  add `$K8S_MASTER_IP minio-console.ay.online` to `/etc/hosts`
+   add `$K8S_MASTER_IP console.minio.72602.space` to `/etc/hosts`
 
-  address: 🔗[http://minio-console.ay.online:32080/login](hhttp:/minio-console.ay.online:32080/login) 
+   address: 🔗[https://console.minio.72602.space/login](https://console.minio.72602.space/login)
 
   > access key: `admin` 
 
   > secret key: ``
   {{% /notice %}}
 
-  <p> <b>6.using mc </b></p>
+  <p> <b>7.using mc </b></p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -201,9 +222,9 @@ kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/
   MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
   podman run --rm \
       --entrypoint bash \
-      --add-host=minio-api.dev.72602.online:${K8S_MASTER_IP} \
+       --add-host=api.minio.72602.space:${K8S_MASTER_IP} \
       -it m.daocloud.io/docker.io/minio/mc:latest \
-      -c "mc alias set minio http://minio-api.dev.72602.online:32080 admin ${MINIO_ACCESS_SECRET} \
+      -c "mc alias set minio https://api.minio.72602.space admin ${MINIO_ACCESS_SECRET} \
           && mc ls minio \
           && mc mb --ignore-existing minio/test \
           && mc cp /etc/hosts minio/test/etc/hosts \
@@ -217,7 +238,7 @@ kubectl -n argocd apply -f https://raw.githubusercontent.com/AaronYang0628/docs/
   MINIO_ACCESS_SECRET=$(kubectl -n storage get secret minio-secret -o jsonpath='{.data.root-password}' | base64 -d)
   podman run --rm \
       --entrypoint bash \
-      --add-host=minio-api.dev.72602.online:${K8S_MASTER_IP} \
+       --add-host=api.minio.72602.space:${K8S_MASTER_IP} \
       -it m.daocloud.io/docker.io/minio/mc:latest
   ```
   {{% /notice %}}
