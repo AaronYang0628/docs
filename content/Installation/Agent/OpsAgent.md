@@ -61,7 +61,7 @@ weight = 151
     -o jsonpath='{.data.password}' | base64 -d)"
 
   curl -sS -o /dev/null -w '%{http_code}\n' \
-    -u "aaron:$PASSWORD" https://ops.agent.72602.online/
+    -u "aaron:$PASSWORD" https://ops.agent.72602.space/
   ```
   {{% /notice %}}
 

@@ -308,6 +308,42 @@ rollback, and do not delete Mailu Secrets or PVCs.
   MinIO Secrets or PVCs. Do not globally disable request body limits without
   explicit scope and security review.
 
+### 2026-07-29: rotate Ops Agent provider credentials
+
+- Confirmed the operation on `72602-minipc` with context `default`; the only
+  node was Ready at `192.168.0.25` on `v1.34.6+k3s1`. Before the change,
+  `application/opencode-model` contained only the `api-key` key and the live
+  Deployment injected only `OPENAI_API_KEY`. No Secret value was read or
+  printed.
+- Commit `ddb69f1` on `main` routes both the OpenAI and Grok providers to
+  `https://sub2api.72602.space/v1`. The Secret was merge-patched through stdin
+  to update `api-key` and add `grok-api-key`, preserving its other fields, and
+  `manifests/ops-agent/deployment.yaml` was applied. No credential was written
+  to Git or a temporary file, and no `sub2api` or unrelated resource was
+  changed.
+- The live Deployment now injects `OPENAI_API_KEY` from
+  `opencode-model/api-key` and `GROK_API_KEY` from
+  `opencode-model/grok-api-key`. Rollout completed with Deployment generation
+  and observed generation `16`; Pod `ops-agent-68556dc7f5-6jd84` was `2/2`
+  Ready with zero restarts, and the Service endpoint was `10.42.0.207:8080`.
+- The authenticated internal `/global/health` check returned `healthy=true`.
+  Separate, read-only `/v1/models` requests from the Pod returned HTTP `200`
+  with the OpenAI credential and HTTP `200` with the Grok credential. Filtered
+  live merged configuration showed both provider base URLs as
+  `https://sub2api.72602.space/v1`; new-Pod logs contained no
+  `Invalid API key` message.
+- DNS for `ops.agent.72602.space` resolved to `47.110.67.161`; Ingress
+  `ops-agent` used class `nginx` and that host, and Certificate
+  `ops.agent.72602.space-tls` was Ready. The unauthenticated public health URL
+  returned the expected HTTP `401`. An Argo CD hard refresh from the Ops Agent
+  Pod with `--insecure --grpc-web` reported `ops-agent` Synced to `ddb69f1` and
+  Healthy.
+- Roll back by restoring the prior approved model credential with the same
+  non-output stdin merge-patch method. Remove `grok-api-key` only when reverting
+  to the previous single-provider state, and restore/sync source revision
+  `a7e434b` for the prior Deployment. Do not delete the Secret, expose its
+  values, or modify `sub2api` during rollback.
+
 ### 2026-07-28: read-only Mailu verification after c5d1e0a
 
 - Checks ran from the Ops Agent Pod (`hostname=ops-agent-5d6878f6c-xwdb`).
