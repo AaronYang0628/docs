@@ -65,6 +65,7 @@ spec:
           path: /
           annotations:
             cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/proxy-body-size: "0"
           tls: true
         persistence:
           enabled: true
