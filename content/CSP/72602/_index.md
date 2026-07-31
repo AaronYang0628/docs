@@ -173,6 +173,44 @@ DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 `local-path` RWO application PVC, and an `8Gi` `local-path` RWO Redis PVC with
 AOF enabled.
 
+### Ops Docs Publishing
+
+`argocd/ops-docs` compares only the repository's `manifests` path. A commit that
+changes only `content` can advance `.status.sync.revision` while remaining
+`Synced`; it does not create a sync operation, so the `ops-docs-build` Sync hook
+does not run.
+
+Publish a reviewed content commit by setting its full SHA in
+`manifests/configmap.yaml` as `PUBLISH_REVISION`, then commit and push that
+single manifest change. Automatic sync configures `ops-docs-config` and runs the
+hook. The hook fetches and verifies that exact SHA, builds Hugo into
+`hugo-docs-pvc`, and writes the SHA to `/usr/share/nginx/html/.ops-docs-revision`.
+Its fixed Job name is safe because the delete policy is
+`BeforeHookCreation,HookSucceeded`; the successful Job is normally absent after
+the operation.
+
+Verify the source, operation, build marker, rollout, and public route:
+
+```bash
+git -C /home/aaron/Ops/docs ls-remote origin refs/heads/main
+
+kubectl -n application exec deployment/ops-agent -c ops-agent -- \
+  argocd app get ops-docs --hard-refresh --insecure --grpc-web
+kubectl -n application exec deployment/ops-agent -c ops-agent -- \
+  argocd app history ops-docs --insecure --grpc-web
+
+kubectl -n application rollout status deployment/ops-docs --timeout=300s
+kubectl -n application exec deployment/ops-docs -- sh -c \
+  'tr -d "\n" < /usr/share/nginx/html/.ops-docs-revision; printf "\n"'
+curl -fsS -o /dev/null -w '%{http_code}\n' https://ops.docs.72602.space/
+```
+
+The Application revision and published content revision can differ by the
+manifest-only trigger commit; both must match their reviewed Git commits. To
+roll back the generated site, set `PUBLISH_REVISION` to the previous reviewed
+content SHA in Git and push a new trigger commit. Let automatic sync rebuild the
+PVC. Do not copy HTML directly or patch the Deployment, ConfigMap, or PVC.
+
 ### Non-ArgoCD (手动部署)
 
 | Deployment | Namespace | Image | Ingress |
