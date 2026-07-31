@@ -7,6 +7,7 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
+- Current release: OCI chart `0.1.6`, image `ghcr.io/wei-shaw/sub2api:0.1.168`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
