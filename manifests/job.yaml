@@ -19,7 +19,13 @@ spec:
             - |
               set -euo pipefail
               git config --global url."https://ghfast.top/https://github.com/".insteadOf "https://github.com/"
-              git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" "${SITE_SOURCE_DIR}"
+              git init -q "${SITE_SOURCE_DIR}"
+              git -C "${SITE_SOURCE_DIR}" remote add origin "${REPO_URL}"
+              git -C "${SITE_SOURCE_DIR}" fetch --depth 1 origin "${PUBLISH_REVISION}"
+              git -C "${SITE_SOURCE_DIR}" checkout -q --detach FETCH_HEAD
+              ACTUAL_REVISION="$(git -C "${SITE_SOURCE_DIR}" rev-parse HEAD)"
+              test "${ACTUAL_REVISION}" = "${PUBLISH_REVISION}"
+              printf 'ops-docs source revision=%s\n' "${ACTUAL_REVISION}"
               git -C "${SITE_SOURCE_DIR}" submodule sync -- themes/hugo-theme-relearn || true
               git -C "${SITE_SOURCE_DIR}" submodule update --init --depth 1 themes/hugo-theme-relearn || true
               test -f "${SITE_SOURCE_DIR}/hugo.toml"
@@ -44,6 +50,7 @@ spec:
               rm -rf "${SITE_OUTPUT_DIR}"/*
               hugo --source "${SITE_SOURCE_DIR}" --destination "${SITE_OUTPUT_DIR}" --baseURL "${SITE_BASE_URL}"
               test -f "${SITE_OUTPUT_DIR}/index.html"
+              printf '%s\n' "${PUBLISH_REVISION}" > "${SITE_OUTPUT_DIR}/.ops-docs-revision"
           envFrom:
             - configMapRef:
                 name: ops-docs-config
