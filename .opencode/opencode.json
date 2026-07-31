@@ -6,7 +6,8 @@
   ],
   "enabled_providers": [
     "openai",
-    "grok"
+    "grok",
+    "ollama"
   ],
   "provider": {
     "openai": {
@@ -120,6 +121,26 @@
           "name": "Grok Composer 2.5 Fast",
           "limit": {
             "context": 500000,
+            "output": 128000
+          }
+        }
+      }
+    },
+    "ollama": {
+      "options": {
+        "baseURL": "https://sub2api.72602.space/v1",
+        "apiKey": "{env:OLLAMA_API_KEY}",
+        "headerTimeout": 60000,
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "npm": "@ai-sdk/openai",
+      "name": "Ollama via Sub2API",
+      "models": {
+        "minimax-m3": {
+          "name": "MINIMAX M3",
+          "limit": {
+            "context": 1000000,
             "output": 128000
           }
         }
