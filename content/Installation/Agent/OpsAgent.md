@@ -11,8 +11,8 @@ weight = 151
 {{< tab title="72602" >}}
   {{< tabs groupid="install-method-72602" title="Install By" icon="thumbtack" >}}
 
-  {{% tab title="☸️Kubernetes" %}}
-  {{% include "/Installation/SNIPPET/_manifests_preliminary.md" %}}
+  {{% tab title="🐙ArgoCD" %}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
   <p> <b>1.build and push</b> Ops Agent image </p>
 
@@ -41,23 +41,48 @@ weight = 151
   an existing provider key. It creates or updates model, SSH, Git credential,
   Registry, and Basic Auth Secrets without writing their values into Git.
 
-  <p> <b>3.apply</b> Ops Agent resources </p>
+  <p> <b>3.sync by ArgoCD</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl apply -k manifests/ops-agent
+  argocd app get ops-docs --hard-refresh
+  argocd app sync ops-docs --revision main
+  argocd app wait ops-docs --sync --health --timeout 300
+
+  argocd app get ops-agent --hard-refresh
+  argocd app sync ops-agent
+  argocd app wait ops-agent --sync --health --timeout 600
   kubectl -n application rollout status deployment/ops-agent --timeout=600s
   ```
   {{% /notice %}}
 
-  The Deployment uses `application/ops-agent-sa`, mounts the host workspace read-write, and stores OpenCode session data in the `opencode-data` PVC.
+  `argocd/ops-docs` owns `manifests/ops-agent-argocd.yaml`; the child
+  `argocd/ops-agent` Application deploys `manifests/ops-agent` into namespace
+  `application`. Do not apply the Kustomization directly as a second ownership
+  path. The Deployment mounts the host workspace read-write and stores OpenCode
+  session data in the `opencode-data` PVC.
+
+  Startup configuration is loaded only when OpenCode starts. After changing
+  `.opencode/opencode.json`, agents, skills, or plugins, restart only the managed
+  workload and wait for readiness:
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n application rollout restart deployment/ops-agent
+  kubectl -n application rollout status deployment/ops-agent --timeout=300s
+  ```
+  {{% /notice %}}
+
+  The live strategy is `Recreate`, so a restart briefly makes the web endpoint
+  unavailable while the replacement Pod becomes Ready.
 
   <p> <b>4.verify</b> configuration and access </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl -n application get pod,svc,ingress,certificate \
+  kubectl -n application get pod,svc,ingress \
     -l app.kubernetes.io/name=ops-agent
+  kubectl -n application get certificate ops.agent.72602.space-tls
 
   kubectl -n application exec deployment/ops-agent -c ops-agent -- \
     opencode debug agent hugo-doc-maintainer
@@ -107,7 +132,21 @@ Langfuse is not installed or enabled.
 
 ### ↩️Rollback
 
+Restore the previous reviewed configuration and Deployment through Git, then
+let the parent and child Applications converge:
+
 ```bash
-kubectl -n application delete ingress ops-agent
-kubectl -n application scale deployment/ops-agent --replicas=0
+git -C /home/aaron/Ops/docs log --oneline -- \
+  .opencode/opencode.json manifests/ops-agent
+git -C /home/aaron/Ops/docs revert <change-commit>
+git -C /home/aaron/Ops/docs push origin HEAD:main
+
+argocd app get ops-agent --hard-refresh
+argocd app sync ops-agent
+argocd app wait ops-agent --sync --health --timeout 600
+kubectl -n application rollout restart deployment/ops-agent
+kubectl -n application rollout status deployment/ops-agent --timeout=300s
 ```
+
+Do not patch the Deployment, delete the Ingress/PVC/Secrets, or scale the
+Git-owned workload as a rollback path.
