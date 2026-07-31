@@ -4,7 +4,7 @@ metadata:
   name: ops-docs-config
 data:
   REPO_URL: https://github.com/AaronYang0628/docs.git
-  PUBLISH_REVISION: 594986a806d0d4c50b2ffedf747853291b053f99
+  PUBLISH_REVISION: 88983b6b1d563faa73e1f469ed3a3de7a5e29247
   SITE_SOURCE_DIR: /src
   SITE_OUTPUT_DIR: /output
   SITE_BASE_URL: https://ops.docs.72602.space
