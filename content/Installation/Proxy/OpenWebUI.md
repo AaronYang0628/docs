@@ -181,7 +181,7 @@ kubectl apply -f /home/aaron/Ops/docs/manifests/application/openwebui-backup-ai-
 ### 📦Shared Dependencies
 
 - **Redis**: `manifests/storage/redis.yaml` → Bitnami Redis chart, standalone, 2Gi local-path
-- **sub2api**: `manifests/application/sub2api-argocd.yaml` → AI API proxy
+- **sub2api**: `manifests/sub2api-argocd.yaml` → AI API proxy
 
 ### 🔧Operations (72602)
 

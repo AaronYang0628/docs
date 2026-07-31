@@ -1,109 +1,197 @@
 +++
 title = "Ops"
-description = "Daily operations for sub2api"
+description = "GitOps upgrades and daily operations for Sub2API"
 +++
 
 ### Web Page
-[<i class="fa-solid fa-link"></i> sub2api web page (https://sub2api.72602.online)](https://sub2api.72602.online)
+[<i class="fa-solid fa-link"></i> sub2api web page (https://sub2api.72602.space)](https://sub2api.72602.space)
 
-### Health Check
+### Current Release
 
 ```bash
-argocd app get sub2api
-kubectl -n ai get pods
-kubectl -n ai logs deploy/sub2api --tail=80
+argocd app get ops-docs --hard-refresh
+argocd app get sub2api --hard-refresh
+
+kubectl -n argocd get application sub2api \
+  -o jsonpath='{.spec.source.repoURL}{"\nchart="}{.spec.source.chart}{" "}{.spec.source.targetRevision}{"\nimage.tag="}{.spec.source.helm.parameters[?(@.name=="image.tag")].value}{"\n"}'
+
+kubectl -n application get deployment sub2api \
+  -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"="}{.image}{"\n"}{end}'
+
+kubectl -n application get pods,svc,ingress,pvc
+kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-### Ingress and TLS
+The expected values are OCI chart `0.1.6`, image
+`ghcr.io/wei-shaw/sub2api:0.1.168`, namespace `application`, and host
+`sub2api.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
+with AOF enabled. Both use `local-path` and `RWO`.
+
+### Sync From Git
+
+`argocd/ops-docs` owns `manifests/sub2api-argocd.yaml` from
+`https://github.com/AaronYang0628/docs.git`. Reconcile the Git parent before the
+OCI Helm child:
 
 ```bash
-kubectl -n ai get ingress sub2api -o wide
-kubectl -n ai get certificate,certificaterequest,order,challenge
-curl -vkI https://sub2api.72602.online
-```
+git -C /home/aaron/Ops/docs fetch origin main
+argocd app get ops-docs --hard-refresh
+argocd app sync ops-docs --revision main
+argocd app wait ops-docs --sync --health --timeout 300
 
-### Restart
-
-```bash
-kubectl -n ai rollout restart deploy/sub2api
-kubectl -n ai rollout status deploy/sub2api
-```
-
-### Rotate Auth Secrets
-
-```bash
-kubectl -n ai create secret generic sub2api-auth \
-  --from-literal=admin-password='CHANGE_ME_STRONG_PASSWORD' \
-  --from-literal=jwt-secret="$(openssl rand -hex 32)" \
-  --from-literal=totp-encryption-key="$(openssl rand -hex 32)" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-kubectl -n ai rollout restart deploy/sub2api
-```
-
-### Sync From ArgoCD
-
-```bash
-ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-argocd login --insecure --username admin argocd.72602.online --password $ARGOCD_PASS
-
+argocd app get sub2api --hard-refresh
 argocd app sync sub2api
-argocd app wait sub2api --health --timeout 300
+argocd app wait sub2api --sync --health --timeout 600
 ```
 
-### Backup and Restore
+Do not apply `manifests/sub2api-argocd.yaml` directly as a second ownership
+path.
 
-- Database + app-level backup runbook: `Ops/Sub2API/Backup & Restore`
-- File path: `/home/aaron/Ops/docs/content/Installation/Application/Sub2API/backup.md`
+### Rolling Upgrade
 
-### Troubleshooting: `column settings.id does not exist`
+<p> <b>1.back up</b> PostgreSQL before changing chart or image values </p>
 
-Symptom: `GET /api/v1/settings/public` or admin settings APIs return `500`, logs show `pq: column settings.id does not exist`.
+Use the [Backup & Restore](../backup/) runbook. Sub2API executes PostgreSQL
+migrations automatically at startup, and migrations are forward-only. Verify
+the dump before continuing.
 
-Root cause: sub2api is pointed to a shared/legacy database schema (for example `n8n` DB) where `settings` table structure is incompatible.
+<p> <b>2.update</b> the Git source </p>
 
-Fix (minimal):
+Edit only the reviewed `targetRevision`, `image.tag`, or required values in
+`manifests/sub2api-argocd.yaml`, then inspect and publish the change:
 
 ```bash
-# 1) use dedicated DB/user for sub2api
-# update /home/aaron/Ops/docs/manifests/application/sub2api-argocd.yaml
-# externalPostgresql.username= sub2api
-# externalPostgresql.database= sub2api
-
-# 2) create DB/user in PostgreSQL and rotate secret
-# (run with postgres superuser)
-
-# 3) apply and rollout
-kubectl apply -f /home/aaron/Ops/docs/manifests/application/sub2api-argocd.yaml
-kubectl -n ai rollout restart deploy/sub2api
-kubectl -n ai rollout status deploy/sub2api
+git -C /home/aaron/Ops/docs diff --check -- manifests/sub2api-argocd.yaml
+git -C /home/aaron/Ops/docs diff -- manifests/sub2api-argocd.yaml
+git -C /home/aaron/Ops/docs add manifests/sub2api-argocd.yaml
+git -C /home/aaron/Ops/docs commit -m "chore: upgrade sub2api"
+git -C /home/aaron/Ops/docs push origin HEAD:main
 ```
 
-### Troubleshooting: Redis `WRONGPASS`
-
-Symptom: `kubectl -n ai logs deploy/sub2api` shows `WRONGPASS invalid username-password pair`.
-
-Root cause: Redis password changed (for example chart regenerated secret), but `sub2api` pod still used old `REDIS_PASSWORD` env var.
-
-Fix:
+<p> <b>3.reconcile</b> parent and child Applications </p>
 
 ```bash
-# 1) ensure ArgoCD values pin Redis secret (in sub2api-argocd.yaml)
-# redis.auth.existingSecret: sub2api-redis
-# redis.auth.existingSecretPasswordKey: redis-password
+argocd app get ops-docs --hard-refresh
+argocd app sync ops-docs --revision main
+argocd app wait ops-docs --sync --health --timeout 300
 
-# 2) apply and restart sub2api to reload env
-kubectl apply -f /home/aaron/Ops/docs/manifests/application/sub2api-argocd.yaml
-kubectl -n ai rollout restart deploy/sub2api
-kubectl -n ai rollout status deploy/sub2api
-
-# 3) verify
-kubectl -n ai logs deploy/sub2api --tail=120
+argocd app get sub2api --hard-refresh
+argocd app sync sub2api
+argocd app wait sub2api --sync --health --timeout 600
+kubectl -n application rollout status deployment/sub2api --timeout=600s
+kubectl -n application get endpointslice \
+  -l kubernetes.io/service-name=sub2api -o wide
 ```
 
-Verify:
+The Deployment explicitly uses `maxUnavailable: 0` and `maxSurge: 1`.
+Kubernetes adds the new Ready Pod to the EndpointSlice before terminating the
+old Pod, and the Service selects only Ready endpoints. This protects new
+requests during rollout, but it does not guarantee completion of requests that
+are already attached to the terminating Pod. Long generations still require
+the application to handle graceful termination and draining correctly.
+
+<p> <b>4.verify</b> the public and authenticated model path </p>
 
 ```bash
-curl -sk -o /dev/null -w '%{http_code}\n' https://sub2api.72602.online/api/v1/settings/public
-kubectl -n ai logs deploy/sub2api --since=10m
+curl -fsS https://sub2api.72602.space/health
+curl -fsS https://sub2api.72602.space/api/v1/settings/public
+
+set +x
+read -rsp 'Sub2API API token: ' SUB2API_API_TOKEN; printf '\n'
+curl -fsS \
+  -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
+  https://sub2api.72602.space/v1/models
+
+read -rp 'Model ID for smoke generation: ' MODEL_ID
+curl -fsS https://sub2api.72602.space/v1/chat/completions \
+  -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
+  --json "{\"model\":\"${MODEL_ID}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with OK.\"}],\"max_tokens\":8}"
+unset SUB2API_API_TOKEN MODEL_ID
 ```
+
+### GitOps Rollback
+
+Restore the previous reviewed chart and image values with `git revert` or a new
+commit, then let ArgoCD converge:
+
+```bash
+git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml
+git -C /home/aaron/Ops/docs revert <upgrade-commit>
+git -C /home/aaron/Ops/docs push origin HEAD:main
+
+argocd app get ops-docs --hard-refresh
+argocd app sync ops-docs --revision main
+argocd app wait ops-docs --sync --health --timeout 300
+argocd app sync sub2api
+argocd app wait sub2api --sync --health --timeout 600
+```
+
+An image/chart rollback does not reverse a forward-only PostgreSQL migration.
+Confirm compatibility with the migrated schema; when database recovery is
+required, restore the pre-upgrade dump into a separate database and switch via
+a reviewed Git change. Do not use `kubectl rollout undo`, and do not delete
+PVCs or Secrets as a rollback step.
+
+### Troubleshooting
+
+```bash
+kubectl -n application logs deployment/sub2api --since=10m
+kubectl -n application get events --sort-by=.lastTimestamp
+kubectl -n application get endpointslice \
+  -l kubernetes.io/service-name=sub2api -o yaml
+argocd app get sub2api --hard-refresh
+```
+
+### 🛎️FAQ
+
+{{% expand title="Settings API reports column settings.id does not exist" %}}
+
+If `/api/v1/settings/public` or the admin settings API returns HTTP `500` and
+the logs contain `pq: column settings.id does not exist`, Sub2API is connected
+to a shared or legacy database with an incompatible `settings` table.
+
+Confirm that the live Application and Secret reference the dedicated
+`sub2api` database and user without printing the password:
+
+```bash
+kubectl -n argocd get application sub2api \
+  -o jsonpath='{.spec.source.helm.values}'
+kubectl -n application get secret sub2api-external-postgresql
+kubectl -n application logs deployment/sub2api --since=10m
+```
+
+Keep `externalPostgresql.username` and `externalPostgresql.database` set to
+`sub2api` in `manifests/sub2api-argocd.yaml`. Create or recover the dedicated
+database first, then update the Secret through the approved secret-management
+process and reconcile through ArgoCD. Do not point Sub2API at the `n8n`
+database or patch the Deployment directly.
+
+{{% /expand %}}
+
+{{% expand title="Redis reports WRONGPASS" %}}
+
+`WRONGPASS invalid username-password pair` means the password used by the
+Sub2API Pod no longer matches the Redis Secret. The chart must continue to pin
+the stable Secret and key:
+
+```yaml
+redis:
+  auth:
+    existingSecret: sub2api-redis
+    existingSecretPasswordKey: redis-password
+```
+
+Verify references and workload state without reading the Secret value:
+
+```bash
+kubectl -n application get secret sub2api-redis
+kubectl -n application get deployment sub2api \
+  -o jsonpath='{range .spec.template.spec.containers[0].env[*]}{.name}{" <- "}{.valueFrom.secretKeyRef.name}{"/"}{.valueFrom.secretKeyRef.key}{"\n"}{end}'
+kubectl -n application logs deployment/sub2api --since=10m
+```
+
+If rotation is required, update Redis and `application/sub2api-redis` as one
+planned operation, then reconcile the Git-owned Application. Do not generate a
+new password during a routine restart.
+
+{{% /expand %}}

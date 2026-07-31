@@ -1,64 +1,137 @@
 +++
 title = "Install (ArgoCD)"
-description = "Use ArgoCD to deploy sub2api in application namespace"
+description = "Deploy Sub2API through the 72602 GitOps parent and OCI Helm child Application"
 +++
 
-### Preliminary
-- ArgoCD 已可访问: `https://argocd.72602.online`
-- cert-manager 与 `lets-encrypt` 已就绪
-- DNS 已解析: `sub2api.72602.online -> 47.110.67.161`
-- PostgreSQL(`database` ns) 可用
+### 🚀Installation
 
-### Deployment
-{{< tabs title="Deploy" >}}
-{{< tab title="Secrets" icon="fa-solid fa-key" >}}
+{{< tabs groupid="environment" style="primary" title="Environment" icon="server" >}}
 
-{{% notice style="transparent" %}}
-```bash
-PG_PASSWORD=$(kubectl -n database get secret postgresql-credentials -o jsonpath='{.data.postgres-password}' | base64 -d)
-JWT_SECRET=$(openssl rand -hex 32)
-TOTP_KEY=$(openssl rand -hex 32)
+{{< tab title="72602" >}}
+  {{< tabs groupid="install-method-72602" title="Install By" icon="thumbtack" >}}
 
-kubectl get ns application > /dev/null 2>&1 || kubectl create namespace application
+  {{% tab title="🐙ArgoCD" %}}
+  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
-kubectl -n application create secret generic sub2api-auth \
-  --from-literal=admin-password='CHANGE_ME_STRONG_PASSWORD' \
-  --from-literal=jwt-secret="$JWT_SECRET" \
-  --from-literal=totp-encryption-key="$TOTP_KEY" \
-  --dry-run=client -o yaml | kubectl apply -f -
+  4. PostgreSQL is available in namespace `database`, DNS resolves
+  `sub2api.72602.space`, and ingress-nginx with the `lets-encrypt` ClusterIssuer
+  is ready.
 
-kubectl -n application create secret generic sub2api-external-postgresql \
-  --from-literal=postgres-password="$PG_PASSWORD" \
-  --dry-run=client -o yaml | kubectl apply -f -
+  <p> <b>1.prepare</b> runtime Secrets </p>
 
-kubectl -n application create secret generic sub2api-redis \
-  --from-literal=redis-password='CHANGE_ME_REDIS_PASSWORD' \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
-{{% /notice %}}
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl get namespace application >/dev/null 2>&1 || \
+    kubectl create namespace application
 
+  set +x
+  read -rsp 'Sub2API admin password: ' ADMIN_PASSWORD; printf '\n'
+  read -rsp 'Sub2API PostgreSQL password: ' POSTGRES_PASSWORD; printf '\n'
+  read -rsp 'Sub2API Redis password: ' REDIS_PASSWORD; printf '\n'
+  JWT_SECRET="$(openssl rand -hex 32)"
+  TOTP_KEY="$(openssl rand -hex 32)"
+
+  test -n "$ADMIN_PASSWORD"
+  test -n "$POSTGRES_PASSWORD"
+  test -n "$REDIS_PASSWORD"
+
+  kubectl -n application create secret generic sub2api-auth \
+    --from-literal=admin-password="$ADMIN_PASSWORD" \
+    --from-literal=jwt-secret="$JWT_SECRET" \
+    --from-literal=totp-encryption-key="$TOTP_KEY" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  kubectl -n application create secret generic sub2api-external-postgresql \
+    --from-literal=postgres-password="$POSTGRES_PASSWORD" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  kubectl -n application create secret generic sub2api-redis \
+    --from-literal=redis-password="$REDIS_PASSWORD" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  unset ADMIN_PASSWORD POSTGRES_PASSWORD REDIS_PASSWORD JWT_SECRET TOTP_KEY
+  kubectl -n application get secret \
+    sub2api-auth sub2api-external-postgresql sub2api-redis
+  ```
+  {{% /notice %}}
+
+  Secret values must stay outside Git, terminal output, and this handbook.
+
+  <p> <b>2.verify</b> the GitOps source </p>
+
+  The parent `argocd/ops-docs` Application reads
+  `https://github.com/AaronYang0628/docs.git` at path `manifests`. The canonical
+  child declaration is `manifests/sub2api-argocd.yaml`; it configures the OCI
+  chart source and must not be applied as an independent deployment route.
+
+  {{% notice style="transparent" %}}
+  ```bash
+  git -C /home/aaron/Ops/docs fetch origin main
+  git -C /home/aaron/Ops/docs \
+    show origin/main:manifests/sub2api-argocd.yaml >/dev/null
+
+  kubectl -n argocd get application ops-docs \
+    -o jsonpath='{.spec.source.repoURL}{"\n"}{.spec.source.path}{"\n"}'
+  ```
+  {{% /notice %}}
+
+  Expected source values are `https://github.com/AaronYang0628/docs.git` and
+  `manifests`.
+
+  <p> <b>3.sync</b> parent and child Applications </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app get ops-docs --hard-refresh
+  argocd app sync ops-docs --revision main
+  argocd app wait ops-docs --sync --health --timeout 300
+
+  argocd app get sub2api --hard-refresh
+  argocd app sync sub2api
+  argocd app wait sub2api --sync --health --timeout 600
+  ```
+  {{% /notice %}}
+
+  <p> <b>4.verify</b> release, storage, ingress, and API path </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n argocd get application sub2api \
+    -o jsonpath='{.spec.source.repoURL}{"\n"}{.spec.source.chart}{" "}{.spec.source.targetRevision}{"\n"}'
+
+  kubectl -n application get deployment sub2api \
+    -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"="}{.image}{"\n"}{end}'
+
+  kubectl -n application rollout status deployment/sub2api --timeout=600s
+  kubectl -n application get pods,svc,ingress,pvc
+  kubectl -n application get certificate,certificaterequest,order,challenge
+  kubectl -n application get endpointslice \
+    -l kubernetes.io/service-name=sub2api
+
+  curl -fsS https://sub2api.72602.space/health
+  curl -fsS https://sub2api.72602.space/api/v1/settings/public
+
+  set +x
+  read -rsp 'Sub2API API token: ' SUB2API_API_TOKEN; printf '\n'
+  curl -fsS \
+    -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
+    https://sub2api.72602.space/v1/models
+
+  read -rp 'Model ID for smoke generation: ' MODEL_ID
+  curl -fsS https://sub2api.72602.space/v1/chat/completions \
+    -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
+    --json "{\"model\":\"${MODEL_ID}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with OK.\"}],\"max_tokens\":8}"
+  unset SUB2API_API_TOKEN MODEL_ID
+  ```
+  {{% /notice %}}
+
+  Expected release values are chart `0.1.6` and application image
+  `ghcr.io/wei-shaw/sub2api:0.1.168`. The TLS certificate is `Ready`; the
+  `sub2api-data` PVC is `10Gi` and the Redis PVC is `8Gi`, both `local-path`
+  `RWO`.
+  {{% /tab %}}
+
+  {{< /tabs >}}
 {{< /tab >}}
-{{< tab title="ArgoCD App" icon="fa-solid fa-rocket" >}}
 
-{{% notice style="transparent" %}}
-```bash
-ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-argocd login --insecure --username admin argocd.72602.online --password $ARGOCD_PASS
-
-kubectl apply -f /home/aaron/Ops/docs/manifests/application/sub2api-argocd.yaml
-argocd app sync sub2api
-argocd app wait sub2api --health --timeout 300
-```
-{{% /notice %}}
-
-{{< /tab >}}
 {{< /tabs >}}
-
-### Verify
-
-```bash
-argocd app get sub2api
-kubectl -n application get pods,svc,ingress
-kubectl -n application get certificate,certificaterequest,order,challenge
-curl -vkI https://sub2api.72602.online
-```

@@ -20,7 +20,7 @@ All subdomains use A records → `47.110.67.161` (ECS public IP):
 argocd.72602.online           A  47.110.67.161
 txt2img.agent.72602.online    A  47.110.67.161
 ops.docs.72602.online         A  47.110.67.161
-sub2api.72602.online          A  47.110.67.161
+sub2api.72602.space           A  47.110.67.161
 home.72602.online             A  47.110.67.161
 n8n.72602.online              A  47.110.67.161
 webhook.n8n.72602.online      A  47.110.67.161

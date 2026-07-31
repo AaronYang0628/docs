@@ -1,113 +1,174 @@
 +++
 title = "Backup & Restore"
-description = "Sub2API database and app-level backup runbook"
+description = "Sub2API pre-upgrade backup and recovery runbook"
 +++
 
 ### Scope
 
-- Database: PostgreSQL (`database/postgresql-0`), DB `sub2api`
-- App config: `manifests/sub2api-argocd.yaml` + `application` namespace Secrets
-- Runtime data path: `/app/data` (mounted from PVC `sub2api-data`)
+- Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
+- Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
+- Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
+- Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
+- Runtime Secrets: `application/sub2api-auth`,
+  `application/sub2api-external-postgresql`, and `application/sub2api-redis`
 
-### 72602 S3 Backup Ingress Incident (2026-07-30)
+Sub2API executes PostgreSQL migrations automatically on startup. Migrations are
+forward-only, so every chart or image upgrade requires a verified `pg_dump`
+before the Git version change.
 
-The live S3 endpoint is `https://api.minio.72602.space`; Sub2API uploads its
-backups to the `sub2api` bucket. Before correction, ingress-nginx generated
-`client_max_body_size 1m` for the MinIO API host. It rejected approximately
-2.45 MB `PutObject` requests with HTTP 413 before they reached MinIO, which
-caused the AWS SDK XML parser error containing the ingress HTML response.
+### Pre-Upgrade Backup
 
-The source fix is in `manifests/minio-argocd.yaml`, under `apiIngress.annotations`:
-
-```yaml
-nginx.ingress.kubernetes.io/proxy-body-size: "0"
-```
-
-Commit `2338bc6` was pushed to `main`. The parent `ops-docs` Application
-reconciled the child `argocd/minio`; the injected readonly ArgoCD identity
-denied manual sync, so the already-committed `storage/minio-api` annotation
-was applied narrowly and then verified as `Synced`/`Healthy`. Generated nginx
-now contains `client_max_body_size 0`, MinIO is Ready, and a same-endpoint
-authenticated temporary S3 PutObject/stat/delete smoke test passed. The
-temporary label was confirmed absent after cleanup.
-
-Rollback: revert commit `2338bc6` and push `main`, then allow the parent
-Application to reconcile. If the emergency live annotation must be reversed
-before reconciliation, remove only
-`nginx.ingress.kubernetes.io/proxy-body-size` from `storage/minio-api`.
-Do not change the console ingress or delete MinIO Secrets/PVCs.
-
-The actual Sub2API backup was not manually retried: the guarded admin login
-returned HTTP 400 before the `POST /api/v1/admin/backups` trigger, so no
-backup request was sent. Verify subsequent scheduled/manual results without
-printing credentials, tokens, backup data, or object names:
+<p> <b>1.create</b> a protected operation directory </p>
 
 ```bash
-kubectl -n application logs deploy/sub2api --since=30m
-kubectl -n basic-components logs deploy/ingress-nginx-controller --since=30m
+BACKUP_ROOT=/home/aaron/Ops/backups/sub2api
+BACKUP_DIR="${BACKUP_ROOT}/upgrade-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
+printf '%s\n' "$BACKUP_DIR"
+```
+
+Use the generated UTC directory for the entire operation. Do not hard-code a
+previous operation timestamp into future commands.
+
+<p> <b>2.dump</b> PostgreSQL without printing its password </p>
+
+```bash
+set +x
+PG_PASSWORD="$(kubectl -n application get secret \
+  sub2api-external-postgresql \
+  -o jsonpath='{.data.postgres-password}' | base64 -d)"
+test -n "$PG_PASSWORD"
+
+printf '%s\n' "$PG_PASSWORD" | \
+  kubectl -n database exec -i postgresql-0 -- \
+  sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec pg_dump -U sub2api -d sub2api -Fc' \
+  > "$BACKUP_DIR/sub2api.dump"
+
+unset PG_PASSWORD
+```
+
+The password is passed on stdin and is not written into the backup directory.
+
+<p> <b>3.capture</b> application data and non-secret metadata </p>
+
+```bash
+kubectl -n application exec deployment/sub2api -- \
+  tar -C /app/data -czf - . > "$BACKUP_DIR/sub2api-data.tgz"
+
+git -C /home/aaron/Ops/docs fetch origin main
+git -C /home/aaron/Ops/docs rev-parse origin/main \
+  > "$BACKUP_DIR/git-revision.txt"
+git -C /home/aaron/Ops/docs show origin/main:manifests/sub2api-argocd.yaml \
+  > "$BACKUP_DIR/sub2api-argocd.yaml"
+
+kubectl -n application get pvc \
+  -l app.kubernetes.io/instance=sub2api -o yaml \
+  > "$BACKUP_DIR/pvc-metadata.yaml"
+```
+
+Do not export Kubernetes Secret objects into this directory. Back up Secret
+values only through the approved secret-management process. Redis AOF supports
+restart recovery on its PVC, but it is not a substitute for the PostgreSQL
+dump. Do not copy live AOF files as if they were a consistent database backup.
+
+<p> <b>4.verify</b> artifacts before upgrading </p>
+
+```bash
+test -s "$BACKUP_DIR/sub2api.dump"
+test -s "$BACKUP_DIR/sub2api-data.tgz"
+
+kubectl -n database exec -i postgresql-0 -- pg_restore --list \
+  < "$BACKUP_DIR/sub2api.dump" \
+  > "$BACKUP_DIR/sub2api.dump.list"
+test -s "$BACKUP_DIR/sub2api.dump.list"
+
+sha256sum \
+  "$BACKUP_DIR/sub2api.dump" \
+  "$BACKUP_DIR/sub2api-data.tgz" \
+  "$BACKUP_DIR/sub2api-argocd.yaml" \
+  "$BACKUP_DIR/pvc-metadata.yaml" \
+  "$BACKUP_DIR/git-revision.txt" \
+  > "$BACKUP_DIR/SHA256SUMS"
+sha256sum -c "$BACKUP_DIR/SHA256SUMS"
+```
+
+### Restore PostgreSQL Safely
+
+Restore into a separate database first. Do not overwrite the live `sub2api`
+database during an upgrade rollback.
+
+<p> <b>1.create</b> the restore database </p>
+
+```bash
+BACKUP_DIR=/home/aaron/Ops/backups/sub2api/<approved-backup-directory>
+test -s "$BACKUP_DIR/sub2api.dump"
+
+set +x
+read -rsp 'PostgreSQL admin password: ' POSTGRES_ADMIN_PASSWORD; printf '\n'
+test -n "$POSTGRES_ADMIN_PASSWORD"
+
+printf '%s\n' "$POSTGRES_ADMIN_PASSWORD" | \
+  kubectl -n database exec -i postgresql-0 -- \
+  sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec createdb -U postgres -O sub2api sub2api_restore'
+
+unset POSTGRES_ADMIN_PASSWORD
+```
+
+<p> <b>2.restore and verify</b> with the application database user </p>
+
+```bash
+set +x
+PG_PASSWORD="$(kubectl -n application get secret \
+  sub2api-external-postgresql \
+  -o jsonpath='{.data.postgres-password}' | base64 -d)"
+test -n "$PG_PASSWORD"
+
+{ printf '%s\n' "$PG_PASSWORD"; cat "$BACKUP_DIR/sub2api.dump"; } | \
+  kubectl -n database exec -i postgresql-0 -- \
+  sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec pg_restore -U sub2api -d sub2api_restore --exit-on-error --no-owner --no-privileges'
+
+printf '%s\n' "$PG_PASSWORD" | \
+  kubectl -n database exec -i postgresql-0 -- \
+  sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -U sub2api -d sub2api_restore -c "\\dt"'
+
+unset PG_PASSWORD
+```
+
+<p> <b>3.switch</b> only through a reviewed Git recovery change </p>
+
+Change `externalPostgresql.database` to `sub2api_restore` in
+`manifests/sub2api-argocd.yaml`, commit and push the reviewed recovery change,
+then reconcile `ops-docs` and `sub2api`. Restore `sub2api-data` only during a
+planned maintenance window with the workload quiesced; never extract the
+archive over a running Pod.
+
+```bash
+argocd app get ops-docs --hard-refresh
+argocd app sync ops-docs --revision main
+argocd app wait ops-docs --sync --health --timeout 300
+argocd app sync sub2api
+argocd app wait sub2api --sync --health --timeout 600
+
+curl -fsS https://sub2api.72602.space/health
+curl -fsS https://sub2api.72602.space/api/v1/settings/public
+kubectl -n application logs deployment/sub2api --since=10m
+```
+
+Do not use `kubectl rollout undo`, delete PVCs, or delete Secrets as restore or
+rollback steps.
+
+### App-Level S3 Backup Check
+
+The live S3 endpoint is `https://api.minio.72602.space`, and Sub2API uses the
+`sub2api` bucket. The MinIO API Ingress source keeps
+`nginx.ingress.kubernetes.io/proxy-body-size: "0"` scoped to that API host so
+backup uploads are not rejected by the default 1 MiB ingress limit. Verify a
+scheduled or manual backup from logs without printing credentials, tokens,
+object names, or backup content:
+
+```bash
+kubectl -n application logs deployment/sub2api --since=30m
+kubectl -n basic-components logs deployment/ingress-nginx-controller --since=30m
 kubectl -n storage get ingress minio-api
-```
-
-### Database Backup
-
-```bash
-TS=$(date +%F-%H%M%S)
-mkdir -p /home/aaron/Ops/backups/sub2api
-
-kubectl -n database exec postgresql-0 -- \
-  env PGPASSWORD='REPLACE_POSTGRES_PASSWORD' \
-  pg_dump -U postgres -d sub2api -Fc \
-  > /home/aaron/Ops/backups/sub2api/sub2api-${TS}.dump
-```
-
-### Database Restore
-
-```bash
-# 1) create a restore database first (recommended)
-kubectl -n database exec postgresql-0 -- \
-  env PGPASSWORD='REPLACE_POSTGRES_PASSWORD' \
-  psql -U postgres -d postgres -c "CREATE DATABASE sub2api_restore OWNER sub2api;"
-
-# 2) restore dump to restore database
-cat /home/aaron/Ops/backups/sub2api/sub2api-YYYY-MM-DD-HHMMSS.dump | \
-kubectl -n database exec -i postgresql-0 -- \
-  env PGPASSWORD='REPLACE_POSTGRES_PASSWORD' \
-  pg_restore -U postgres -d sub2api_restore --clean --if-exists
-
-# 3) verify key tables
-kubectl -n database exec postgresql-0 -- \
-  env PGPASSWORD='REPLACE_POSTGRES_PASSWORD' \
-  psql -U postgres -d sub2api_restore -c "SELECT count(*) FROM users;"
-```
-
-### Sub2API App-Level Backup
-
-```bash
-TS=$(date +%F-%H%M%S)
-mkdir -p /home/aaron/Ops/backups/sub2api/${TS}
-
-# 1) backup ArgoCD app manifest source
-cp /home/aaron/Ops/docs/manifests/application/sub2api-argocd.yaml \
-  /home/aaron/Ops/backups/sub2api/${TS}/sub2api-argocd.yaml
-
-# 2) backup in-cluster objects
-kubectl -n ai get deploy,svc,ingress,pvc sub2api -o yaml \
-  > /home/aaron/Ops/backups/sub2api/${TS}/sub2api-k8s.yaml
-
-kubectl -n ai get secret sub2api-auth -o yaml \
-  > /home/aaron/Ops/backups/sub2api/${TS}/sub2api-auth.secret.yaml
-
-kubectl -n ai get secret sub2api-external-postgresql -o yaml \
-  > /home/aaron/Ops/backups/sub2api/${TS}/sub2api-external-postgresql.secret.yaml
-```
-
-### Pre-Restore Safety Checklist
-
-- Confirm rollback target (`sub2api` or `sub2api_restore`) before switching DB.
-- Keep current dump before any restore/import.
-- After restore, verify login API and settings API:
-
-```bash
-curl -sk -o /dev/null -w '%{http_code}\n' https://sub2api.72602.online/api/v1/settings/public
-kubectl -n ai logs deploy/sub2api --since=10m
 ```
