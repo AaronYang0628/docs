@@ -56,6 +56,14 @@ spec:
           auth:
             existingSecret: sub2api-auth
 
+        extraEnvVars:
+          - name: HTTP_PROXY
+            value: http://192.168.0.25:17890
+          - name: HTTPS_PROXY
+            value: http://192.168.0.25:17890
+          - name: NO_PROXY
+            value: 127.0.0.1,localhost,.svc,.cluster.local,10.42.0.0/16,10.43.0.0/16,192.168.0.25
+
         redis:
           auth:
             existingSecret: sub2api-redis
