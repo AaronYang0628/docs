@@ -51,6 +51,11 @@ spec:
                 secretKeyRef:
                   name: opencode-model
                   key: grok-api-key
+            - name: OLLAMA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opencode-model
+                  key: ollama-api-key
             - name: GIT_USER_NAME
               value: AaronYang0628
             - name: GIT_USER_EMAIL

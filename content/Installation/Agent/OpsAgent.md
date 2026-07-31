@@ -30,11 +30,16 @@ weight = 151
   {{% notice style="transparent" %}}
   ```bash
   export OPENAI_API_KEY='<rotated-api-key>'
+  export GROK_API_KEY='<rotated-grok-api-key>'
+  export OLLAMA_API_KEY='<rotated-ollama-api-key>'
   ./manifests/ops-agent/create-secrets.sh
+  unset OPENAI_API_KEY GROK_API_KEY OLLAMA_API_KEY
   ```
   {{% /notice %}}
 
-  The script creates or updates model, SSH, Git credential, Registry, and Basic Auth Secrets without writing their values into Git.
+  The script requires all three model credentials so a later run cannot remove
+  an existing provider key. It creates or updates model, SSH, Git credential,
+  Registry, and Basic Auth Secrets without writing their values into Git.
 
   <p> <b>3.apply</b> Ops Agent resources </p>
 
@@ -57,6 +62,11 @@ weight = 151
   kubectl -n application exec deployment/ops-agent -c ops-agent -- \
     opencode debug agent hugo-doc-maintainer
 
+  kubectl -n application exec deployment/ops-agent -c ops-agent -- sh -c \
+    'curl -fsS -u "$OPENCODE_SERVER_USERNAME:$OPENCODE_SERVER_PASSWORD" \
+    http://127.0.0.1:4000/provider | \
+    jq "{connected,ollama:(.all[]|select(.id==\"ollama\")|.models|keys)}"'
+
   PASSWORD="$(kubectl -n application get secret opencode-basic-auth \
     -o jsonpath='{.data.password}' | base64 -d)"
 
@@ -65,7 +75,9 @@ weight = 151
   ```
   {{% /notice %}}
 
-  Expected result: the Pod is Ready, the certificate is `True`, anonymous access returns `401`, and authenticated access returns `200`.
+  Expected result: the Pod is Ready, the certificate is `True`, anonymous
+  access returns `401`, authenticated access returns `200`, and the connected
+  Ollama provider lists `gemma4:31b`, `minimax-m3`, and `gpt-oss:120b`.
   {{% /tab %}}
 
   {{< /tabs >}}

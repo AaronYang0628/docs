@@ -9,10 +9,12 @@ SSH_PRIVATE_CONFIG="${OPENCODE_SSH_PRIVATE_CONFIG:-$HOME/.ssh/config.d/zjlab.con
 GIT_CREDENTIALS="${OPENCODE_GIT_CREDENTIALS:-$HOME/.git-credentials}"
 REGISTRY_SECRET_NAMESPACE="${REGISTRY_SECRET_NAMESPACE:-default}"
 
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-  printf 'OPENAI_API_KEY must be set in the current environment\n' >&2
-  exit 1
-fi
+for required_key in OPENAI_API_KEY GROK_API_KEY OLLAMA_API_KEY; do
+  if [[ -z "${!required_key:-}" ]]; then
+    printf '%s must be set in the current environment\n' "$required_key" >&2
+    exit 1
+  fi
+done
 
 if [[ ! -r "$SSH_KEY" ]]; then
   printf 'SSH key is not readable: %s\n' "$SSH_KEY" >&2
@@ -41,6 +43,8 @@ fi
 
 kubectl -n "$NAMESPACE" create secret generic opencode-model \
   --from-literal=api-key="$OPENAI_API_KEY" \
+  --from-literal=grok-api-key="$GROK_API_KEY" \
+  --from-literal=ollama-api-key="$OLLAMA_API_KEY" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl -n "$NAMESPACE" create secret generic opencode-ssh \
