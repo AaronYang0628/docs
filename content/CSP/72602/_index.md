@@ -298,16 +298,47 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
   Automatic reconciliation recreated `mailu-front`; the Deployment is `1/1`
   Ready with endpoints for all four mail ports. Do not manually restart or
   patch the workload during verification.
-- Current black-box verification is not healthy: `465`/`993` TLS and `587`
+- A prior black-box verification was not healthy: `465`/`993` TLS and `587`
   STARTTLS close with EOF, and the non-authenticated probe accepted an external
   `RCPT TO` with `250` before `DATA`; no message data was sent. This does not
   prove delivery, but it fails the required rejection check.
-- The live Dovecot front config has `haproxy=yes` for these listeners but trusts
+- A prior live Dovecot front config had `haproxy=yes` for these listeners but trusted
   only `127.0.0.1/32`. With Mailu `hostPort` and the k3s CNI path, the front
   sees the transport source as `10.42.0.1` and logs `Client not trusted`. This
-  source/trust mismatch is the current blocker. Correct it through a reviewed
+  source/trust mismatch was the blocker at that time. Correct it through a reviewed
   Git source change and automatic ArgoCD reconciliation; do not manually apply,
   sync, or restart Mailu.
+
+### Mailu outbound delivery and SPF
+
+- Mailu's outbound path is the Mailu Postfix Pod, the minipc home egress, the
+  `reverse-tunnel-ecs-10022` path, and ECS HAProxy. Recent Postfix logs identify
+  the actual SMTP source IP as `36.24.59.216`; earlier attempts used
+  `125.121.102.50`, confirming dynamic egress churn. The ECS address
+  `47.110.67.161` is only the public ingress/tunnel endpoint.
+- The authoritative SPF record is the single AliDNS record
+  `2082063796864313344` (`@`/`TXT`, TTL `600`):
+  `v=spf1 mx ip4:36.24.59.216 -all`. Both `dns15.hichina.com` and
+  `dns16.hichina.com`, plus `1.1.1.1` and `8.8.8.8`, returned this value and
+  no duplicate SPF TXT was present. `update-mailu-spf.timer` is enabled and
+  runs hourly. Its first run at `2026-07-31 13:31:56 CST` failed on the
+  state-directory permission, then the retry at `13:32:18` succeeded.
+- QQ previously rejected registration-code deliveries at the `DATA` stage
+  with `550 SPF check failed` and named `36.24.59.216`. After the existing
+  updater corrected SPF, one minimal test to the controlled QQ mailbox at
+  `2026-07-31 14:20:38 CST` received `250 OK: queued as`; Postfix recorded
+  `dsn=2.0.0 status=sent` and removed the queue item. This verifies the QQ
+  SPF gate at that moment, not final inbox placement or reputation.
+- Rspamd logged `DKIM_SIGNED` for `72602.space` with selector `dkim`. The
+  corresponding DNS record is `2082130099188750336`; DMARC is record
+  `2082063800085560320` with `p=none`. PTR lookups for both the dynamic
+  egress IP and ECS `47.110.67.161` returned NXDOMAIN. A fixed outbound SMTP
+  relay remains the reliable solution; no relay was configured.
+- Roll back the updater's SPF change with the official AliDNS SDK by restoring
+  record `2082063796864313344` to `v=spf1 mx -all` with TTL `600`. Do not
+  delete the DKIM record or regenerate the Mailu key. The one-hour polling
+  interval leaves a race after a home IP changes, so SPF auto-update alone
+  cannot guarantee QQ delivery.
 
 Useful checks:
 
