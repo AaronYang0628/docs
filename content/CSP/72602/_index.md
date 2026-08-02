@@ -167,6 +167,11 @@ DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 | minio | storage | Helm | minio 16.0.10 | console.minio.72602.space, api.minio.72602.space |
 | n8n | n8n | Helm (community) | n8n 1.16.36 | n8n.72602.space, webhook.n8n.72602.space |
 
+`filing-site` is uninstalled. Commit
+`0c250db869ae45c6c6a5a850876728783f1b08dd` removed its manifest from the
+`ops-docs` source. The dated 2026-07-28 filing-site entries below are retained
+as historical deployment records and do not describe the current state.
+
 `argocd/ops-docs` manages the child `argocd/sub2api` Application from
 `https://github.com/AaronYang0628/docs.git`, path `manifests`. Sub2API uses the
 `application` namespace, nginx Ingress, a Ready TLS certificate, a `10Gi`
@@ -358,6 +363,56 @@ restore an old HAProxy configuration or uninstall the package as part of this
 rollback, and do not delete Mailu Secrets or PVCs.
 
 ## Recent Operations
+
+### 2026-08-02: `application` namespace prune incident
+
+- **Trigger and time:** commit
+  `0c250db869ae45c6c6a5a850876728783f1b08dd` deleted
+  `manifests/filing-site.yaml`. The file's first object was the shared
+  `Namespace/application`. At `2026-08-02 08:25:53 +08`, the `ops-docs`
+  Application's automated prune deleted that Namespace along with the intended
+  filing-site resources.
+- **Root cause:** the lifecycle of a shared Namespace was coupled to one
+  removable workload manifest while automated prune was enabled. Once the
+  Namespace disappeared from Git, Argo CD treated it as stale. Kubernetes then
+  cascade-deleted namespaced resources; sync options on an individual PVC or
+  Secret cannot protect it from deletion through its parent Namespace.
+- **Impact:** runtime Secrets and the `application` local-path PVCs were
+  deleted, so Ops Agent, Sub2API, and its Redis could not start. Argo CD
+  recreated declarative resources, but not runtime Secret values or deleted
+  volume contents. PostgreSQL remained intact because it runs in the separate
+  `database` namespace.
+- **Unrecovered data:** the pre-incident local-path directories for
+  `opencode-data`, Sub2API Redis AOF, `sub2api-data`, and filing-site photos were
+  deleted and had no snapshot. Those contents were not recovered; replacement
+  PVCs do not contain the former data.
+- **Secret recovery:** the `2026-08-02 00:00 +08` etcd snapshot was restored
+  only into an isolated same-version temporary k3s. The approved whitelist was
+  the `aliyun-registry` Secret, five `opencode-*` Secrets, and three
+  `sub2api-*` Secrets. All nine were still absent immediately before create-only
+  restoration. No Secret value was printed, logged, committed, or allowed to
+  overwrite a newer object.
+  The production server never ran `cluster-reset`; the procedure is documented
+  in [Runtime Secret Recovery](runtime-secret-recovery/).
+- **Result:** kubelet recovered the existing post-prune Pods without manual
+  deletion or restart. Ops Agent reached `2/2` Ready; Sub2API and its Redis
+  reached `1/1`; application health checks passed; and `ops-docs`, `ops-agent`,
+  and `sub2api` were `Synced`/`Healthy`. `filing-site-upload-auth`,
+  `72602.space-tls`, filing-site, and deleted local-path data were not restored.
+- **Immediate guard:** the live `Namespace/application` was merge-patched only
+  with `argocd.argoproj.io/sync-options=Prune=false,Delete=false`. This protects
+  an Argo CD-tracked Namespace from prune and Application deletion, but it is
+  not an admission policy and cannot block direct deletion by another actor.
+- **Durable guard:** during the incident response,
+  `manifests/application-namespace.yaml` was prepared as a dedicated Namespace
+  manifest but was not included in a commit or pushed at that response
+  checkpoint; remote `main` and `ops-docs` were still at `0c250db8`. This is a
+  historical checkpoint, not a claim about the current repository state.
+  Before relying on the guard, verify that the reviewed file is in remote Git,
+  Argo CD tracks the Namespace with both sync options, no removable workload
+  manifest defines the shared Namespace, and recoverable off-volume backups
+  exist for required local-path data. Do not delete or recreate the Namespace
+  as rollback.
 
 ### 2026-07-30: fix MinIO S3 upload HTTP 413
 
