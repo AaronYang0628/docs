@@ -4,7 +4,7 @@ description = "GitOps upgrades and daily operations for Sub2API"
 +++
 
 ### Web Page
-[<i class="fa-solid fa-link"></i> sub2api web page (https://sub2api.72602.space)](https://sub2api.72602.space)
+[<i class="fa-solid fa-link"></i> sub2api web page (https://token.72602.space)](https://token.72602.space)
 
 ### Current Release
 
@@ -24,7 +24,7 @@ kubectl -n application get certificate,certificaterequest,order,challenge
 
 The expected values are OCI chart `0.1.6`, image
 `ghcr.io/wei-shaw/sub2api:0.1.168`, namespace `application`, and host
-`sub2api.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
+`token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
 
 ### Sync From Git
@@ -93,17 +93,17 @@ the application to handle graceful termination and draining correctly.
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
 ```bash
-curl -fsS https://sub2api.72602.space/health
-curl -fsS https://sub2api.72602.space/api/v1/settings/public
+curl -fsS https://token.72602.space/health
+curl -fsS https://token.72602.space/api/v1/settings/public
 
 set +x
 read -rsp 'Sub2API API token: ' SUB2API_API_TOKEN; printf '\n'
 curl -fsS \
   -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
-  https://sub2api.72602.space/v1/models
+  https://token.72602.space/v1/models
 
 read -rp 'Model ID for smoke generation: ' MODEL_ID
-curl -fsS https://sub2api.72602.space/v1/chat/completions \
+curl -fsS https://token.72602.space/v1/chat/completions \
   -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
   --json "{\"model\":\"${MODEL_ID}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with OK.\"}],\"max_tokens\":8}"
 unset SUB2API_API_TOKEN MODEL_ID

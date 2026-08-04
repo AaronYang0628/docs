@@ -151,8 +151,8 @@ argocd app wait ops-docs --sync --health --timeout 300
 argocd app sync sub2api
 argocd app wait sub2api --sync --health --timeout 600
 
-curl -fsS https://sub2api.72602.space/health
-curl -fsS https://sub2api.72602.space/api/v1/settings/public
+curl -fsS https://token.72602.space/health
+curl -fsS https://token.72602.space/api/v1/settings/public
 kubectl -n application logs deployment/sub2api --since=10m
 ```
 

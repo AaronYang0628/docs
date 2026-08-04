@@ -53,7 +53,7 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 |---|---|---|---|
 | `argocd.72602.space` | A | `47.110.67.161` | ArgoCD UI |
 | `ops.docs.72602.space` | A | `47.110.67.161` | Hugo Docs |
-| `sub2api.72602.space` | A | `47.110.67.161` | AI API proxy |
+| `token.72602.space` | A | `47.110.67.161` | AI API proxy |
 | `port.72602.space` | A | `47.110.67.161` | Homepage dashboard |
 | `n8n.72602.space` | A | `47.110.67.161` | N8N workflow |
 | `webhook.n8n.72602.space` | A | `47.110.67.161` | N8N webhook receiver |
@@ -161,7 +161,7 @@ DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 | ops-docs | application | manifests (Git) | docs.git/main | ops.docs.72602.space |
 | homepage | monitor | manifests (Git) | docs.git/main | port.72602.space |
 | uptime-kuma | monitor | manifests (Git) | docs.git/main | uptime.72602.space |
-| sub2api | application | ArgoCD (Git → OCI Helm) | sub2api 0.1.6 / ghcr.io/wei-shaw/sub2api:0.1.168 | sub2api.72602.space |
+| sub2api | application | ArgoCD (Git → OCI Helm) | sub2api 0.1.6 / ghcr.io/wei-shaw/sub2api:0.1.168 | token.72602.space |
 | postgresql | database | Helm (Bitnami) | postgresql 18.1.8 | internal |
 | redis-shared | storage | Helm (Bitnami) | redis 18.16.0 | internal |
 | minio | storage | Helm | minio 16.0.10 | console.minio.72602.space, api.minio.72602.space |

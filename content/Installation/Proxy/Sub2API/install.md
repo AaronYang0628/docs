@@ -14,7 +14,7 @@ description = "Deploy Sub2API through the 72602 GitOps parent and OCI Helm child
   {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
 
   4. PostgreSQL is available in namespace `database`, DNS resolves
-  `sub2api.72602.space`, and ingress-nginx with the `lets-encrypt` ClusterIssuer
+  `token.72602.space`, and ingress-nginx with the `lets-encrypt` ClusterIssuer
   is ready.
 
   <p> <b>1.prepare</b> runtime Secrets </p>
@@ -108,17 +108,17 @@ description = "Deploy Sub2API through the 72602 GitOps parent and OCI Helm child
   kubectl -n application get endpointslice \
     -l kubernetes.io/service-name=sub2api
 
-  curl -fsS https://sub2api.72602.space/health
-  curl -fsS https://sub2api.72602.space/api/v1/settings/public
+  curl -fsS https://token.72602.space/health
+  curl -fsS https://token.72602.space/api/v1/settings/public
 
   set +x
   read -rsp 'Sub2API API token: ' SUB2API_API_TOKEN; printf '\n'
   curl -fsS \
     -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
-    https://sub2api.72602.space/v1/models
+    https://token.72602.space/v1/models
 
   read -rp 'Model ID for smoke generation: ' MODEL_ID
-  curl -fsS https://sub2api.72602.space/v1/chat/completions \
+  curl -fsS https://token.72602.space/v1/chat/completions \
     -H "Authorization: Bearer ${SUB2API_API_TOKEN}" \
     --json "{\"model\":\"${MODEL_ID}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with OK.\"}],\"max_tokens\":8}"
   unset SUB2API_API_TOKEN MODEL_ID
