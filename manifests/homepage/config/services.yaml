@@ -73,9 +73,9 @@
 - 72602 Hosted:
     - Sub2API-AY:
         icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png
-        href: https://sub2api.72602.space
-        description: https://sub2api.72602.space
-        siteMonitor: https://sub2api.72602.space
+        href: https://token.72602.space
+        description: https://token.72602.space
+        siteMonitor: https://token.72602.space
         namespace: application
         app: sub2api
         showStats: true
