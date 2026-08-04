@@ -19,6 +19,13 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: sub2api
+      namespace: application
+      jsonPointers:
+        - /spec/template/spec/priorityClassName
   destination:
     server: https://kubernetes.default.svc
     namespace: application

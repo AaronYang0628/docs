@@ -1,0 +1,8 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: sub2api-high
+value: 1000000
+globalDefault: false
+preemptionPolicy: Never
+description: Prefer Sub2API scheduling without preempting existing workloads.
