@@ -43,26 +43,7 @@ kubectl -n monitor get pods -l app.kubernetes.io/name=uptime-kuma
 kubectl -n monitor get ingress uptime-kuma
 
 # 检查证书
-kubectl -n monitor get certificate uptime-kuma-tls
-```
-{{% /expand %}}
-
-{{% expand title="如何在 Homepage 添加新的 service widget" %}}
-编辑 `manifests/homepage/config/services.yaml`，按格式添加：
-
-```yaml
-- AI:
-    - Open WebUI:
-        icon: https://raw.githubusercontent.com/AaronYang0628/docs/main/static/icons/port_icon.png
-        href: https://txt2img.agent.72602.online
-        description: AI Chat WebUI
-```
-
-然后重新生成 ConfigMap 并 apply：
-
-```bash
-bash scripts/gen-homepage-configmap.sh
-kubectl -n monitor apply -f manifests/homepage/configmap.yaml
+kubectl -n monitor get secret uptime.72602.space-tls
 ```
 {{% /expand %}}
 

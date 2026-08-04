@@ -8,7 +8,7 @@ weight = 50
 
 Uptime Kuma 内置了备份功能：
 
-1. 登录 `https://uptime.72602.online`
+1. 登录 `https://uptime.72602.space`
 2. 进入 **Settings** → **Backup**
 3. 点击 **Export** → 下载 JSON 文件
 4. 备份文件包含：所有监控项、状态页配置、通知设置

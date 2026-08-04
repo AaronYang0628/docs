@@ -291,9 +291,10 @@ journalctl --user -u reverse-tunnel-ecs-10022.service -f
 
 ## 七、和现网监控的关系
 
-ECS 侧巡检仅监控 72602-minipc 的两个公开入口。
+ECS 上原有巡检继续只监控 72602-minipc 的两个公开入口；其端口列表、脚本、
+unit、timer 和状态文件保持不变。
 
-当 72602-minipc 双入口上线后，ECS 无需改架构，只要确认：
+当 72602-minipc 双入口上线后，只需确认：
 
 - 安全组已放行 `10021/10022`
 - `/etc/tunnel-healthcheck-ports.conf` 包含 `10021`、`10022`
@@ -304,6 +305,14 @@ ECS 侧巡检仅监控 72602-minipc 的两个公开入口。
 - 告警通道为钉钉企业应用 API（非 webhook）
 - 告警消息为 Markdown 格式（标题：`🚨 ECS Tunnel Alert`）
 - 连续失败 3 次才发送告警（防抖）
+
+ZJLAB 的两个私有 loopback listener 不加入上述端口列表，而由独立的
+check-only 巡检按 `primary`、`backup` 标签检查。该巡检要求每个标签恰有一个
+loopback-only listener、唯一 owner 为 `sshd`、两个 owner 相互独立、短超时
+SSH banner 正常且 owner 签名稳定；连续失败 3 次才告警。日志和告警不包含
+endpoint、端口、账户、内网拓扑或签名值。巡检不会 restart/kill 隧道，也不会
+修改 sshd、防火墙、安全组、DNS 或 endpoint。真实配置和恢复步骤只保存在
+私有 SOPS inventory 与 root-only host 配置中。
 
 ## 八、Mailu 代理回滚
 

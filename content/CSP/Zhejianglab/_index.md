@@ -22,6 +22,19 @@ The aliases are provisioned from private inventory and use an ECS ProxyJump to l
 
 Detailed inventory and tunnel recovery procedures are maintained in the private `ops-private` repository with SOPS-encrypted values.
 
+## Tunnel Health
+
+ECS runs an independent check-and-alert-only monitor for the approved
+`primary` and `backup` loopback listeners. For each label it requires exactly
+one listener, loopback-only binding, sole `sshd` ownership, an independent
+owner, a short-timeout SSH banner, and a stable hashed owner signature. Alerts
+start only after three consecutive failures.
+
+The monitor stores root-only state and emits labels and fixed reason codes only.
+It never restarts or kills a tunnel and never changes sshd, firewall, cloud
+network policy, DNS, keys, or endpoints. Real configuration and rollback details
+remain in the private SOPS inventory; public pages must not reproduce them.
+
 ## Preflight
 
 ```bash

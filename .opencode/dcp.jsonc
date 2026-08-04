@@ -6,7 +6,7 @@
   "pruneNotification": "minimal",
   "pruneNotificationType": "toast",
   "experimental": {
-    "allowSubAgents": true,
+    "allowSubAgents": false,
     "customPrompts": false
   },
   "turnProtection": {
