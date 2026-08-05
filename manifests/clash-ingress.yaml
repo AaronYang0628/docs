@@ -5,6 +5,7 @@ metadata:
   namespace: basic-components
   annotations:
     cert-manager.io/cluster-issuer: lets-encrypt
+    acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
