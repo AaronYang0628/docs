@@ -88,6 +88,11 @@ spec:
                 secretKeyRef:
                   name: opencode-argocd
                   key: auth-token
+            - name: SUB2API_ADMIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sub2api-mcp
+                  key: admin-api-key
             - name: OTEL_SERVICE_NAME
               value: ops-agent
             - name: OTEL_RESOURCE_ATTRIBUTES

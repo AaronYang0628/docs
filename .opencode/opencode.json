@@ -276,6 +276,24 @@
       "model": "ollama/minimax-m3"
     }
   },
+  "mcp": {
+    "sub2api-admin": {
+      "type": "local",
+      "command": [
+        "node",
+        ".opencode/mcp/sub2api-admin/server.mjs"
+      ],
+      "cwd": "/workspace",
+      "environment": {
+        "SUB2API_BASE_URL": "http://sub2api.application.svc.cluster.local:8080",
+        "SUB2API_ALLOWED_HOST": "sub2api.application.svc.cluster.local",
+        "SUB2API_TIMEOUT_MS": "30000",
+        "SUB2API_MAX_RECHARGE": "10000"
+      },
+      "enabled": true,
+      "timeout": 40000
+    }
+  },
   "permission": {
     "read": "allow",
     "edit": "allow",
@@ -291,6 +309,7 @@
     "lsp": "allow",
     "doom_loop": "allow",
     "skill": "allow",
+    "sub2api-admin_*": "deny",
     "bash": {
       "*": "allow",
       "kubectl delete *": "ask",
