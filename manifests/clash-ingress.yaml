@@ -4,11 +4,16 @@ metadata:
   name: clash-ui-ingress
   namespace: basic-components
   annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - clash.72602.space
+      secretName: clash.72602.space-tls
   rules:
     - host: clash.72602.space
       http:
