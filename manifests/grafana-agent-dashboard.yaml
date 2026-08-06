@@ -21,8 +21,7 @@ data:
           "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
           "targets": [
             {
-              "expr": "100 - (avg by (cluster, node) (label_replace(rate(node_cpu_seconds_total{mode=\"idle\",cluster=~\"$cluster\"}[5m]), \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"})) * 100)",
-              "legendFormat": "{{cluster}}/{{node}}",
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
               "refId": "A"
             }
           ],
@@ -46,8 +45,7 @@ data:
           "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
           "targets": [
             {
-              "expr": "(1 - (sum by (cluster, node) (label_replace(node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}, \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"})) / sum by (cluster, node) (label_replace(node_memory_MemTotal_bytes{cluster=~\"$cluster\"}, \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"}))) * 100",
-              "legendFormat": "{{cluster}}/{{node}}",
+              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
               "refId": "A"
             }
           ],
@@ -63,7 +61,7 @@ data:
           "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
           "targets": [
             {
-              "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=\"\",pod=~\"alloy.*\"}[5m]))",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"alloy.*\"}[5m]))",
               "refId": "A",
               "legendFormat": "alloy cpu"
             }
@@ -75,7 +73,7 @@ data:
           "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
           "targets": [
             {
-              "expr": "kube_deployment_status_replicas_ready{cluster=\"\",namespace=\"application\",deployment=\"ops-agent\"}",
+              "expr": "kube_deployment_status_replicas_ready{namespace=\"application\",deployment=\"ops-agent\"}",
               "refId": "A"
             }
           ]
@@ -86,13 +84,13 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
           "targets": [
             {
-              "expr": "100 - (avg by (cluster, node) (label_replace(rate(node_cpu_seconds_total{mode=\"idle\",cluster=~\"$cluster\"}[5m]), \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"})) * 100)",
-              "legendFormat": "{{cluster}}/{{node}} cpu%",
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "legendFormat": "cpu%",
               "refId": "A"
             },
             {
-              "expr": "(1 - (sum by (cluster, node) (label_replace(node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}, \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"})) / sum by (cluster, node) (label_replace(node_memory_MemTotal_bytes{cluster=~\"$cluster\"}, \"internal_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (cluster, internal_ip) group_left(node) max by (cluster, node, internal_ip) (kube_node_info{cluster=~\"$cluster\",node=~\"$node\"}))) * 100",
-              "legendFormat": "{{cluster}}/{{node}} mem%",
+              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+              "legendFormat": "mem%",
               "refId": "B"
             }
           ]
@@ -103,8 +101,8 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
           "targets": [
             {
-              "expr": "topk(8, sum by (cluster,namespace,pod) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",container!=\"\",container!=\"POD\"}[5m])))",
-              "legendFormat": "{{cluster}}/{{namespace}}/{{pod}}",
+              "expr": "topk(8, sum by (namespace,pod) (rate(container_cpu_usage_seconds_total{container!=\"\",container!=\"POD\"}[5m])))",
+              "legendFormat": "{{namespace}}/{{pod}}",
               "refId": "A"
             }
           ]
@@ -151,40 +149,7 @@ data:
       ],
       "schemaVersion": 39,
       "tags": ["agent", "72602", "ops-agent"],
-      "templating": {
-        "list": [
-          {
-            "allValue": ".*",
-            "current": {},
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "definition": "label_values(kube_node_info, cluster)",
-            "includeAll": true,
-            "label": "Cluster",
-            "multi": true,
-            "name": "cluster",
-            "options": [],
-            "query": "label_values(kube_node_info, cluster)",
-            "refresh": 1,
-            "sort": 1,
-            "type": "query"
-          },
-          {
-            "allValue": ".*",
-            "current": {},
-            "datasource": { "type": "prometheus", "uid": "prometheus" },
-            "definition": "label_values(kube_node_info{cluster=~\"$cluster\"}, node)",
-            "includeAll": true,
-            "label": "Node",
-            "multi": true,
-            "name": "node",
-            "options": [],
-            "query": "label_values(kube_node_info{cluster=~\"$cluster\"}, node)",
-            "refresh": 2,
-            "sort": 1,
-            "type": "query"
-          }
-        ]
-      },
+      "templating": { "list": [] },
       "time": { "from": "now-6h", "to": "now" },
       "timezone": "browser",
       "title": "72602 Agent Overview",
