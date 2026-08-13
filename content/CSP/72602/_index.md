@@ -14,7 +14,8 @@ This section is the single source of truth for `72602` cluster operations.
 - Active ingress domain: `72602.space`; legacy `.72602.online` routes are retired
 - ArgoCD host: `argocd.72602.space`
 - k3s node: `72602-minipc` (`192.168.0.25`, MiniPC N100 28G+1TB NVMe)
-- SSH reverse tunnel: `:10021` (main), `:10022` (backup, also carries `80/443`)
+- SSH reverse tunnel: `:10021` (main), `:10022` (backup and Mailu loopback)
+- Web tunnel: WireGuard UDP `51820` between ECS and minipc
 - Ingress NodePort: `32080` (HTTP), `32443` (HTTPS)
 - Ingress class: `nginx`
 - Ingress namespace: `basic-components`
@@ -25,25 +26,33 @@ This section is the single source of truth for `72602` cluster operations.
 
 ## Traffic Path
 
+Web:
+
+`Internet -> ECS HAProxy TCP passthrough -> WireGuard -> 72602-minipc ingress-nginx NodePort`
+
+Mail:
+
 `Internet -> ECS HAProxy TCP passthrough -> ECS loopback sshd forwards -> 72602-minipc Mailu front`
 
 ## ECS Port Forwarding
 
-Web, SSH, and mail traffic reaches ECS through the corresponding reverse
-tunnels established from minipc. ECS side ports:
+Web traffic crosses WireGuard; SSH and mail continue to use independent SSH
+reverse tunnels. ECS side ports:
 
 - `10021 -> minipc:22` (72602 main SSH)
-- `10022 -> minipc:22` (72602 backup SSH, also carries `80`→`32080`, `443`→`32443`)
-- `80 -> minipc:32080` (HTTP via SSH reverse tunnel on 10022)
-- `443 -> minipc:32443` (HTTPS via SSH reverse tunnel on 10022)
+- `10022 -> minipc:22` (72602 backup SSH and Mailu loopback forwards)
+- `80 -> 10.77.0.2:32080` (HAProxy TCP passthrough over WireGuard)
+- `443 -> 10.77.0.2:32443` (HAProxy TCP passthrough over WireGuard)
 - `127.0.0.1:10225 -> minipc:25` (SMTP via SSH reverse tunnel on 10022)
 - `127.0.0.1:10465 -> minipc:465` (SMTPS via SSH reverse tunnel on 10022)
 - `127.0.0.1:10587 -> minipc:587` (submission via SSH reverse tunnel on 10022)
 - `127.0.0.1:10993 -> minipc:993` (IMAPS via SSH reverse tunnel on 10022)
 
-ECS HAProxy listens on public IPv4 and IPv6 `25`, `465`, `587`, and `993` and
-passes TCP through with PROXY v2 to the four ECS loopback backends. It does not
-terminate TLS or parse SMTP/IMAP.
+ECS HAProxy listens on public IPv4 and IPv6 `25`, `465`, `587`, and `993`, and
+on public IPv4 `80` and `443`. Web is plain TCP passthrough without PROXY
+protocol or TLS termination. Mail passes TCP with PROXY v2 to the four ECS
+loopback backends. TLS remains terminated by ingress-nginx for Web and Mailu
+for the implicit-TLS mail protocols.
 
 ## DNS Setup
 
@@ -62,6 +71,61 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 | `clash.72602.space` | A | `47.110.67.161` | Clash/mihomo panel |
 | `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
 | `console.minio.72602.space` | A | `47.110.67.161` | MinIO Console |
+
+### ACME CAA policy
+
+The AliDNS zone `72602.space` is delegated to `dns15.hichina.com` and
+`dns16.hichina.com`. AliDNS reports DNSSEC `OFF`; the parent delegation has no
+DS record, and both authoritative servers match the delegated nameservers. The
+zone has one enabled apex CAA record:
+
+| RecordId | RR | Type | Value | TTL | Status |
+|---|---|---|---|---:|---|
+| `2084917630338801664` | `@` | `CAA` | `0 issue "letsencrypt.org"` | `600` | `ENABLE` |
+
+This record was created after confirming that no enabled equivalent or
+conflicting CAA existed. It is scoped to ACME issuance and did not change any
+address, alias, delegation, DNSSEC, or unrelated record. Verify the record with
+the AliDNS API, both authoritative servers, and public resolvers `1.1.1.1` and
+`8.8.8.8`; each must return `NOERROR` and the exact value. Roll back only this
+change with the official AliDNS SDK `DeleteDomainRecord` call for
+`2084917630338801664`, then repeat the same resolver checks for an empty CAA
+answer. Do not delete other records.
+
+The Clash route is `basic-components/clash-ui-ingress` using class `nginx`,
+ClusterIssuer `lets-encrypt`, and Secret `clash.72602.space-tls`. After the
+CAA addition, cert-manager retained the failed Order and automatically retried
+at its scheduled backoff time. The new Order became `valid` and the Certificate
+became Ready. Keep failed Orders and Challenges until normal cert-manager
+cleanup; do not repeatedly delete them.
+
+The existing Prometheus receiver also accepts ZJLAB Kubernetes metrics through
+a dedicated HTTPS write-only Ingress at `prometheus-write.72602.space`. The
+Ingress exposes only the exact `/api/v1/write` path and requires a runtime
+Basic Auth Secret; it does not expose Prometheus query, status, or admin APIs.
+The TLS certificate is issued by `lets-encrypt`. ZJLAB sends metrics with the
+external label `cluster=zjlab`, so the existing Grafana Prometheus datasource
+can query ZJLAB without a second Grafana datasource. Credentials remain in
+runtime/private secret stores and must not be added to public manifests.
+
+The manually maintained `72602 K3s` Grafana dashboard (UID
+`57b554d9-b60b-414c-ba6f-c6e9e75ed240`) is at version 11. Its custom `cluster`
+variable displays `72602`, `zjlab`, and `All`; `72602` maps to the empty-label
+matcher (`^$`) so local metrics without an external `cluster` label remain
+visible. Node panels aggregate by `(cluster, node)` and deduplicate the
+duplicate `kube-state-metrics` and `kubernetes-service-endpoints` scrape jobs.
+The obsolete `origin_prometheus` variable was removed, so old URLs that still
+pass `var-origin_prometheus` are ignored.
+
+Panel 44/45 use matching `(cluster, node)` aggregations for node memory and
+CPU ratios. Panel 75/76 join container metrics with deduplicated
+`kube_pod_info` by `(cluster, namespace, pod)` to restore the missing `node`
+label before calculating node CPU and memory breakdowns. Verify the dashboard
+through Grafana's authenticated datasource query API: `72602`, `zjlab`, and
+`All` must return one, two, and three unique nonzero node series respectively;
+the Node Information table must return the same number of rows. The dashboard
+is stored in Grafana's runtime database, not in a Git-provisioned ConfigMap;
+back it up and use Grafana's dashboard API for future updates.
 
 Mail records are managed in the `72602.space` zone with TTL `600`:
 
@@ -264,8 +328,10 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 | mihomo external controller | `9090` | `0.0.0.0` | Clash API/UI, exposed via `clash.72602.space` |
 | socat bridge | `17890` | `0.0.0.0` | Forwards to `127.0.0.1:7890`, k8s pod accessible |
 | autossh tunnel (main) | `10021`→ECS | - | Reverse tunnel to ECS |
-| autossh tunnel (backup) | `10022→ECS` | - | Reverse tunnel + HTTP/HTTPS forwarding |
-| ECS HAProxy | `25,465,587,993` | `0.0.0.0` and `[::]` | TCP passthrough with PROXY v2 |
+| autossh tunnel (backup) | `10022→ECS` | - | Reverse SSH + Mailu loopback forwarding |
+| WireGuard | `51820/udp` | ECS `0.0.0.0`, minipc dynamic UDP | Encrypted Web path between ECS and minipc |
+| ECS HAProxy Web | `80,443` | `0.0.0.0` | TCP passthrough to minipc WireGuard IP |
+| ECS HAProxy Mail | `25,465,587,993` | `0.0.0.0` and `[::]` | TCP passthrough with PROXY v2 |
 | ECS mail tunnel backends | `10225,10465,10587,10993` | `127.0.0.1` | sshd reverse forwards to minipc Mailu front |
 | Mailu front host ports | `25,465,587,993` | minipc hostPort | SMTP, SMTPS, submission, IMAPS |
 | k3s ingress HTTP | `32080` | `0.0.0.0` | NodePort for ingress HTTP |

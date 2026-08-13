@@ -50,6 +50,7 @@ weight = 5
 | 22 | ECS SSH 直接连接、反向隧道 |
 | 10021 | 预留 |
 | 10022 | SSH 反向隧道（72602-minipc 入口） |
+| 51820/UDP | WireGuard Web 数据通道（仅允许当前 72602 公网出口 IP） |
 
 ## 文件位置
 
@@ -88,6 +89,29 @@ ZJLAB live：
 - 脚本在本地 `systemd-analyze verify` 通过；本批次变更未修改 user unit 文件，
   也未对其执行 `daemon-reload`。
 - **当前非交互 SSH 通道下无法确认 ZJLAB user manager 是否处于 active；不要把它写成已 active 的事实。**
+
+## 安全组规则 Description 归属（已核实）
+
+本次仅按 `ModifySecurityGroupRule` 在 ECS 控制台原地改写 `Description` 字段；协议、端口、CIDR、优先级、Policy、Direction 均未变更，未使用 `RevokeSecurityGroup` + `AuthorizeSecurityGroup` 组合。本节不出现 RuleId、真实 IP 或备份绝对路径。
+
+当前自动更新器在 ECS 上以如下 `Description` 识别自己负责的规则：
+
+| 脚本 | Description | 负责的协议/端口 |
+|------|-------------|-----------------|
+| `update-sg-ip-72602-minipc` | `update-sg-ip-72602-minipc` | 72602-minipc 当前自动更新的 TCP `22` / `10021` / `10022` 与 UDP `51820` |
+| `update-sg-ip-zjlab` | `update-sg-ip-zjlab` | ZJLAB SSH / 反向隧道来源的 TCP `10021` / `10022` |
+
+迁移与兼容要点（已核实）：
+
+- 旧的 `zjlab-ubuntu-SSH` 目标规则当前已迁移为新 Description（`update-sg-ip-zjlab`），新写入按新 Description 归属。
+- 此前遗留的 8 条 `auto-updated-ip` 规则已经逐条审计并清理：无法证明仍在使用的历史来源已删除；仍有连接证据的 72602/ZJLAB 来源规则改为对应的新 Description；仅绑定 ECS loopback 的 `10023` / `10024` 规则也已删除。当前 live 安全组中 `auto-updated-ip` 为 0 条。
+- 72602 live 脚本后续新增规则统一使用新 Description 写入，再按 Description 归属做替换与去重。
+
+排障/审计提示：
+
+- 描述归属是审计依据，但**不是**访问控制字段；脚本仍只按来源 IP 维度做替换与去重，不依赖 Description 进行授权判定。
+- 调整 Description 不会改变 `ModifySecurityGroupRule` 调用语义；若要恢复旧描述或回退历史规则，请先在 ECS 控制台人工确认目标 RuleId 当前的协议/端口/CIDR/优先级/Policy/Direction，再按原值 `ModifySecurityGroupRule` 回写 Description。
+- 后续如再次出现未知来源或旧 Description 规则，不应仅凭名称自动删除；必须先核对协议、端口、CIDR、优先级、Policy、Direction，以及 ECS 监听和连接日志，再按 RuleId 原地迁移或删除。
 
 ## 可恢复备份
 
@@ -138,7 +162,9 @@ journalctl --user -u update-sg-ip.service -f
 
 ## 钉钉通知
 
-脚本支持钉钉机器人通知。需要设置 `DING_TOKEN` 环境变量或在脚本中维护对应变量；变量值不应出现在版本控制、日志或本页面里。`~/.aliyun-keys` 仅用于阿里云 AccessKey，不应用来存放钉钉凭据。
+脚本支持钉钉机器人通知。现网从 mode `0600` 的运行时凭据文件读取
+`DING_TOKEN`，脚本本身不得硬编码 token；变量值不应出现在版本控制、日志或
+本页面里。恢复模板使用环境变量占位符。
 
 通知端到端送达（钉钉服务器 → 群）无法从主机单独证明。已核实的层面仅是「脚本进入了成功发送路径」：
 
@@ -187,3 +213,59 @@ stat -c '%n %y' /home/aaron/.local/state/update-sg-ip/*
 5. 安全组规则若需手动恢复到旧的允许 IP，应通过 `ops-private` 内的官方 AliDNS / 阿里云 SDK 流程，不在本页复述参数。
 
 如果回滚过程中发现脚本逻辑本身可疑，先保留旧的 systemd unit 与旧脚本，把问题记到新 issue 而不是就地修改 live 脚本。
+
+## 紧急临时访问设计（尚未部署）
+
+当前安全组只允许已登记的 72602 与 ZJLAB 出口 IP 访问 ECS 的 TCP `22`、`10021`、`10022`。紧急访问不建议使用无认证的传统端口敲门序列；序列可被监听、重放或扫描。推荐使用一个独立的、仅密钥认证的 SSH gate：
+
+1. ECS 单独监听一个 gate 端口，例如 TCP `2222`；该端口只允许专用用户 `sg-gate`，不提供 shell、PTY、端口转发或 Agent forwarding。
+2. `sg-gate` 只接受一把独立的、带密码短语的 emergency key。认证成功后由 forced command 读取 `SSH_CONNECTION` 的实际来源 IP，不接受用户自行传入任意 IP。
+3. 默认只为该来源 IP 添加 TCP `22` 的 `/32` 临时规则，Description 使用 `emergency-ssh-<request-id>`；如确实要访问 72602 反向入口，必须显式选择只包含 `10021` / `10022` 的 tunnel profile，不默认开放。
+4. 临时授权最大有效期固定为 3600 秒。授权器保存 RuleId、来源、端口和 UTC 到期时间；root-only 的过期任务每分钟扫描并按 RuleId 删除，重启后先执行一次过期清理。删除失败必须重试并告警，不能只依赖启动授权的 SSH 会话。
+5. 授权、续期和删除都要记录审计日志；重复请求不得创建重复规则。用户 IP 发生变化时，必须从新 IP 重新执行 gate。
+
+用户侧操作流程（部署后）：
+
+```bash
+# 1. 用独立 emergency key 认证 gate；源 IP 由 ECS 自动识别
+ssh -p 2222 -i ~/.ssh/ecs-emergency-gate sg-gate@47.110.67.161 grant
+
+# 2. 使用原来的 ECS 管理 key 连接真正的 SSH 服务
+ssh -i ~/.ssh/ecs-admin root@47.110.67.161
+```
+
+这个流程需要一个独立的云端控制路径。若授权器放在 ECS 上，必须使用只允许目标安全组读取、添加和删除规则的独立 RAM 身份，凭据仅由 root 读取，不能复用当前同时拥有 AliDNS 权限的主密钥。若坚持所有云变更只从 72602-minipc 发起，则 gate 可以通过现有反向隧道请求 minipc 执行，但 72602 与 ECS 的桥梁同时中断时紧急入口也会失效，不能满足真正的灾备目标。
+
+传统 `knockd` 端口序列可以作为低成本触发器，但不应作为唯一认证。若不开放独立 SSH gate，可改用带时间戳、随机数和 MAC 的 SPA（例如 fwknop）触发同一个授权器；无论采用哪种触发方式，云端规则都必须由持久过期任务按 RuleId 删除。
+
+该设计目前仅记录方案，尚未开放 gate 端口、创建 emergency key、创建 RAM 身份或部署授权器。
+
+## Recent Operations
+
+### 2026-08-11: approved ECS security-group cleanup
+
+- The operation ran through the approved `72602-minipc` SSH path. Both ECS
+  reverse-tunnel entry points (`10021` and `10022`) authenticated successfully
+  and returned `72602-minipc`. The official ECS SDK was run on that host in
+  `cn-hangzhou`; no credential value was printed. A host-local redacted
+  rollback record was created with mode `0600` before mutation.
+- `ModifySecurityGroupRule` changed only the Description of the three
+  `39.170.58.206/32` TCP rules for `22`, `10021`, and `10022` from
+  `auto-updated-ip` to `update-sg-ip-zjlab`. Protocol, port, source, policy,
+  priority, and direction were unchanged.
+- By exact RuleId, with a fresh Describe verification after each deletion, the
+  following were removed: the `36.24.59.216/32` TCP `22`/`10021`/`10022`
+  rules; the `39.170.58.206/32` TCP `10023`/`10024` rules; the
+  `47.110.67.161/32` TCP `10021`/`10022` rules owned by
+  `update-sg-ip-zjlab`; and the `0.0.0.0/0` TCP `22` system-created rule.
+  The live Description of the final rule included a trailing period and was
+  matched by its RuleId after Describe. No unrelated port rule was changed.
+- Final Describe confirmed that TCP `22`, `10021`, and `10022` have only
+  `36.24.58.213/32` (`update-sg-ip-72602-minipc`) and
+  `39.170.58.206/32` (`update-sg-ip-zjlab`). TCP `10023` and `10024` have no
+  public security-group rule. The final ingress rule count was `17`.
+- IPv4 checks through `ifconfig.me`, `ip.sb`, and `icanhazip.com` all returned
+  `36.24.58.213`. The 72602 `update-sg-ip.timer` remained enabled and
+  `active (waiting)`. The rollback is to review the current fields and restore
+  only the recorded deleted rules or revert the three descriptions through the
+  official ECS SDK; do not restore public `10023`/`10024` rules.

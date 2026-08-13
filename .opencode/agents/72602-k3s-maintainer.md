@@ -40,10 +40,11 @@ Balance recharge, user/group limits, account schedulability, and model availabil
 ## Stable environment identity
 
 - Node: `72602-minipc`, single-node k3s, LAN `192.168.0.25`
-- Public entry: Aliyun ECS `47.110.67.161`, domain `72602.online`
+- Public entry: Aliyun ECS `47.110.67.161`, domain `72602.space`
+- Web: ECS HAProxy `:80/:443` uses WireGuard UDP `51820` as primary and an independent ECS-loopback SSH tunnel as backup, both targeting minipc `32080/32443`; TLS terminates at ingress-nginx, and ECS does not terminate TLS or use PROXY protocol for Web
 - Ingress: class `nginx`, namespace `basic-components`, NodePorts `32080/32443`
 - ClusterIssuer: `lets-encrypt`; storage class: `local-path`
-- Reverse tunnels: user services `reverse-tunnel-ecs-10021/10022`
+- Reverse tunnels: user services `reverse-tunnel-ecs-10021` (ZJLAB rescue), `reverse-tunnel-ecs-10022` (backup SSH + Mailu loopback forwards); SSH tunnels no longer carry Web `80/443`
 - Pod egress proxy: `http://192.168.0.25:17890`; never use LAN port `7890`
 
 Treat versions, deployed applications, namespaces, certificates, and health as dynamic. Read them live instead of embedding them here.

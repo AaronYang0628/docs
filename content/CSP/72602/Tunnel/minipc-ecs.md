@@ -113,7 +113,7 @@ StandardError=journal
 WantedBy=default.target
 ```
 
-### 3.4 10022 备入口（含 HTTP/HTTPS 和 Mailu）
+### 3.4 10022 备入口（含 Mailu）
 
 文件：`~/.config/systemd/user/reverse-tunnel-ecs-10022.service`
 
@@ -130,8 +130,6 @@ Environment="AUTOSSH_POLL=60"
 Environment="AUTOSSH_FIRST_POLL=30"
 ExecStart=/usr/bin/autossh -M 0 -N \
    -R 0.0.0.0:10022:localhost:22 \
-   -R 0.0.0.0:80:localhost:32080 \
-   -R 0.0.0.0:443:localhost:32443 \
   -R 127.0.0.1:10225:127.0.0.1:25 \
   -R 127.0.0.1:10465:127.0.0.1:465 \
   -R 127.0.0.1:10587:127.0.0.1:587 \
@@ -146,9 +144,10 @@ StandardError=journal
 WantedBy=default.target
 ```
 
-> 说明：10022 的 service 额外承载 72602-minipc 的 HTTP（`32080`→`80`）、
-> HTTPS（`32443`→`443`）和 Mailu 四个 hostPort。ECS 上的四个 Mailu
-> 入口必须是 loopback-only；公网绑定由 HAProxy 完成。
+> 说明：10022 只承载备用 SSH 和 Mailu 四个 hostPort。Web `80/443` 已迁移
+> 到 HAProxy + WireGuard，不得重新加入该 service，除非按 WireGuard 回滚步骤
+> 临时恢复旧路径。ECS 上的四个 Mailu入口必须是 loopback-only；公网绑定由
+> HAProxy 完成。
 
 ### 3.5 启用并启动
 
@@ -184,6 +183,8 @@ ssh root@47.110.67.161 "ss -tlnp | grep -E '10021|10022'"
 - `0.0.0.0:10021`
 - `0.0.0.0:10022`
 - `127.0.0.1:10225`, `127.0.0.1:10465`, `127.0.0.1:10587`, `127.0.0.1:10993` (sshd)
+- `0.0.0.0:80`, `0.0.0.0:443` (HAProxy)
+- `0.0.0.0:51820/udp` (WireGuard)
 
 ### 4.2 在外网验证
 
