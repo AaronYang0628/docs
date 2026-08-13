@@ -35,6 +35,13 @@ It never restarts or kills a tunnel and never changes sshd, firewall, cloud
 network policy, DNS, keys, or endpoints. Real configuration and rollback details
 remain in the private SOPS inventory; public pages must not reproduce them.
 
+The ZJLAB tunnel initiators use enabled system-level services so they recover
+after a host reboot. User-level legacy tunnel services must remain stopped and
+disabled; `Linger=yes` starts the user manager but does not start disabled
+services. If both labels fail together, inspect host boot and service-manager
+state first, then recover `backup` before `primary`. Verify each alias and its
+loopback listener before proceeding to the next label.
+
 For external availability history, report the existing `primary` and `backup`
 check results to separate Uptime Kuma Push monitors. Do not expose the relay's
 loopback listeners just to make them reachable by Kuma. The Push URLs and the
@@ -52,6 +59,13 @@ Healthy checks send `up`; failed checks send `down` with a fixed reason. Push
 HTTP failures do not change listener judgment, failure counters, DingTalk
 debounce, or tunnel lifecycle. The checker merges existing query parameters
 when constructing the request and does not log the Push value.
+
+DingTalk sends one failure notification after three consecutive failures for a
+label. The message includes a fixed, redacted recovery action. After a notified
+failure becomes healthy, the checker sends one recovery notification; if that
+send fails, the alert state is retained and the next healthy check retries it.
+Short failures that never cross the alert threshold do not generate a recovery
+message.
 
 Deployment verification confirmed the checker dry-run and service run were
 healthy for both labels across more than two complete 60-second timer cycles.
