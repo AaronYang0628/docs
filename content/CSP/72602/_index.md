@@ -284,7 +284,34 @@ PVC. Do not copy HTML directly or patch the Deployment, ConfigMap, or PVC.
 
 | Deployment | Namespace | Image | Ingress |
 |---|---|---|---|
-| ops-agent | application | ay-dev/ops-agent:0.2.2 | ops.agent.72602.space |
+| ops-agent | application | ay-dev/ops-agent:0.2.3 | ops.agent.72602.space |
+
+### 2026-08-14: ops-agent 0.2.3 deployed
+
+- Live checks confirmed `hostname=72602-minipc`, kubeconfig context `default`,
+  and node `72602-minipc` Ready at `192.168.0.25` on `v1.34.6+k3s1`.
+- The live owner is `argocd/ops-agent`, sourced from
+  `https://github.com/AaronYang0628/docs.git` at `manifests/ops-agent`, target
+  `main`.
+- The local `0.2.3` image built successfully with OpenCode `1.18.16` and
+  image ID `2e8de824615d5cfc8b3cb887bff21bad974985fe88ad24beda1c9082760c0f7c`.
+  The OCI manifest digest was
+  `sha256:f1e5e79d570cdec0ce375e264f3c83291912180591f43308d7fe2b66dc326bff`.
+  The first attempt hit a transient direct `dl.k8s.io` curl timeout; retrying
+  completed the build.
+- The image was pushed to the Aliyun personal registry and imported into local
+  k3s containerd under tag `0.2.3`. Registry credentials were used through a
+  temporary authfile and were not written to Git or the host's persistent
+  container configuration.
+- The GitOps manifest was committed and pushed to `main`; ArgoCD reconciled the
+  updated Deployment. The replacement Pod became Ready with the `0.2.3` image,
+  and the rollout completed successfully.
+- Authenticated `/global/health` returned healthy, DNS resolved
+  `ops.agent.72602.space` to `47.110.67.161`, its `nginx` Ingress and Ready TLS
+  remained healthy, and the anonymous public health request returned the
+  expected `401`.
+- Roll back by restoring the prior `0.2.2` source revision and reconciling; do
+  not delete Secrets or PVCs.
 
 ## Network Proxy
 
@@ -706,7 +733,7 @@ rollback, and do not delete Mailu Secrets or PVCs.
 
 - Replaced the host systemd process and static EndpointSlice with the `application/ops-agent` workload.
 - The Pod mounts `/home/aaron/Ops/docs` at `/workspace`, loads the project `.opencode/opencode.json`, and persists sessions in the `opencode-data` PVC.
-- Image `ay-dev/ops-agent:0.2.2` uses glibc and contains OpenCode 1.18.2, kubectl 1.34.6, Argo CD CLI 3.3.8, VibeGuard, DCP, and Goal Mode.
+- Image `ay-dev/ops-agent:0.2.3` uses glibc and contains OpenCode 1.18.16, kubectl 1.34.6, Argo CD CLI 3.3.8, VibeGuard, DCP, and Goal Mode.
 - OpenCode native Basic Auth protects both Ingress and cluster-internal access. Anonymous HTTPS returns `401`; authenticated HTTPS returns `200`.
 - An Nginx sidecar publishes the `Ops Agent` browser title and proxies Terminal WebSocket and event streams.
 
