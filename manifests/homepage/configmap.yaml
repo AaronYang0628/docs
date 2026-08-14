@@ -139,8 +139,8 @@ data:
     Services:\n    - SSH At 72602:\n        icon: terminal\n        description: SSH
     Service At 72602 Home\n        widget:\n          type: uptimekuma\n          url:
     https://uptime.72602.space\n          slug: 72602-minipc-ssh\n    - Clash At 72602:\n
-    \       icon: clash\n        href: http://clash.72602.space/ui\n        description:
-    http://clash.72602.space/ui\n        siteMonitor: http://clash.72602.space/ui\n
+    \       icon: clash\n        href: https://clash.72602.space/ui/\n        description:
+    https://clash.72602.space/ui/\n        siteMonitor: https://clash.72602.space/ui/\n
     \   - Clash At ECS:\n        icon: clash\n        href: http://47.110.67.161:56396/ui\n
     \       description: http://47.110.67.161:56396\n        siteMonitor: http://47.110.67.161:56396/ui\n
     \   - Sub2API-WZ:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n

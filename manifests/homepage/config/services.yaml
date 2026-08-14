@@ -52,9 +52,9 @@
           slug: 72602-minipc-ssh
     - Clash At 72602:
         icon: clash
-        href: http://clash.72602.space/ui
-        description: http://clash.72602.space/ui
-        siteMonitor: http://clash.72602.space/ui
+        href: https://clash.72602.space/ui/
+        description: https://clash.72602.space/ui/
+        siteMonitor: https://clash.72602.space/ui/
     - Clash At ECS:
         icon: clash
         href: http://47.110.67.161:56396/ui
