@@ -345,7 +345,6 @@
       "* sudo *": "allow",
       "systemctl *": "allow",
       "* systemctl *": "allow",
-      "rm -rf *": "allow",
       "git reset --hard*": "allow",
       "git push *--force*": "allow"
     }

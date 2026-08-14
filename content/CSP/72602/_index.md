@@ -48,6 +48,14 @@ reverse tunnels. ECS side ports:
 - `127.0.0.1:10587 -> minipc:587` (submission via SSH reverse tunnel on 10022)
 - `127.0.0.1:10993 -> minipc:993` (IMAPS via SSH reverse tunnel on 10022)
 
+### ZJLAB NewAPI public route
+
+The isolated ZJLAB NewAPI-compatible service is published at
+`https://newapi.zjlab.72602.space`. Its relay, credentials, tunnel, and
+rollback procedure are maintained in the private operations repository. The
+existing MaaS route at `https://llm.72602.space` remains an independent
+service.
+
 ECS HAProxy listens on public IPv4 and IPv6 `25`, `465`, `587`, and `993`, and
 on public IPv4 `80` and `443`. Web is plain TCP passthrough without PROXY
 protocol or TLS termination. Mail passes TCP with PROXY v2 to the four ECS

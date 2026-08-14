@@ -1,11 +1,29 @@
 ---
 name: sub2api-72602-operations
-description: Use when operating Sub2API in the 72602 cluster, including admin diagnostics, account scheduling, user RPM or concurrency controls, model availability, and exact-account balance recharge.
+description: Use ONLY when operating Sub2API or its dedicated Redis in the 72602 cluster, including GitOps upgrades, safe database backups, admin diagnostics, account scheduling, user RPM or concurrency controls, model availability, and exact-account balance recharge.
 ---
 
 # Sub2API 72602 Operations
 
 Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate live work to `72602-k3s-maintainer`; use the `sub2api-admin_*` MCP tools for authenticated application operations and Kubernetes/ArgoCD tools for deployment state.
+
+## Fixed 72602 facts
+
+- GitOps manifest: `manifests/sub2api-argocd.yaml` in the docs repository.
+- Chart source: the maintained colleague chart at `https://github.com/ben-wangz/k8s-at-home/tree/main/application/sub2api/chart`.
+- OCI chart: `oci://ghcr.io/ben-wangz/k8s-at-home-charts/sub2api`.
+- The accepted production target is chart `0.1.8` with image `ghcr.io/wei-shaw/sub2api:0.1.176`.
+- Chart `appVersion` can remain incorrectly labelled `0.1.168`; determine the application version from the explicit image tag and running image digest, never from that label.
+- PostgreSQL is intentionally shared in the `database` namespace. Sub2API owns the `sub2api` database/user inside that instance; the PostgreSQL initialization values mentioning n8n are not a Sub2API incident and must not trigger repeated investigation.
+- Sub2API uses its own Redis workload, not `storage/redis-shared`. Treat the application and its `sub2api-redis` data as one operational unit.
+- Git owns Helm/deployment configuration. PostgreSQL owns the database and Redis owns scheduler/cache state.
+
+## Standard routine path
+
+1. Load this skill and identify whether the request is application admin work or GitOps/deployment work.
+2. For a routine check, read the ArgoCD Application, Deployment/Pod, Service endpoint, and `/health`; do not rediscover the chart source or database topology.
+3. For an application upgrade, use exactly: inspect worktree -> take one verified backup -> make the minimal manifest change -> obtain the Git commit SHA with `git rev-parse` -> push -> wait for ArgoCD -> verify -> stop.
+4. Do not expand a completed upgrade into optional documentation or unrelated service work. Update the runbook only when the operation changed the reusable procedure or corrected drift.
 
 ## Boundaries
 
@@ -19,6 +37,15 @@ Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate
 - Generate one stable UUID or equivalent 16-128 character idempotency key before recharge. Keep and reuse that same key if the result is uncertain; never generate a new key for a retry.
 - Other dedicated changes are set operations without confirmed backend idempotency replay. Re-read current state before retrying them.
 - Report the exact `verified` or `accepted_unverified` outcome for every dedicated change. Never rewrite an unverified accepted response as success.
+
+## Upgrade and backup safety
+
+- Before any image/chart change that can run migrations, back up only the `sub2api` PostgreSQL database and the mounted `/app/data` PVC. Do not dump the whole shared PostgreSQL instance.
+- Keep the backup outside the repository. Verify `pg_restore --list` and SHA-256 checksums before changing Git.
+- Use a non-secret pipeline. Never print a Secret, password, JWT, API key, provider credential, or storage credential. Validate a streamed dump inside the PostgreSQL container when client-side `kubectl exec -i` I/O is unreliable; do not repeat a failing stream blindly.
+- The verified upgrade backup was `/home/aaron/Ops/backups/sub2api/upgrade-20260814T063611Z` with `sub2api.dump` and `sub2api-data.tgz`; treat it as historical evidence, not as a new backup.
+- Roll back deployment configuration with a new Git revert. `kubectl rollout undo`, deleting PVCs, or deleting Secrets is not a database rollback. Because migrations are forward-only, a true database rollback requires restoring the dump to an isolated database and then switching configuration deliberately.
+- Resolve every version, digest, and commit SHA by command. Never hand-type a full SHA or image digest into a release marker.
 
 ## Balance Recharge
 
