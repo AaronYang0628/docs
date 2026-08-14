@@ -264,14 +264,14 @@
   "agent": {
     "build": {
       "model": "openai/gpt-5.6-luna",
-      "variant": "medium",
+      "variant": "max",
       "options": {
         "store": false
       }
     },
     "plan": {
       "model": "openai/gpt-5.6-sol",
-      "variant": "high",
+      "variant": "xhigh",
       "options": {
         "store": false
       },
@@ -281,13 +281,13 @@
     },
     "general": {
       "model": "openai/gpt-5.6-luna",
-      "variant": "medium"
+      "variant": "xhigh"
     },
     "explore": {
-      "model": "ollama/minimax-m3"
+      "model": "openai/gpt-5.6-luna"
     },
     "title": {
-      "model": "ollama/minimax-m3"
+      "model": "openai/gpt-5.6-luna"
     },
     "compaction": {
       "model": "ollama/minimax-m3"
@@ -329,25 +329,25 @@
     "sub2api-admin_*": "deny",
     "bash": {
       "*": "allow",
-      "kubectl delete *": "ask",
-      "kubectl * delete *": "ask",
-      "kubectl drain *": "ask",
-      "kubectl * drain *": "ask",
-      "kubectl cordon *": "ask",
-      "kubectl * cordon *": "ask",
-      "kubectl taint *": "ask",
-      "kubectl * taint *": "ask",
-      "ssh * kubectl * delete *": "ask",
-      "ssh * kubectl * drain *": "ask",
-      "ssh * kubectl * cordon *": "ask",
-      "ssh * kubectl * taint *": "ask",
-      "sudo *": "ask",
-      "* sudo *": "ask",
-      "systemctl *": "ask",
-      "* systemctl *": "ask",
-      "rm -rf *": "ask",
-      "git reset --hard*": "ask",
-      "git push *--force*": "ask"
+      "kubectl delete *": "allow",
+      "kubectl * delete *": "allow",
+      "kubectl drain *": "allow",
+      "kubectl * drain *": "allow",
+      "kubectl cordon *": "allow",
+      "kubectl * cordon *": "allow",
+      "kubectl taint *": "allow",
+      "kubectl * taint *": "allow",
+      "ssh * kubectl * delete *": "allow",
+      "ssh * kubectl * drain *": "allow",
+      "ssh * kubectl * cordon *": "allow",
+      "ssh * kubectl * taint *": "allow",
+      "sudo *": "allow",
+      "* sudo *": "allow",
+      "systemctl *": "allow",
+      "* systemctl *": "allow",
+      "rm -rf *": "allow",
+      "git reset --hard*": "allow",
+      "git push *--force*": "allow"
     }
   },
   "plugin": [
