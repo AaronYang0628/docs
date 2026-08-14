@@ -116,24 +116,24 @@ external label `cluster=zjlab`, so the existing Grafana Prometheus datasource
 can query ZJLAB without a second Grafana datasource. Credentials remain in
 runtime/private secret stores and must not be added to public manifests.
 
-The manually maintained `72602 K3s` Grafana dashboard (UID
-`57b554d9-b60b-414c-ba6f-c6e9e75ed240`) is at version 11. Its custom `cluster`
-variable displays `72602`, `zjlab`, and `All`; `72602` maps to the empty-label
-matcher (`^$`) so local metrics without an external `cluster` label remain
-visible. Node panels aggregate by `(cluster, node)` and deduplicate the
-duplicate `kube-state-metrics` and `kubernetes-service-endpoints` scrape jobs.
-The obsolete `origin_prometheus` variable was removed, so old URLs that still
-pass `var-origin_prometheus` are ignored.
+The Git-provisioned Grafana dashboard `Kubernetes Resources` (UID
+`kubernetes-resources-multicluster`) is in the `Kubernetes` folder and is
+defined by `manifests/grafana-kubernetes-dashboard.yaml`. It uses the existing
+Prometheus datasource UID `prometheus`; its `Cluster` selector maps 72602 to
+the empty-label matcher (`^$`), ZJLAB to `cluster="zjlab"`, and `All` to both.
+Node and namespace selectors are dependent query variables. Node resource
+panels use the `kubernetes-service-endpoints` scrape job to avoid counting the
+ZJLAB node-exporter series twice. Verification returned one, two, and three
+unique nodes for 72602, ZJLAB, and All respectively; Pod CPU, Deployment, and
+scrape-target queries were non-empty. The previous runtime dashboard is not
+part of the operating path.
 
-Panel 44/45 use matching `(cluster, node)` aggregations for node memory and
-CPU ratios. Panel 75/76 join container metrics with deduplicated
-`kube_pod_info` by `(cluster, namespace, pod)` to restore the missing `node`
-label before calculating node CPU and memory breakdowns. Verify the dashboard
-through Grafana's authenticated datasource query API: `72602`, `zjlab`, and
-`All` must return one, two, and three unique nonzero node series respectively;
-the Node Information table must return the same number of rows. The dashboard
-is stored in Grafana's runtime database, not in a Git-provisioned ConfigMap;
-back it up and use Grafana's dashboard API for future updates.
+On 2026-08-14, the user-authorized reset deleted the 30Gi Prometheus TSDB PVCs
+`monitor/prometheus-server` in 72602 and
+`monitoring/zjlab-prometheus-server` in ZJLAB. ArgoCD recreated both PVCs and
+the existing scrape and remote-write configuration was retained. No backup was
+made; all prior metrics history is intentionally unrecoverable. Loki, Tempo,
+Grafana users, and Grafana datasource configuration were not cleared.
 
 Mail records are managed in the `72602.space` zone with TTL `600`:
 
