@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.6`, image
-`ghcr.io/wei-shaw/sub2api:0.1.168`, namespace `application`, and host
+The expected values are OCI chart `0.1.8`, image
+`ghcr.io/wei-shaw/sub2api:0.1.176`, namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
 
@@ -173,7 +173,7 @@ users unless the operator explicitly confirms the inactive status.
 
 #### Limits and model availability
 
-Sub2API v0.1.168 has no configurable per-model RPM. Operator scope:
+Sub2API v0.1.176 has no configurable per-model RPM. Operator scope:
 
 - User RPM and concurrency via `sub2api-admin_update_user_limits`.
 - Group RPM is set through the admin UI; this MCP does not expose it.
@@ -223,7 +223,7 @@ restart cycles. Rotate in this exact order without intermediate pauses:
    key.
 4. Through `72602-k3s-maintainer`, run `sub2api-admin_read` against
    `/api/v1/admin/system/version`; the live application must respond
-   `0.1.168`.
+    `0.1.176`.
 
 The upstream "generate key" action is itself the invalidation step; no
 follow-up disable of the previous key is needed or supported.
