@@ -38,11 +38,11 @@ spec:
   source:
     repoURL: ghcr.io/ben-wangz/k8s-at-home-charts
     chart: sub2api
-    targetRevision: 0.1.6
+    targetRevision: 0.1.8
     helm:
       parameters:
         - name: image.tag
-          value: 0.1.168
+          value: 0.1.176
       values: |
         updateStrategy:
           type: RollingUpdate
