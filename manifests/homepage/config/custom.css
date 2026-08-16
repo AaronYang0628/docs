@@ -1,1 +1,8 @@
-# test pre-commit hook
+#custom-countdowns {
+  width: 100%;
+  margin: 0 0 0.75rem;
+  color: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
