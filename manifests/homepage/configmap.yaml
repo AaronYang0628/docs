@@ -1,6 +1,12 @@
 apiVersion: v1
 data:
   bookmarks.yaml: |
+    - 倒计时:
+        - 退休:
+            - id: retirement-countdown
+              icon: mdi-calendar-clock
+              href: https://port.72602.space/
+              description: 计算中...
     - Workflows:
         - WeChat:
             - abbr: WeChat
@@ -113,46 +119,30 @@ data:
               icon: medium-dark
               href: https://medium.com/
   custom.css: |
-    #custom-countdowns {
-      width: 100%;
-      margin: 0 0 0.75rem;
-      color: inherit;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      white-space: pre-line;
+    #retirement-countdown .bookmark-description {
+      font-variant-numeric: tabular-nums;
     }
   custom.js: |
     (() => {
       const countdowns = [
         {
+          id: "retirement-countdown",
           label: "退休",
           target: "2043-10-19T00:00:00+08:00",
         },
       ];
 
       function renderCountdowns() {
-        const container = document.getElementById("widgets-wrap");
-        if (!container) return;
-
-        let countdown = document.getElementById("custom-countdowns");
-        if (!countdown) {
-          countdown = document.createElement("div");
-          countdown.id = "custom-countdowns";
-          countdown.setAttribute("role", "status");
-          container.prepend(countdown);
-        } else if (countdown.parentElement !== container) {
-          container.prepend(countdown);
-        }
-
         const now = Date.now();
-        const text = countdowns
-          .map(({ label, target }) => {
-            const days = Math.max(0, Math.ceil((new Date(target).getTime() - now) / 86400000));
-            return days === 0 ? `距离${label}日期已到` : `距离${label}还有 ${days} 天`;
-          })
-          .join("\n");
+        countdowns.forEach(({ id, label, target }) => {
+          const item = document.getElementById(id);
+          const description = item?.querySelector(".bookmark-description");
+          if (!description) return;
 
-        if (countdown.textContent !== text) countdown.textContent = text;
+          const days = Math.max(0, Math.ceil((new Date(target).getTime() - now) / 86400000));
+          const text = days === 0 ? `${label}日期已到` : `还有 ${days} 天`;
+          if (description.textContent !== text) description.textContent = text;
+        });
       }
 
       function start() {
@@ -223,7 +213,7 @@ data:
     https://open-sci-datahub.zero2x.org/home\n    - Browserless:\n        href: https://www.browserless.io/account/dashboard\n
     \       icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/browserless.png\n
     \       description: Browserless Dashboard\n         \n- Conatiners: []\n"
-  settings.yaml: |-
+  settings.yaml: |
     title: 72602 Homepage
     theme: gray
     description: A Monitoring Dashboard for All Services in 72602
@@ -239,6 +229,9 @@ data:
       hideVisitURL: true
       provider: google
     layout:
+      倒计时:
+        style: row
+        columns: 5
       Developer:
         style: row
         columns: 5

@@ -1,3 +1,9 @@
+- 倒计时:
+    - 退休:
+        - id: retirement-countdown
+          icon: mdi-calendar-clock
+          href: https://port.72602.space/
+          description: 计算中...
 - Workflows:
     - WeChat:
         - abbr: WeChat
