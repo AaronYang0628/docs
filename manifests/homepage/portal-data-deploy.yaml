@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-data
+  labels:
+    app.kubernetes.io/name: portal-data
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: portal-data
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: portal-data
+      annotations:
+        checksum/portal-data-config: "332ca83914aea3d8d888e3dd9d5933ada1f4142d6adc102ec239104a9155d44b"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: portal-data
+          image: m.daocloud.io/docker.io/library/python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /app/app.py
+          env:
+            - name: PORT
+              value: "8080"
+            - name: PORTAL_DATA_DB
+              value: /data/portal.db
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/portal-tools/healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/portal-tools/healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: portal-data-config
+              mountPath: /app/app.py
+              subPath: app.py
+              readOnly: true
+            - name: portal-data
+              mountPath: /data
+      volumes:
+        - name: portal-data-config
+          configMap:
+            name: portal-data-config
+            defaultMode: 0444
+        - name: portal-data
+          persistentVolumeClaim:
+            claimName: portal-data-pvc

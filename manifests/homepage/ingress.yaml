@@ -13,6 +13,13 @@ spec:
     - host: port.72602.space
       http:
         paths:
+          - path: "/api/portal-tools"
+            pathType: Prefix
+            backend:
+              service:
+                name: portal-data
+                port:
+                  number: 8080
           - path: "/"
             pathType: Prefix
             backend:

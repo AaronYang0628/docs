@@ -5,6 +5,9 @@ HOMEPAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../manifests/homepage" && pwd
 CONFIG_DIR="${HOMEPAGE_DIR}/config"
 OUTPUT_FILE="${HOMEPAGE_DIR}/configmap.yaml"
 DEPLOYMENT_FILE="${HOMEPAGE_DIR}/deploy.yaml"
+PORTAL_SOURCE_FILE="${HOMEPAGE_DIR}/portal-data/app.py"
+PORTAL_CONFIGMAP_FILE="${HOMEPAGE_DIR}/portal-data-configmap.yaml"
+PORTAL_DEPLOYMENT_FILE="${HOMEPAGE_DIR}/portal-data-deploy.yaml"
 
 if ! command -v kubectl >/dev/null 2>&1; then
   echo "kubectl is required but not found in PATH" >&2
@@ -34,6 +37,16 @@ for file in "${required_files[@]}"; do
   fi
 done
 
+if [[ ! -f "${PORTAL_SOURCE_FILE}" ]]; then
+  echo "missing portal data source: ${PORTAL_SOURCE_FILE}" >&2
+  exit 1
+fi
+
+if ! grep -q 'checksum/portal-data-config:' "${PORTAL_DEPLOYMENT_FILE}"; then
+  echo "missing checksum/portal-data-config annotation: ${PORTAL_DEPLOYMENT_FILE}" >&2
+  exit 1
+fi
+
 kubectl create configmap homepage \
   --from-file="${CONFIG_DIR}/bookmarks.yaml" \
   --from-file="${CONFIG_DIR}/custom.css" \
@@ -57,5 +70,16 @@ CONFIG_HASH="${config_hash}" perl -0pi -e \
   's#(checksum/homepage-config: ")[^"]+(")#$1$ENV{CONFIG_HASH}$2#' \
   "${DEPLOYMENT_FILE}"
 
+kubectl create configmap portal-data-config \
+  --from-file="app.py=${PORTAL_SOURCE_FILE}" \
+  --dry-run=client -o yaml > "${PORTAL_CONFIGMAP_FILE}"
+
+read -r portal_hash _ <<< "$(sha256sum "${PORTAL_SOURCE_FILE}")"
+PORTAL_HASH="${portal_hash}" perl -0pi -e \
+  's#(checksum/portal-data-config: ")[^"]+(")#$1$ENV{PORTAL_HASH}$2#' \
+  "${PORTAL_DEPLOYMENT_FILE}"
+
 echo "configmap generated: ${OUTPUT_FILE}"
 echo "deployment checksum updated: ${config_hash}"
+echo "portal data configmap generated: ${PORTAL_CONFIGMAP_FILE}"
+echo "portal data deployment checksum updated: ${portal_hash}"

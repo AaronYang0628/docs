@@ -1,3 +1,360 @@
-#retirement-countdown .bookmark-description {
+#portal-tools {
+  width: 100%;
+  margin: 0 0 1.25rem;
+  padding: 1rem;
+  border: 1px solid rgb(148 163 184 / 28%);
+  border-radius: 8px;
+  background: rgb(15 23 42 / 34%);
+  box-shadow: 0 12px 30px rgb(15 23 42 / 12%);
+}
+
+.portal-tools-header,
+.portal-tools-section-heading,
+.portal-countdown-card-header,
+.portal-task-row,
+.portal-tools-modal-header,
+.portal-tools-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.portal-tools-header {
+  align-items: flex-start;
+  padding: 0.1rem 0.15rem 1rem;
+  border-bottom: 1px solid rgb(148 163 184 / 18%);
+}
+
+.portal-tools-heading {
+  min-width: 0;
+}
+
+.portal-tools-kicker {
+  display: block;
+  color: rgb(148 163 184 / 90%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.portal-tools-title,
+.portal-tools-section-title,
+.portal-countdown-label,
+.portal-tools-modal-title {
+  margin: 0;
+  color: rgb(241 245 249);
+}
+
+.portal-tools-title {
+  margin-top: 0.1rem;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.portal-tools-subtitle,
+.portal-countdown-target,
+.portal-tools-empty,
+.portal-tools-state,
+.portal-tools-count {
+  color: rgb(148 163 184 / 90%);
+}
+
+.portal-tools-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+}
+
+.portal-tools-actions,
+.portal-countdown-actions,
+.portal-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.portal-tools-button {
+  min-height: 2rem;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  color: rgb(226 232 240);
+  background: rgb(30 41 59 / 78%);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.portal-tools-button:hover,
+.portal-tools-button:focus-visible {
+  border-color: rgb(125 211 252 / 75%);
+  background: rgb(51 65 85 / 90%);
+  outline: none;
+}
+
+.portal-tools-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.portal-tools-primary {
+  border-color: rgb(56 189 248 / 45%);
+  background: rgb(14 116 144 / 76%);
+}
+
+.portal-tools-secondary {
+  background: transparent;
+}
+
+.portal-tools-icon-button {
+  width: 2rem;
+  min-width: 2rem;
+  padding: 0.35rem;
+  text-align: center;
+}
+
+.portal-tools-danger:hover,
+.portal-tools-danger:focus-visible {
+  border-color: rgb(251 113 133 / 75%);
+  color: rgb(254 205 211);
+}
+
+.portal-tools-section {
+  padding: 1rem 0.15rem 0;
+}
+
+.portal-tools-section-heading {
+  justify-content: flex-start;
+  margin-bottom: 0.65rem;
+}
+
+.portal-tools-section-title {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.portal-tools-count {
+  font-size: 0.72rem;
+}
+
+.portal-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.65rem;
+}
+
+.portal-countdown-card {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid rgb(148 163 184 / 22%);
+  border-radius: 7px;
+  background: rgb(30 41 59 / 58%);
+}
+
+.portal-countdown-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.portal-countdown-number {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  color: rgb(125 211 252);
   font-variant-numeric: tabular-nums;
+}
+
+.portal-countdown-days {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.portal-countdown-unit {
+  font-size: 0.8rem;
+}
+
+.portal-countdown-target {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.portal-tools-empty,
+.portal-tools-state {
+  margin: 0;
+  padding: 0.7rem 0;
+  font-size: 0.8rem;
+}
+
+.portal-task-quick-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: start;
+}
+
+.portal-tools-input {
+  width: 100%;
+  min-height: 2.1rem;
+  box-sizing: border-box;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  color: rgb(241 245 249);
+  background: rgb(15 23 42 / 64%);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.portal-tools-input:focus {
+  border-color: rgb(125 211 252 / 75%);
+  outline: 2px solid rgb(125 211 252 / 18%);
+}
+
+.portal-tools-input[type="date"] {
+  color-scheme: dark;
+}
+
+.portal-tools-add-button {
+  height: 2.1rem;
+  font-size: 1rem;
+}
+
+.portal-tools-inline-error,
+.portal-tools-form-error,
+.portal-tools-error-text {
+  color: rgb(251 113 133);
+  font-size: 0.74rem;
+}
+
+.portal-tools-inline-error {
+  grid-column: 1 / -1;
+  min-height: 1rem;
+}
+
+.portal-task-list {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.portal-task-row {
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid rgb(148 163 184 / 15%);
+}
+
+.portal-task-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.portal-task-checkbox {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  accent-color: rgb(34 211 238);
+}
+
+.portal-task-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: rgb(226 232 240);
+  font-size: 0.82rem;
+}
+
+.portal-task-row.is-done .portal-task-title {
+  color: rgb(148 163 184 / 75%);
+  text-decoration: line-through;
+}
+
+.portal-tools-state-error {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.portal-tools-error-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.portal-tools-modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(2 6 23 / 70%);
+}
+
+.portal-tools-modal {
+  width: min(100%, 28rem);
+  box-sizing: border-box;
+  padding: 1rem;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 8px;
+  background: rgb(15 23 42);
+  box-shadow: 0 20px 50px rgb(2 6 23 / 45%);
+}
+
+.portal-tools-modal-title {
+  font-size: 1rem;
+}
+
+.portal-tools-form {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.portal-tools-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.portal-tools-field-label {
+  color: rgb(203 213 225);
+  font-size: 0.78rem;
+}
+
+.portal-tools-form-error {
+  min-height: 1rem;
+  margin: 0;
+}
+
+.portal-tools-form-footer {
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  #portal-tools {
+    padding: 0.8rem;
+  }
+
+  .portal-tools-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .portal-tools-actions {
+    justify-content: flex-end;
+  }
+
+  .portal-countdown-grid {
+    grid-template-columns: 1fr;
+  }
 }
