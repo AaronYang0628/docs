@@ -99,7 +99,6 @@ spec:
                 aggregation_cardinality_limit = 5000
                 metrics_flush_interval         = "15s"
                 resource_metrics_key_attributes = ["service.name", "agent.project"]
-                series_expiration              = "24h"
 
                 dimension {
                   name = "agent.project"
