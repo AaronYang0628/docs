@@ -17,23 +17,22 @@ data:
       "panels": [
         {
           "type": "stat",
-          "title": "CPU Usage %",
-          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+          "title": "Agent Ready",
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
           "targets": [
             {
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "expr": "kube_deployment_status_replicas_ready{namespace=\"application\",deployment=\"ops-agent\"}",
+              "instant": true,
               "refId": "A"
             }
           ],
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 70 },
-                  { "color": "red", "value": 90 }
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
                 ]
               }
             }
@@ -41,93 +40,202 @@ data:
         },
         {
           "type": "stat",
-          "title": "Memory Usage %",
-          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+          "title": "Pod Restarts (24h)",
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
           "targets": [
             {
-              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+              "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"application\",pod=~\"ops-agent-.*\",container=\"ops-agent\"}[24h]))",
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "OTLP Spans / sec",
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(rate(otelcol_receiver_accepted_spans_total[5m]))",
+              "instant": true,
               "refId": "A"
             }
           ],
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percent"
-            }
-          }
+          "fieldConfig": { "defaults": { "unit": "ops" } }
         },
         {
           "type": "stat",
-          "title": "OTLP Spans Received (Alloy UI note)",
-          "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+          "title": "Failed Span Exports (1h)",
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
           "targets": [
             {
-              "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"alloy.*\"}[5m]))",
-              "refId": "A",
-              "legendFormat": "alloy cpu"
-            }
-          ]
-        },
-        {
-          "type": "stat",
-          "title": "ops-agent Ready",
-          "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-          "targets": [
-            {
-              "expr": "kube_deployment_status_replicas_ready{namespace=\"application\",deployment=\"ops-agent\"}",
+              "expr": "sum(increase(otelcol_exporter_send_failed_spans_total[1h]))",
+              "instant": true,
               "refId": "A"
             }
           ]
         },
         {
+          "type": "stat",
+          "title": "Agent Tokens Today",
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(ops_agent_sub2api_today_tokens{token_type=\"total\"})",
+              "instant": true,
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" } }
+        },
+        {
+          "type": "stat",
+          "title": "Actual Cost Today",
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(ops_agent_sub2api_today_cost_usd{cost_type=\"actual\"})",
+              "instant": true,
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+        },
+        {
           "type": "timeseries",
-          "title": "Node CPU / Memory",
+          "title": "Today's Token Accumulation",
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
           "targets": [
             {
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-              "legendFormat": "cpu%",
+              "expr": "sum by (provider) (ops_agent_sub2api_today_tokens{token_type=\"input\"})",
+              "legendFormat": "{{provider}} input",
               "refId": "A"
             },
             {
-              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
-              "legendFormat": "mem%",
+              "expr": "sum by (provider) (ops_agent_sub2api_today_tokens{token_type=\"output\"})",
+              "legendFormat": "{{provider}} output",
               "refId": "B"
+            },
+            {
+              "expr": "sum by (provider) (ops_agent_sub2api_today_tokens{token_type=\"cache_read\"})",
+              "legendFormat": "{{provider}} cache read",
+              "refId": "C"
+            },
+            {
+              "expr": "sum by (provider) (ops_agent_sub2api_today_tokens{token_type=\"cache_write\"})",
+              "legendFormat": "{{provider}} cache write",
+              "refId": "D"
             }
-          ]
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" } }
         },
         {
           "type": "timeseries",
-          "title": "Pod CPU (top)",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "title": "Today's Cost by Provider",
+          "gridPos": { "h": 8, "w": 6, "x": 12, "y": 4 },
           "targets": [
             {
-              "expr": "topk(8, sum by (namespace,pod) (rate(container_cpu_usage_seconds_total{container!=\"\",container!=\"POD\"}[5m])))",
-              "legendFormat": "{{namespace}}/{{pod}}",
+              "expr": "sum by (provider) (ops_agent_sub2api_today_cost_usd{cost_type=\"actual\"})",
+              "legendFormat": "{{provider}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Today's Requests by Provider",
+          "gridPos": { "h": 8, "w": 6, "x": 18, "y": 4 },
+          "targets": [
+            {
+              "expr": "sum by (provider) (ops_agent_sub2api_today_requests)",
+              "legendFormat": "{{provider}}",
               "refId": "A"
             }
           ]
         },
         {
           "type": "timeseries",
-          "title": "ops-agent Memory Working Set",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "title": "LLM Average Duration",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
           "targets": [
             {
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"application\",pod=~\"ops-agent.*\",container=\"ops-agent\"})",
+              "expr": "ops_agent_sub2api_today_average_duration_seconds",
+              "legendFormat": "{{provider}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Agent Span Rate",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+          "targets": [
+            {
+              "expr": "topk(12, sum by (span_name) (rate(ops_agent_calls_total{agent_project=\"ops-agent\"}[5m])))",
+              "legendFormat": "{{span_name}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Tool Calls",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+          "targets": [
+            {
+              "expr": "sum by (tool_name,status_code) (rate(ops_agent_calls_total{agent_project=\"ops-agent\",tool_name!=\"\"}[5m]))",
+              "legendFormat": "{{tool_name}} {{status_code}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Agent Span Error Rate",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 20 },
+          "targets": [
+            {
+              "expr": "100 * sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\",status_code=\"Error\"}[5m])) / clamp_min(sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\"}[5m])), 0.000000001)",
+              "legendFormat": "errors",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "LLM Span Duration p95",
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 20 },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum by (le,ai_model_id) (rate(ops_agent_duration_seconds_bucket{agent_project=\"ops-agent\",ai_model_id!=\"\"}[5m])))",
+              "legendFormat": "{{ai_model_id}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Agent Memory Working Set",
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 20 },
+          "targets": [
+            {
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"application\",pod=~\"ops-agent-.*\",container=\"ops-agent\"})",
               "legendFormat": "ops-agent",
               "refId": "A"
             }
           ],
-          "fieldConfig": {
-            "defaults": {
-              "unit": "bytes"
-            }
-          }
+          "fieldConfig": { "defaults": { "unit": "bytes" } }
         },
         {
           "type": "traces",
-          "title": "Recent Agent Traces (Tempo)",
-          "gridPos": { "h": 10, "w": 12, "x": 12, "y": 12 },
+          "title": "Recent Agent Traces (7d retention)",
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
           "datasource": { "type": "tempo", "uid": "tempo" },
           "targets": [
             {
@@ -137,6 +245,13 @@ data:
                   "id": "service-name",
                   "tag": "service.name",
                   "operator": "=",
+                  "value": ["opencode"],
+                  "scope": "resource"
+                },
+                {
+                  "id": "agent-project",
+                  "tag": "agent.project",
+                  "operator": "=",
                   "value": ["ops-agent"],
                   "scope": "resource"
                 }
@@ -145,6 +260,67 @@ data:
               "refId": "A"
             }
           ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Agent CPU",
+          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 38 },
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"application\",pod=~\"ops-agent-.*\",container=\"ops-agent\"}[5m]))",
+              "legendFormat": "cores",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "cores" } }
+        },
+        {
+          "type": "timeseries",
+          "title": "Sub2API Metrics Exporter",
+          "gridPos": { "h": 8, "w": 6, "x": 6, "y": 38 },
+          "targets": [
+            {
+              "expr": "ops_agent_sub2api_up",
+              "legendFormat": "{{provider}}",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "OTLP Span Pipeline",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 38 },
+          "targets": [
+            {
+              "expr": "sum(rate(otelcol_receiver_accepted_spans_total[5m]))",
+              "legendFormat": "accepted",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(otelcol_exporter_sent_spans_total[5m]))",
+              "legendFormat": "sent",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(otelcol_exporter_send_failed_spans_total[5m]))",
+              "legendFormat": "failed",
+              "refId": "C"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" } }
         }
       ],
       "schemaVersion": 39,
@@ -154,5 +330,5 @@ data:
       "timezone": "browser",
       "title": "72602 Agent Overview",
       "uid": "agent-overview-72602",
-      "version": 1
+      "version": 2
     }

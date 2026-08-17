@@ -1,0 +1,252 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ops-agent-metrics-exporter
+  namespace: application
+data:
+  server.mjs: |
+    import http from "node:http"
+
+    const listenPort = Number.parseInt(process.env.PORT || "9464", 10)
+    const baseUrl = new URL(process.env.SUB2API_BASE_URL || "http://sub2api.application.svc.cluster.local:8080")
+    const adminApiKey = process.env.SUB2API_ADMIN_API_KEY
+    const cacheTtlMs = Number.parseInt(process.env.CACHE_TTL_MS || "20000", 10)
+    const timeoutMs = Number.parseInt(process.env.REQUEST_TIMEOUT_MS || "10000", 10)
+    const keyConfigs = parseKeyConfigs(process.env.SUB2API_AGENT_API_KEYS || "")
+
+    if (!adminApiKey) throw new Error("SUB2API_ADMIN_API_KEY is required")
+    if (keyConfigs.length === 0) throw new Error("SUB2API_AGENT_API_KEYS is required")
+
+    let cache = { expiresAt: 0, body: "" }
+    let scrapeErrors = 0
+
+    function parseKeyConfigs(value) {
+      return value.split(",").filter(Boolean).map((entry) => {
+        const [id, provider, keyName] = entry.split(":")
+        if (!/^\d+$/.test(id) || !provider || !keyName) {
+          throw new Error(`Invalid SUB2API_AGENT_API_KEYS entry: ${entry}`)
+        }
+        return { id, provider, keyName }
+      })
+    }
+
+    function escapeLabel(value) {
+      return String(value).replaceAll("\\", "\\\\").replaceAll("\n", "\\n").replaceAll('"', '\\"')
+    }
+
+    function labels(config, extra = {}) {
+      const values = { provider: config.provider, key_name: config.keyName, ...extra }
+      return `{${Object.entries(values).map(([key, value]) => `${key}="${escapeLabel(value)}"`).join(",")}}`
+    }
+
+    function number(value) {
+      const parsed = Number(value)
+      return Number.isFinite(parsed) ? parsed : 0
+    }
+
+    async function fetchStats(config) {
+      const url = new URL("/api/v1/admin/usage/stats", baseUrl)
+      url.searchParams.set("api_key_id", config.id)
+      const response = await fetch(url, {
+        headers: { Accept: "application/json", "x-api-key": adminApiKey },
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+      if (!response.ok) throw new Error(`Sub2API returned HTTP ${response.status}`)
+      const payload = await response.json()
+      if (payload.code !== 0 || !payload.data) throw new Error(payload.message || "Invalid Sub2API response")
+      return payload.data
+    }
+
+    async function buildMetrics() {
+      const lines = [
+        "# HELP ops_agent_sub2api_up Whether the Sub2API usage query succeeded.",
+        "# TYPE ops_agent_sub2api_up gauge",
+        "# HELP ops_agent_sub2api_scrape_errors_total Number of failed Sub2API usage queries.",
+        "# TYPE ops_agent_sub2api_scrape_errors_total counter",
+        "# HELP ops_agent_sub2api_today_requests Requests attributed to the Ops Agent API key today.",
+        "# TYPE ops_agent_sub2api_today_requests gauge",
+        "# HELP ops_agent_sub2api_today_tokens Tokens attributed to the Ops Agent API key today.",
+        "# TYPE ops_agent_sub2api_today_tokens gauge",
+        "# HELP ops_agent_sub2api_today_cost_usd Cost attributed to the Ops Agent API key today.",
+        "# TYPE ops_agent_sub2api_today_cost_usd gauge",
+        "# HELP ops_agent_sub2api_today_average_duration_seconds Average request duration for the Ops Agent API key today.",
+        "# TYPE ops_agent_sub2api_today_average_duration_seconds gauge",
+        "# HELP ops_agent_sub2api_today_endpoint_requests Requests by API endpoint today.",
+        "# TYPE ops_agent_sub2api_today_endpoint_requests gauge",
+      ]
+
+      const results = await Promise.all(keyConfigs.map(async (config) => {
+        try {
+          return { config, stats: await fetchStats(config), error: null }
+        } catch (error) {
+          scrapeErrors += 1
+          return { config, stats: null, error }
+        }
+      }))
+
+      for (const { config, stats, error } of results) {
+        lines.push(`ops_agent_sub2api_up${labels(config)} ${error ? 0 : 1}`)
+        if (error) continue
+
+        lines.push(`ops_agent_sub2api_today_requests${labels(config)} ${number(stats.total_requests)}`)
+        const tokenTypes = {
+          input: stats.total_input_tokens,
+          output: stats.total_output_tokens,
+          cache_read: stats.total_cache_read_tokens,
+          cache_write: stats.total_cache_creation_tokens,
+          total: stats.total_tokens,
+        }
+        for (const [tokenType, value] of Object.entries(tokenTypes)) {
+          lines.push(`ops_agent_sub2api_today_tokens${labels(config, { token_type: tokenType })} ${number(value)}`)
+        }
+
+        const costTypes = {
+          billed: stats.total_cost,
+          actual: stats.total_actual_cost,
+          account: stats.total_account_cost,
+        }
+        for (const [costType, value] of Object.entries(costTypes)) {
+          lines.push(`ops_agent_sub2api_today_cost_usd${labels(config, { cost_type: costType })} ${number(value)}`)
+        }
+
+        lines.push(`ops_agent_sub2api_today_average_duration_seconds${labels(config)} ${number(stats.average_duration_ms) / 1000}`)
+        for (const endpoint of stats.endpoints || []) {
+          lines.push(`ops_agent_sub2api_today_endpoint_requests${labels(config, { endpoint: endpoint.endpoint || "unknown" })} ${number(endpoint.requests)}`)
+        }
+      }
+
+      lines.push(`ops_agent_sub2api_scrape_errors_total ${scrapeErrors}`)
+      return `${lines.join("\n")}\n`
+    }
+
+    async function metrics() {
+      if (cache.expiresAt > Date.now()) return cache.body
+      const body = await buildMetrics()
+      cache = { expiresAt: Date.now() + cacheTtlMs, body }
+      return body
+    }
+
+    const server = http.createServer(async (request, response) => {
+      if (request.url === "/healthz") {
+        response.writeHead(200, { "Content-Type": "text/plain" })
+        response.end("ok\n")
+        return
+      }
+      if (request.url !== "/metrics") {
+        response.writeHead(404, { "Content-Type": "text/plain" })
+        response.end("not found\n")
+        return
+      }
+      try {
+        response.writeHead(200, { "Content-Type": "text/plain; version=0.0.4; charset=utf-8" })
+        response.end(await metrics())
+      } catch (error) {
+        scrapeErrors += 1
+        response.writeHead(503, { "Content-Type": "text/plain" })
+        response.end("metrics unavailable\n")
+      }
+    })
+
+    server.listen(listenPort, "0.0.0.0")
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-agent-metrics
+  namespace: application
+  labels:
+    app.kubernetes.io/name: ops-agent-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ops-agent-metrics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ops-agent-metrics
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: exporter
+          image: m.daocloud.io/docker.io/library/node:20-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command:
+            - node
+            - /app/server.mjs
+          env:
+            - name: SUB2API_BASE_URL
+              value: http://sub2api.application.svc.cluster.local:8080
+            - name: SUB2API_ADMIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sub2api-mcp
+                  key: admin-api-key
+            - name: SUB2API_AGENT_API_KEYS
+              value: 15:openai:ggpt,11:grok:grok,13:ollama:ollama
+          ports:
+            - name: metrics
+              containerPort: 9464
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: script
+              mountPath: /app/server.mjs
+              subPath: server.mjs
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: ops-agent-metrics-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ops-agent-metrics
+  namespace: application
+  labels:
+    app.kubernetes.io/name: ops-agent-metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9464"
+    prometheus.io/path: /metrics
+spec:
+  selector:
+    app.kubernetes.io/name: ops-agent-metrics
+  ports:
+    - name: metrics
+      port: 9464
+      targetPort: metrics
+      protocol: TCP

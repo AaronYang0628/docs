@@ -4,6 +4,7 @@ resources:
   - rbac.yaml
   - pvc.yaml
   - proxy-config.yaml
+  - metrics-exporter.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
