@@ -3,14 +3,22 @@
   window.__portalToolsStarted = true;
 
   const API_BASE = "/api/portal-tools";
+  const groups = {
+    countdowns: {
+      name: "倒计时",
+      templateId: "portal-countdown-template",
+    },
+    tasks: {
+      name: "待办",
+      templateId: "portal-task-template",
+    },
+  };
   const state = {
     countdowns: [],
     tasks: [],
-    error: "",
-    loaded: false,
     loading: true,
+    error: "",
   };
-  let root;
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -39,17 +47,6 @@
     return Math.max(0, Math.ceil((timestamp - Date.now()) / 86400000));
   }
 
-  function formatTarget(target) {
-    const timestamp = new Date(`${target}T00:00:00+08:00`);
-    if (Number.isNaN(timestamp.getTime())) return target;
-    return new Intl.DateTimeFormat("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone: "Asia/Shanghai",
-    }).format(timestamp);
-  }
-
   async function request(path, options = {}) {
     const requestOptions = {
       cache: "no-store",
@@ -68,189 +65,175 @@
     return payload;
   }
 
-  function ensureRoot() {
-    const anchor = document.getElementById("widgets-wrap");
-    if (!anchor?.parentElement) return null;
-
-    if (!root) {
-      root = element("section", "portal-tools");
-      root.id = "portal-tools";
-      root.setAttribute("aria-label", "我的计划");
-    }
-
-    const parent = anchor.parentElement;
-    if (root.parentElement !== parent || root.nextElementSibling !== anchor) {
-      parent.insertBefore(root, anchor);
-    }
-    return root;
+  function findGroup(groupName) {
+    return Array.from(document.querySelectorAll(".bookmark-group")).find(
+      (group) => group.querySelector(".bookmark-group-name")?.textContent.trim() === groupName,
+    );
   }
 
-  function renderHeader() {
-    const header = element("div", "portal-tools-header");
-    const heading = element("div", "portal-tools-heading");
-    heading.append(element("span", "portal-tools-kicker", "PERSONAL BOARD"));
-    heading.append(element("h2", "portal-tools-title", "我的计划"));
-    heading.append(element("p", "portal-tools-subtitle", "倒计时与待办"));
-    header.append(heading);
-
-    const actions = element("div", "portal-tools-actions");
-    actions.append(button("＋ 倒计时", "portal-tools-primary", "新增倒计时", () => openCountdownDialog()));
-    actions.append(button("＋ 任务", "portal-tools-secondary", "新增任务", () => openTaskDialog()));
-    actions.append(button("↻", "portal-tools-icon-button", "刷新数据", loadData));
-    header.append(actions);
-    return header;
+  function getGroupList(group) {
+    return group?.querySelector("ul");
   }
 
-  function renderCountdownSection() {
-    const section = element("section", "portal-tools-section");
-    const heading = element("div", "portal-tools-section-heading");
-    heading.append(element("h3", "portal-tools-section-title", "倒计时"));
-    heading.append(element("span", "portal-tools-count", `${state.countdowns.length} 项`));
-    section.append(heading);
-
-    if (!state.countdowns.length) {
-      section.append(element("p", "portal-tools-empty", "还没有倒计时"));
-      return section;
+  function getTemplate(group, templateId) {
+    if (!group) return null;
+    if (!group.portalToolsTemplate) {
+      const list = getGroupList(group);
+      const source = list?.querySelector("li.bookmark");
+      if (source) group.portalToolsTemplate = source.cloneNode(true);
     }
-
-    const grid = element("div", "portal-countdown-grid");
-    state.countdowns.forEach((item) => {
-      const card = element("article", "portal-countdown-card");
-      card.dataset.countdownId = item.id;
-
-      const cardHeader = element("div", "portal-countdown-card-header");
-      cardHeader.append(element("h4", "portal-countdown-label", item.label));
-      const cardActions = element("div", "portal-countdown-actions");
-      cardActions.append(button("✎", "portal-tools-icon-button", `编辑${item.label}`, () => openCountdownDialog(item)));
-      cardActions.append(button("×", "portal-tools-icon-button portal-tools-danger", `删除${item.label}`, () => deleteCountdown(item)));
-      cardHeader.append(cardActions);
-      card.append(cardHeader);
-
-      const number = element("div", "portal-countdown-number");
-      number.append(element("strong", "portal-countdown-days", String(daysUntil(item.target))));
-      number.append(element("span", "portal-countdown-unit", "天"));
-      card.append(number);
-
-      const target = element("time", "portal-countdown-target", `目标 ${formatTarget(item.target)}`);
-      target.dateTime = item.target;
-      card.append(target);
-      grid.append(card);
-    });
-    section.append(grid);
-    return section;
+    if (!group.portalToolsTemplate) return null;
+    const template = group.portalToolsTemplate.cloneNode(true);
+    template.id = templateId;
+    return template;
   }
 
-  function renderTaskSection() {
-    const section = element("section", "portal-tools-section portal-tasks-section");
-    const heading = element("div", "portal-tools-section-heading");
-    const pending = state.tasks.filter((item) => !item.done).length;
-    heading.append(element("h3", "portal-tools-section-title", "待办"));
-    heading.append(element("span", "portal-tools-count", `${pending} 项未完成`));
-    section.append(heading);
+  function setBookmarkText(card, name, description) {
+    const nameNode = card.querySelector(".bookmark-name");
+    const descriptionNode = card.querySelector(".bookmark-description");
+    if (nameNode) nameNode.textContent = name;
+    if (descriptionNode) descriptionNode.textContent = description;
+    card.dataset.name = name;
+  }
 
-    const quickAdd = element("form", "portal-task-quick-add");
-    const input = element("input", "portal-tools-input");
-    input.type = "text";
-    input.name = "title";
-    input.maxLength = 140;
-    input.placeholder = "记一件事...";
-    input.autocomplete = "off";
-    input.required = true;
-    const error = element("span", "portal-tools-inline-error");
-    const add = button("＋", "portal-tools-primary portal-tools-add-button", "添加任务");
-    quickAdd.append(input, add);
-    quickAdd.append(error);
-    quickAdd.addEventListener("submit", async (event) => {
+  function prepareAnchor(card, name, onActivate) {
+    const anchor = card.querySelector("a");
+    if (!anchor) return null;
+    anchor.href = "#";
+    anchor.removeAttribute("target");
+    anchor.title = name;
+    anchor.addEventListener("click", (event) => {
       event.preventDefault();
-      const title = input.value.trim();
-      if (!isPlainText(title, 140)) {
-        error.textContent = "请输入普通文字或 emoji";
-        return;
-      }
-      add.disabled = true;
-      error.textContent = "";
-      try {
-        await request("/tasks", { method: "POST", body: JSON.stringify({ title }) });
-        await loadData();
-      } catch (requestError) {
-        error.textContent = requestError.message;
-        add.disabled = false;
-      }
+      onActivate(event);
     });
-    section.append(quickAdd);
-
-    if (!state.tasks.length) {
-      section.append(element("p", "portal-tools-empty", "还没有待办"));
-      return section;
-    }
-
-    const list = element("div", "portal-task-list");
-    state.tasks.forEach((item) => {
-      const row = element("div", `portal-task-row${item.done ? " is-done" : ""}`);
-      row.dataset.taskId = item.id;
-      const taskLabel = element("label", "portal-task-label");
-      const checkbox = element("input", "portal-task-checkbox");
-      checkbox.type = "checkbox";
-      checkbox.checked = item.done;
-      checkbox.setAttribute("aria-label", `完成${item.title}`);
-      checkbox.addEventListener("change", () => updateTask(item.id, { done: checkbox.checked }));
-      taskLabel.append(checkbox, element("span", "portal-task-title", item.title));
-      row.append(taskLabel);
-
-      const actions = element("div", "portal-task-actions");
-      actions.append(button("✎", "portal-tools-icon-button", `编辑${item.title}`, () => openTaskDialog(item)));
-      actions.append(button("×", "portal-tools-icon-button portal-tools-danger", `删除${item.title}`, () => deleteTask(item)));
-      row.append(actions);
-      list.append(row);
-    });
-    section.append(list);
-    return section;
+    return anchor;
   }
 
-  function render() {
-    const target = ensureRoot();
-    if (!target) return;
-    target.replaceChildren(renderHeader());
+  function setIconText(card, text) {
+    const icon = card.querySelector(".bookmark-icon");
+    if (!icon) return;
+    icon.replaceChildren(element("span", "portal-bookmark-icon-text", text));
+  }
+
+  function buildAddCard(template, type) {
+    const card = template.cloneNode(true);
+    card.id = `portal-${type}-add`;
+    card.classList.add("portal-add-bookmark");
+    const label = type === "countdowns" ? "新增倒计时" : "新增任务";
+    setBookmarkText(card, label, "点击添加");
+    setIconText(card, "＋");
+    prepareAnchor(card, label, () => {
+      if (type === "countdowns") openCountdownDialog();
+      else openTaskDialog();
+    });
+    return card;
+  }
+
+  function buildStatusCard(template, message) {
+    const card = template.cloneNode(true);
+    card.id = "portal-tools-status";
+    card.classList.add("portal-tools-status-bookmark");
+    setBookmarkText(card, message, "请稍候");
+    prepareAnchor(card, message, () => loadData(true));
+    return card;
+  }
+
+  function buildCountdownCard(template, item) {
+    const card = template.cloneNode(true);
+    card.id = `portal-countdown-${item.id}`;
+    card.classList.add("portal-countdown-bookmark");
+    card.dataset.countdownId = item.id;
+    setBookmarkText(card, item.label, `还有 ${daysUntil(item.target)} 天`);
+    const anchor = prepareAnchor(card, item.label, () => openCountdownDialog(item));
+    if (anchor) anchor.title = `${item.label} · ${item.target}`;
+    return card;
+  }
+
+  function buildTaskCard(template, item) {
+    const card = template.cloneNode(true);
+    card.id = `portal-task-${item.id}`;
+    card.classList.add("portal-task-bookmark");
+    card.classList.toggle("portal-task-done", item.done);
+    card.dataset.taskId = item.id;
+    setBookmarkText(card, item.title, item.done ? "已完成" : "待办");
+
+    const anchor = card.querySelector("a");
+    const icon = card.querySelector(".bookmark-icon");
+    const checkbox = element("input", "portal-task-checkbox");
+    checkbox.type = "checkbox";
+    checkbox.checked = item.done;
+    checkbox.setAttribute("aria-label", `完成${item.title}`);
+    checkbox.addEventListener("click", (event) => event.stopPropagation());
+    checkbox.addEventListener("change", () => updateTask(item.id, { done: checkbox.checked }));
+    icon?.replaceChildren(checkbox);
+
+    if (anchor) {
+      anchor.href = "#";
+      anchor.removeAttribute("target");
+      anchor.title = item.title;
+      anchor.addEventListener("click", (event) => {
+        if (event.target === checkbox) return;
+        event.preventDefault();
+        openTaskDialog(item);
+      });
+    }
+    return card;
+  }
+
+  function renderGroup(type) {
+    const definition = groups[type];
+    const group = findGroup(definition.name);
+    const list = getGroupList(group);
+    const template = getTemplate(group, definition.templateId);
+    if (!group || !list || !template) return false;
+
+    const cards = [];
     if (state.loading) {
-      target.append(element("p", "portal-tools-state", "加载中..."));
-      return;
+      cards.push(buildStatusCard(template, "加载中..."));
+    } else if (state.error) {
+      cards.push(buildStatusCard(template, "暂时不可用"));
+    } else if (type === "countdowns") {
+      state.countdowns.forEach((item) => cards.push(buildCountdownCard(template, item)));
+    } else {
+      state.tasks.forEach((item) => cards.push(buildTaskCard(template, item)));
     }
-    if (state.error) {
-      const error = element("div", "portal-tools-state portal-tools-state-error");
-      error.append(element("p", "portal-tools-error-text", state.error));
-      error.append(button("重试", "portal-tools-secondary", "重试", loadData));
-      target.append(error);
-      return;
-    }
-    target.append(renderCountdownSection(), renderTaskSection());
+    cards.push(buildAddCard(template, type));
+    group.dataset.portalToolsGroup = type;
+    list.replaceChildren(...cards);
+    return true;
   }
 
-  async function loadData() {
-    if (!state.loaded) {
+  function renderGroups() {
+    renderGroup("countdowns");
+    renderGroup("tasks");
+  }
+
+  async function loadData(showLoading = false) {
+    if (showLoading) {
       state.loading = true;
-      render();
+      state.error = "";
+      renderGroups();
     }
-    state.error = "";
     try {
       const data = await request("");
       state.countdowns = Array.isArray(data.countdowns) ? data.countdowns : [];
       state.tasks = Array.isArray(data.tasks) ? data.tasks : [];
-      state.loaded = true;
+      state.error = "";
     } catch (requestError) {
       state.error = requestError.message;
     } finally {
       state.loading = false;
-      render();
+      renderGroups();
     }
   }
 
   function refreshCountdownValues() {
     state.countdowns.forEach((item) => {
-      const card = Array.from(document.querySelectorAll(".portal-countdown-card")).find(
+      const card = Array.from(document.querySelectorAll(".portal-countdown-bookmark")).find(
         (candidate) => candidate.dataset.countdownId === item.id,
       );
-      const days = card?.querySelector(".portal-countdown-days");
-      if (days) days.textContent = String(daysUntil(item.target));
+      const description = card?.querySelector(".bookmark-description");
+      if (description) description.textContent = `还有 ${daysUntil(item.target)} 天`;
     });
   }
 
@@ -289,12 +272,15 @@
     return wrapper;
   }
 
-  function formFooter(close, submitLabel) {
+  function formFooter(close, submitLabel, deleteHandler) {
     const footer = element("div", "portal-tools-form-footer");
-    footer.append(button("取消", "portal-tools-secondary", "取消", close));
+    if (deleteHandler) footer.append(button("删除", "portal-tools-danger-button", "删除", deleteHandler));
+    const actions = element("div", "portal-tools-form-actions");
+    actions.append(button("取消", "portal-tools-secondary", "取消", close));
     const submit = button(submitLabel, "portal-tools-primary", submitLabel);
     submit.type = "submit";
-    footer.append(submit);
+    actions.append(submit);
+    footer.append(actions);
     return { footer, submit };
   }
 
@@ -312,7 +298,16 @@
     dateInput.required = true;
     dateInput.value = item?.target || "";
     const error = element("p", "portal-tools-form-error");
-    const footerState = formFooter(dialogState.close, item ? "保存" : "添加");
+    const footerState = formFooter(
+      dialogState.close,
+      item ? "保存" : "添加",
+      item
+        ? () => {
+            dialogState.close();
+            deleteCountdown(item);
+          }
+        : null,
+    );
     form.append(field("名称", labelInput), field("日期", dateInput), error, footerState.footer);
     dialogState.dialog.append(form);
 
@@ -353,7 +348,16 @@
     titleInput.autocomplete = "off";
     titleInput.value = item?.title || "";
     const error = element("p", "portal-tools-form-error");
-    const footerState = formFooter(dialogState.close, item ? "保存" : "添加");
+    const footerState = formFooter(
+      dialogState.close,
+      item ? "保存" : "添加",
+      item
+        ? () => {
+            dialogState.close();
+            deleteTask(item);
+          }
+        : null,
+    );
     form.append(field("任务", titleInput), error, footerState.footer);
     dialogState.dialog.append(form);
 
@@ -389,7 +393,7 @@
       await loadData();
     } catch (requestError) {
       state.error = requestError.message;
-      render();
+      renderGroups();
     }
   }
 
@@ -400,7 +404,7 @@
       await loadData();
     } catch (requestError) {
       state.error = requestError.message;
-      render();
+      renderGroups();
     }
   }
 
@@ -411,18 +415,23 @@
       await loadData();
     } catch (requestError) {
       state.error = requestError.message;
-      render();
+      renderGroups();
     }
   }
 
+  function groupsNeedRender() {
+    return Object.entries(groups).some(([type, definition]) => {
+      const group = findGroup(definition.name);
+      return group && group.dataset.portalToolsGroup !== type;
+    });
+  }
+
   function start() {
-    render();
-    loadData();
+    renderGroups();
+    loadData(true);
     window.setInterval(refreshCountdownValues, 60000);
     new MutationObserver(() => {
-      const wasAttached = root?.isConnected;
-      const current = ensureRoot();
-      if (current && (!wasAttached || current.childElementCount === 0)) render();
+      if (groupsNeedRender()) renderGroups();
     }).observe(document.body, { childList: true, subtree: true });
   }
 

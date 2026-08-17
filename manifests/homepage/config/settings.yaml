@@ -13,6 +13,12 @@ quicklaunch:
   hideVisitURL: true
   provider: google
 layout:
+  倒计时:
+    style: row
+    columns: 5
+  待办:
+    style: row
+    columns: 2
   Developer:
     style: row
     columns: 5
