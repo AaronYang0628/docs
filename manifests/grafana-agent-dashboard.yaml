@@ -199,7 +199,7 @@ data:
           "gridPos": { "h": 8, "w": 8, "x": 0, "y": 20 },
           "targets": [
             {
-              "expr": "100 * sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\",status_code=\"Error\"}[5m])) / clamp_min(sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\"}[5m])), 0.000000001)",
+              "expr": "100 * sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\",status_code=\"STATUS_CODE_ERROR\"}[5m])) / clamp_min(sum(rate(ops_agent_calls_total{agent_project=\"ops-agent\"}[5m])), 0.000000001)",
               "legendFormat": "errors",
               "refId": "A"
             }
