@@ -24,6 +24,11 @@ data:
               icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/toutiao.png
               href: https://www.toutiao.com/
               description: Apple内幕推送
+        - Markdown:
+            - abbr: MD
+              icon: mdi-language-markdown
+              href: https://md.doocs.org/
+              description: markdown编辑器
     - Blog:
         - DEV-BLOG:
             - abbr: ay's dev blog
@@ -58,11 +63,11 @@ data:
             - abbr: ACR
               icon: docker-engine
               href: https://cr.console.aliyun.com/cn-hongkong/instance/dashboard
-        - DD-Dev:
+        - Dev:
             - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dingding.png
               href: https://open-dev.dingtalk.com/
               description: https://open-dev.dingtalk.com/
-        - DD-Admin:
+        - Admin:
             - icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dingding.png
               href: https://oa.dingtalk.com
               description: https://oa.dingtalk.com
