@@ -30,7 +30,7 @@ data:
               href: https://md.doocs.org/
               description: markdown编辑器
     - Blog:
-        - DEV-BLOG:
+        - BLOG:
             - abbr: ay's dev blog
               icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/dev_blog.png
               href: https://aaronyang0628.github.io/docs/

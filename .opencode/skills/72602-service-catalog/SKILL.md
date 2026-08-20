@@ -38,6 +38,7 @@ operations without loading the matching service skill first.
 | alidns-webhook | `alidns-webhook-72602-operations` | cert-manager namespace |
 | alloy | `alloy-72602-operations` | monitor namespace |
 | mihomo / Clash | `mihomo-72602-operations` | 72602-minipc |
+| squid | `squid-72602-operations` | ecs-99 (`47.110.67.161`) |
 | socat egress bridge | `socat-72602-operations` | 72602-minipc |
 | ECS reverse tunnels | `reverse-tunnel-72602-operations` | 72602-minipc |
 | WireGuard Web tunnel | `wireguard-72602-operations` | 72602-minipc and ECS |

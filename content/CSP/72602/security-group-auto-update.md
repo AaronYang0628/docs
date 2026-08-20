@@ -58,7 +58,16 @@ root-only 的 forced-command 助手负责 UFW 这一侧。
                                                                                                         下一次重试幂等
 ```
 
-公网 IP 探测使用 `curl -4` 并在 3 个固定 endpoint 间按顺序 fallback，每个 endpoint 内有限重试；返回内容必须通过 IPv4 校验才被采纳。脚本的副作用总是先记入 `journald`；只有「两个 consumer 都验证生效」才会推进持久状态。这样即使 IP 检测暂时稳定也不会被回写为成功的协调结果；即使 SG 已更新但 UFW 助手本次失败，旧 managed 规则也不会被误删，下一个 5 分钟周期再次尝试。
+公网 IP 探测使用 `curl -4`、有限重试和五个固定 endpoint：保留的
+`ifconfig.me`、`ip.sb`、`icanhazip.com`，以及现场验证通过的
+`ifconfig.co/ip`、`ipinfo.io/ip`。脚本会收集全部结果；至少两个 endpoint 返回
+相同的合法 IPv4 才会被采纳。单个结果或全失败都只写入 `journald`，不修改云
+安全组、不推进缓存，并记录各 endpoint 的阶段性错误或结果。
+
+探测失败使用持久的连续失败计数：达到三次才尝试一次
+`[ZJLAB] public IPv4 detection failed` 通知，失败期间不重复刷屏；quorum 恢复
+后只尝试一次恢复通知。通知失败不改变任务退出判断。成功 heartbeat 仍保持三天
+一次，失败计数与告警状态文件位于现有持久状态目录且权限为 `0600`。
 
 ## 受影响的端口
 
@@ -121,7 +130,7 @@ AccessKey 的实际路径。
 | `/etc/systemd/system/update-sg-ip.timer` | 72602 系统级 systemd timer（`OnBootSec=30`、`OnUnitActiveSec=5min`、`Persistent=true`）；唯一调度源 |
 | `/home/aaron/.config/systemd/user/update-sg-ip.service` | ZJLAB 用户级 systemd service |
 | `/home/aaron/.config/systemd/user/update-sg-ip.timer` | ZJLAB 用户级 systemd timer（`OnUnitActiveSec=5min`、`Persistent=true`，链接位于 `timers.target.wants`） |
-| `/home/aaron/.local/state/update-sg-ip/` | 持久状态目录：最近已知 IP、上一次「两端都已核实」的时间戳；文件 `0600`，仅属主可读写 |
+| `/home/aaron/.local/state/update-sg-ip/` | 持久状态目录：最近已知 IP、上一次「两端都已核实」的时间戳、连续探测失败计数与告警状态；状态文件 `0600`，仅属主可读写 |
 | `update-sg-ip.service` / `update-sg-ip.timer` 的 `journald` | 失败原因、API 退出码、是否推进状态等副作用日志 |
 | `/usr/local/sbin/72602-wireguard-ufw-reconcile` | ECS 上 root-only forced-command 助手；只接受来自专用受限 SSH key 的连接，仅调整 `51820/udp` UFW 规则（comment `wg 72602-minipc`），不开放 shell / port forwarding；源 IP 取自 ECS 上看到的实际 `SSH_CONNECTION` |
 | ECS 端的专用受限 SSH key | 路径与权限仅在运行时存在；本页面与版本控制都不复述绝对路径 |
@@ -163,9 +172,10 @@ ZJLAB live：
 - timer 调度与 72602 相同（`OnUnitActiveSec=5min`、`Persistent=true`）。
 - 脚本 `/home/aaron/bin/update-sg-ip.sh` 权限 `0755`；持久状态目录
   `/home/aaron/.local/state/update-sg-ip/`。
-- 脚本在本地 `systemd-analyze verify` 通过；本批次变更未修改 user unit 文件，
-  也未对其执行 `daemon-reload`。
-- **当前非交互 SSH 通道下无法确认 ZJLAB user manager 是否处于 active；不要把它写成已 active 的事实。**
+- 脚本通过 `bash -n`；两个 user unit 通过 `systemd-analyze verify`。本批次变更
+  未修改 user unit 文件，也未对其执行 `daemon-reload`。
+- 当前 user timer 为 `enabled`、`active (waiting)`，仍按五分钟调度；非交互 SSH
+  需要设置用户运行时目录后才能连接 user manager。
 
 ## 安全组规则 Description 归属（已核实）
 
@@ -349,6 +359,24 @@ ssh -i ~/.ssh/ecs-admin root@47.110.67.161
 该设计目前仅记录方案，尚未开放 gate 端口、创建 emergency key、创建 RAM 身份或部署授权器。
 
 ## Recent Operations
+
+### 2026-08-20: ZJLAB public IPv4 detection quorum and alert debounce
+
+- 通过批准的 `ssh zjlab` 路径修复了 ZJLAB 用户级 updater 的诊断和告警质量。
+  旧逻辑按 endpoint 顺序采纳首个成功结果；本次观测到既有 endpoint 在一段时间内
+  同时出现连接阶段 `curl 28` 超时，恢复后无需云端动作。
+- 保留 `ifconfig.me`、`ip.sb`、`icanhazip.com`，新增并现场验证
+  `ifconfig.co/ip`、`ipinfo.io/ip`。现在至少两个 endpoint 返回同一合法 IPv4
+  才会推进后续协调；单个或全失败不修改安全组、不推进缓存，并记录 endpoint
+  阶段性结果。
+- 持久失败计数在连续第三次失败时才尝试一次失败通知，恢复后只尝试一次恢复
+  通知；通知失败不改变任务退出判断。成功 heartbeat 仍为三天一次。
+- 未修改 Kubernetes、安全组、SSH 隧道、凭据、端口列表或 Description 逻辑。
+  脚本保持 `0755`；脚本与两个 user unit 的 `0600` 回滚备份保存在 ZJLAB 用户
+  的持久状态目录下，实际备份位置不在本页复述。
+- `bash -n`、两个 user unit 的 `systemd-analyze verify` 以及不触发云写 API 的
+  受控测试均通过，覆盖 quorum、单结果不足 quorum、全失败、三次失败单告警和
+  恢复单通知。
 
 ### 2026-08-16: unified 72602 dynamic-IP reconciliation deployed
 

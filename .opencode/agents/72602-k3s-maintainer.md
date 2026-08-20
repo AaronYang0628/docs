@@ -65,6 +65,7 @@ Load exactly one primary service skill for each operation. Related dependencies 
 | AliDNS webhook | `alidns-webhook-72602-operations` | `cert-manager` |
 | Alloy | `alloy-72602-operations` | `monitor` |
 | Clash/mihomo | `mihomo-72602-operations` | `72602-minipc` |
+| Squid forward proxy | `squid-72602-operations` | `ecs-99` |
 | socat egress bridge | `socat-72602-operations` | `72602-minipc` |
 | ECS reverse tunnels | `reverse-tunnel-72602-operations` | `72602-minipc` |
 | WireGuard Web tunnel | `wireguard-72602-operations` | `72602-minipc` / ECS |
