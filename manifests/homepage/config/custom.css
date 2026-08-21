@@ -152,8 +152,16 @@
   outline: 2px solid rgb(125 211 252 / 18%);
 }
 
-.portal-tools-input[type="date"] {
+.portal-tools-input[type="date"],
+.portal-tools-input[type="password"],
+select.portal-tools-input {
   color-scheme: dark;
+}
+
+.portal-tools-lunar-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
 .portal-tools-form-error {

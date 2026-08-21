@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Small public JSON API for Homepage's personal portal tools."""
 
+import base64
+import binascii
+import hashlib
+import hmac
+import ipaddress
 import json
 import os
 import re
@@ -22,8 +27,16 @@ MAX_COUNTDOWNS = 100
 MAX_TASKS = 200
 WRITE_LIMIT = 30
 WRITE_WINDOW_SECONDS = 60
+AUTH_LIMIT = 10
+AUTH_WINDOW_SECONDS = 60
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+LUNAR_DATE_RE = re.compile(r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|30)$")
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
+PASSWORD_HASH_RE = re.compile(
+    r"^pbkdf2_sha256\$(\d+)\$([A-Za-z0-9_-]+)\$([A-Za-z0-9_-]+)$"
+)
+ALLOWED_CALENDARS = {"gregorian", "lunar"}
+ALLOWED_ALLOWLIST_SOURCES = {"72602", "zjlab"}
 BIDI_CONTROLS = {
     0x061C,
     0x200E,
@@ -41,6 +54,36 @@ BIDI_CONTROLS = {
 
 rate_lock = threading.Lock()
 write_attempts = {}
+auth_attempts = {}
+
+
+def configured_password_hash():
+    return os.environ.get("PORTAL_DATA_PASSWORD_HASH", "").strip()
+
+
+def configured_sync_token():
+    return os.environ.get("PORTAL_DATA_SYNC_TOKEN", "")
+
+
+def verify_password(password):
+    if not isinstance(password, str) or not password:
+        return False
+    match = PASSWORD_HASH_RE.fullmatch(configured_password_hash())
+    if match is None:
+        return False
+    iterations, salt, expected = match.groups()
+    try:
+        iterations = int(iterations)
+        if iterations < 100_000 or iterations > 2_000_000:
+            return False
+        salt_bytes = base64.urlsafe_b64decode(f"{salt}===")
+        expected_bytes = base64.urlsafe_b64decode(f"{expected}===")
+    except (binascii.Error, ValueError, TypeError):
+        return False
+    derived = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt_bytes, iterations
+    )
+    return hmac.compare_digest(derived, expected_bytes)
 
 
 def now_iso():
@@ -71,6 +114,7 @@ def initialize_db():
                 id TEXT PRIMARY KEY,
                 label TEXT NOT NULL,
                 target TEXT NOT NULL,
+                calendar TEXT NOT NULL DEFAULT 'gregorian',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
@@ -78,11 +122,22 @@ def initialize_db():
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 done INTEGER NOT NULL DEFAULT 0,
+                due_date TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
             """
         )
+        countdown_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(countdowns)")
+        }
+        if "calendar" not in countdown_columns:
+            connection.execute(
+                "ALTER TABLE countdowns ADD COLUMN calendar TEXT NOT NULL DEFAULT 'gregorian'"
+            )
+        task_columns = {row[1] for row in connection.execute("PRAGMA table_info(tasks)")}
+        if "due_date" not in task_columns:
+            connection.execute("ALTER TABLE tasks ADD COLUMN due_date TEXT")
         seeded = connection.execute("SELECT value FROM meta WHERE key = 'seeded'").fetchone()
         if seeded is None:
             timestamp = now_iso()
@@ -102,6 +157,7 @@ def row_to_countdown(row):
         "id": row["id"],
         "label": row["label"],
         "target": row["target"],
+        "calendar": row["calendar"],
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
@@ -112,6 +168,7 @@ def row_to_task(row):
         "id": row["id"],
         "title": row["title"],
         "done": bool(row["done"]),
+        "dueDate": row["due_date"],
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
@@ -159,9 +216,30 @@ def validate_target(value):
         raise ValueError("target must be an ISO date such as 2043-10-19")
     try:
         date.fromisoformat(value)
-    except ValueError as error:
+    except (TypeError, ValueError) as error:
         raise ValueError("target is not a valid date") from error
     return value
+
+
+def validate_calendar(value):
+    if value not in ALLOWED_CALENDARS:
+        raise ValueError("calendar must be gregorian or lunar")
+    return value
+
+
+def validate_countdown_target(value, calendar):
+    calendar = validate_calendar(calendar)
+    if calendar == "lunar":
+        if not isinstance(value, str) or not LUNAR_DATE_RE.fullmatch(value):
+            raise ValueError("lunar target must be an MM-DD date")
+        return value
+    return validate_target(value)
+
+
+def validate_due_date(value):
+    if value is None or value == "":
+        return None
+    return validate_target(value)
 
 
 def new_id():
@@ -174,11 +252,49 @@ def validate_id(value):
     return value
 
 
+def validate_allowlist_source(value):
+    if value not in ALLOWED_ALLOWLIST_SOURCES:
+        raise ValueError("source must be 72602 or zjlab")
+    return value
+
+
+def validate_ipv4(value):
+    try:
+        address = ipaddress.ip_address(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError("ip must be a valid IPv4 address") from error
+    if address.version != 4:
+        raise ValueError("ip must be a valid IPv4 address")
+    return str(address)
+
+
 def request_ip(handler):
-    forwarded = handler.headers.get("X-Forwarded-For", "")
-    if forwarded:
-        return forwarded.split(",", 1)[0].strip()[:80]
-    return handler.headers.get("X-Real-IP", "")[:80] or handler.client_address[0]
+    real_ip = handler.headers.get("X-Real-IP", "").strip()
+    if real_ip:
+        return real_ip[:80]
+    return handler.client_address[0]
+
+
+def allowed_ips():
+    configured = {
+        value.strip()
+        for value in os.environ.get("PORTAL_DATA_ALLOWED_IPS", "").split(",")
+        if value.strip()
+    }
+    connection = connect_db()
+    try:
+        rows = connection.execute(
+            "SELECT key, value FROM meta WHERE key IN ('allowlist:72602', 'allowlist:zjlab')"
+        ).fetchall()
+        configured.update(row["value"] for row in rows if row["value"])
+    finally:
+        connection.close()
+    return configured
+
+
+def valid_sync_token(value):
+    token = configured_sync_token()
+    return bool(token) and isinstance(value, str) and hmac.compare_digest(value, token)
 
 
 def allow_write(ip):
@@ -192,6 +308,20 @@ def allow_write(ip):
         write_attempts[ip] = attempts
         if len(write_attempts) > 1000:
             write_attempts.clear()
+        return True
+
+
+def allow_auth_attempt(ip):
+    current = time.monotonic()
+    with rate_lock:
+        attempts = [stamp for stamp in auth_attempts.get(ip, []) if current - stamp < AUTH_WINDOW_SECONDS]
+        if len(attempts) >= AUTH_LIMIT:
+            auth_attempts[ip] = attempts
+            return False
+        attempts.append(current)
+        auth_attempts[ip] = attempts
+        if len(auth_attempts) > 1000:
+            auth_attempts.clear()
         return True
 
 
@@ -242,6 +372,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if not allow_write(request_ip(self)):
+            self.close_connection = True
             self.send_error_json(429, "too many writes", {"Retry-After": str(WRITE_WINDOW_SECONDS)})
             return
         try:
@@ -251,6 +382,8 @@ class PortalHandler(BaseHTTPRequestHandler):
                 self.create_countdown(payload)
             elif path == ["tasks"]:
                 self.create_task(payload)
+            elif path == ["allowlist"]:
+                self.update_allowlist(payload)
             else:
                 self.send_error_json(404, "not found")
         except ValueError as error:
@@ -259,7 +392,10 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_error_json(503, "storage temporarily unavailable")
 
     def do_PATCH(self):
+        if not self.require_write_auth():
+            return
         if not allow_write(request_ip(self)):
+            self.close_connection = True
             self.send_error_json(429, "too many writes", {"Retry-After": str(WRITE_WINDOW_SECONDS)})
             return
         try:
@@ -277,7 +413,10 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_error_json(503, "storage temporarily unavailable")
 
     def do_DELETE(self):
+        if not self.require_write_auth():
+            return
         if not allow_write(request_ip(self)):
+            self.close_connection = True
             self.send_error_json(429, "too many writes", {"Retry-After": str(WRITE_WINDOW_SECONDS)})
             return
         try:
@@ -320,17 +459,49 @@ class PortalHandler(BaseHTTPRequestHandler):
             raise ValueError("request body must be an object")
         return payload
 
+    def require_write_auth(self):
+        client_ip = request_ip(self)
+        if client_ip in allowed_ips():
+            return True
+        if not allow_auth_attempt(client_ip):
+            self.close_connection = True
+            self.send_error_json(
+                429,
+                "too many authentication attempts",
+                {"Retry-After": str(AUTH_WINDOW_SECONDS)},
+            )
+            return False
+        password = self.headers.get("X-Portal-Password", "")
+        if verify_password(password):
+            return True
+        self.close_connection = True
+        self.send_error_json(
+            401,
+            "password required unless the client IP is allowlisted",
+            {"WWW-Authenticate": "PortalPassword"},
+        )
+        return False
+
+    def require_sync_auth(self):
+        authorization = self.headers.get("Authorization", "")
+        token = authorization.removeprefix("Bearer ").strip()
+        if valid_sync_token(token):
+            return True
+        self.send_error_json(401, "sync authorization required")
+        return False
+
     def create_countdown(self, payload):
         label = validate_text(payload.get("label"), "label", 48)
-        target = validate_target(payload.get("target"))
+        calendar = validate_calendar(payload.get("calendar", "gregorian"))
+        target = validate_countdown_target(payload.get("target"), calendar)
         connection = connect_db()
         try:
             if connection.execute("SELECT COUNT(*) FROM countdowns").fetchone()[0] >= MAX_COUNTDOWNS:
                 raise ValueError("too many countdowns")
             timestamp = now_iso()
-            item = (new_id(), label, target, timestamp, timestamp)
+            item = (new_id(), label, target, calendar, timestamp, timestamp)
             connection.execute(
-                "INSERT INTO countdowns (id, label, target, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO countdowns (id, label, target, calendar, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
                 item,
             )
             connection.commit()
@@ -340,7 +511,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def update_countdown(self, item_id, payload):
         item_id = validate_id(item_id)
-        if "label" not in payload and "target" not in payload:
+        if not {"label", "target", "calendar"}.intersection(payload):
             raise ValueError("nothing to update")
         connection = connect_db()
         try:
@@ -349,11 +520,12 @@ class PortalHandler(BaseHTTPRequestHandler):
                 self.send_error_json(404, "countdown not found")
                 return
             label = validate_text(payload.get("label", current["label"]), "label", 48)
-            target = validate_target(payload.get("target", current["target"]))
+            calendar = validate_calendar(payload.get("calendar", current["calendar"]))
+            target = validate_countdown_target(payload.get("target", current["target"]), calendar)
             timestamp = now_iso()
             connection.execute(
-                "UPDATE countdowns SET label = ?, target = ?, updated_at = ? WHERE id = ?",
-                (label, target, timestamp, item_id),
+                "UPDATE countdowns SET label = ?, target = ?, calendar = ?, updated_at = ? WHERE id = ?",
+                (label, target, calendar, timestamp, item_id),
             )
             connection.commit()
             updated = connection.execute("SELECT * FROM countdowns WHERE id = ?", (item_id,)).fetchone()
@@ -363,14 +535,15 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def create_task(self, payload):
         title = validate_text(payload.get("title"), "title", 140)
+        due_date = validate_due_date(payload.get("dueDate"))
         connection = connect_db()
         try:
             if connection.execute("SELECT COUNT(*) FROM tasks").fetchone()[0] >= MAX_TASKS:
                 raise ValueError("too many tasks")
             timestamp = now_iso()
-            item = (new_id(), title, 0, timestamp, timestamp)
+            item = (new_id(), title, 0, due_date, timestamp, timestamp)
             connection.execute(
-                "INSERT INTO tasks (id, title, done, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO tasks (id, title, done, due_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
                 item,
             )
             connection.commit()
@@ -381,7 +554,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def update_task(self, item_id, payload):
         item_id = validate_id(item_id)
-        if "title" not in payload and "done" not in payload:
+        if not {"title", "done", "dueDate"}.intersection(payload):
             raise ValueError("nothing to update")
         connection = connect_db()
         try:
@@ -393,10 +566,11 @@ class PortalHandler(BaseHTTPRequestHandler):
             done = payload.get("done", bool(current["done"]))
             if not isinstance(done, bool):
                 raise ValueError("done must be boolean")
+            due_date = validate_due_date(payload.get("dueDate", current["due_date"]))
             timestamp = now_iso()
             connection.execute(
-                "UPDATE tasks SET title = ?, done = ?, updated_at = ? WHERE id = ?",
-                (title, int(done), timestamp, item_id),
+                "UPDATE tasks SET title = ?, done = ?, due_date = ?, updated_at = ? WHERE id = ?",
+                (title, int(done), due_date, timestamp, item_id),
             )
             connection.commit()
             updated = connection.execute("SELECT * FROM tasks WHERE id = ?", (item_id,)).fetchone()
@@ -416,6 +590,23 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_json(204, {})
         finally:
             connection.close()
+
+    def update_allowlist(self, payload):
+        if not self.require_sync_auth():
+            return
+        source = validate_allowlist_source(payload.get("source"))
+        ip = validate_ipv4(payload.get("ip"))
+        connection = connect_db()
+        try:
+            connection.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                (f"allowlist:{source}", ip),
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        self.send_json(200, {"source": source, "ip": ip})
 
 
 def main():

@@ -284,8 +284,16 @@ data:
       outline: 2px solid rgb(125 211 252 / 18%);
     }
 
-    .portal-tools-input[type="date"] {
+    .portal-tools-input[type="date"],
+    .portal-tools-input[type="password"],
+    select.portal-tools-input {
       color-scheme: dark;
+    }
+
+    .portal-tools-lunar-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
     }
 
     .portal-tools-form-error {
@@ -308,6 +316,26 @@ data:
       window.__portalToolsStarted = true;
 
       const API_BASE = "/api/portal-tools";
+      const DAY_MS = 86400000;
+      const SHANGHAI_TIME_ZONE = "Asia/Shanghai";
+      const gregorianFormatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: SHANGHAI_TIME_ZONE,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      });
+      let lunarFormatter = null;
+      try {
+        lunarFormatter = new Intl.DateTimeFormat("en-u-ca-chinese", {
+          timeZone: SHANGHAI_TIME_ZONE,
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        });
+      } catch (_error) {
+        // Older browsers can still show Gregorian countdowns and due dates.
+      }
+
       const groups = {
         countdowns: {
           name: "倒计时",
@@ -324,6 +352,7 @@ data:
         loading: true,
         error: "",
       };
+      let portalPassword = "";
 
       function element(tag, className, text) {
         const node = document.createElement(tag);
@@ -346,10 +375,103 @@ data:
         return !/[\u0000-\u001f\u007f-\u009f<>]/u.test(value);
       }
 
-      function daysUntil(target) {
-        const timestamp = new Date(`${target}T00:00:00+08:00`).getTime();
+      function formatterParts(formatter, value) {
+        if (!formatter) return null;
+        return formatter.formatToParts(value).reduce((parts, part) => {
+          if (["year", "month", "day"].includes(part.type)) parts[part.type] = part.value;
+          return parts;
+        }, {});
+      }
+
+      function gregorianParts(value) {
+        const parts = formatterParts(gregorianFormatter, value);
+        if (!parts?.year || !parts?.month || !parts?.day) return null;
+        return {
+          year: Number(parts.year),
+          month: Number(parts.month),
+          day: Number(parts.day),
+        };
+      }
+
+      function chinaMidnightTimestamp(parts) {
+        return Date.UTC(parts.year, parts.month - 1, parts.day) - 8 * 60 * 60 * 1000;
+      }
+
+      function daysUntilTimestamp(timestamp) {
         if (!Number.isFinite(timestamp)) return 0;
-        return Math.max(0, Math.ceil((timestamp - Date.now()) / 86400000));
+        return Math.max(0, Math.ceil((timestamp - Date.now()) / DAY_MS));
+      }
+
+      function daysUntilGregorian(target) {
+        if (!/^\d{4}-\d{2}-\d{2}$/u.test(target || "")) return 0;
+        const [year, month, day] = target.split("-").map(Number);
+        return daysUntilTimestamp(chinaMidnightTimestamp({ year, month, day }));
+      }
+
+      function daysUntilLunar(target) {
+        if (!lunarFormatter || !/^\d{2}-\d{2}$/u.test(target || "")) return 0;
+        const [targetMonth, targetDay] = target.split("-").map(Number);
+        const today = gregorianParts(new Date());
+        if (!today) return 0;
+
+        let cursor = Date.UTC(today.year, today.month - 1, today.day, 12);
+        for (let offset = 0; offset < 800; offset += 1) {
+          const candidate = new Date(cursor);
+          const lunar = formatterParts(lunarFormatter, candidate);
+          const lunarMonthValue = lunar?.month || "";
+          const lunarMonth = Number.parseInt(lunarMonthValue, 10);
+          const lunarDay = Number(lunar?.day);
+          const isLeapMonth = /bis/u.test(lunarMonthValue);
+          if (!isLeapMonth && lunarMonth === targetMonth && lunarDay === targetDay) {
+            return daysUntilTimestamp(
+              chinaMidnightTimestamp({
+                year: candidate.getUTCFullYear(),
+                month: candidate.getUTCMonth() + 1,
+                day: candidate.getUTCDate(),
+              }),
+            );
+          }
+          cursor += DAY_MS;
+        }
+        return 0;
+      }
+
+      function daysUntilCountdown(item) {
+        return item.calendar === "lunar"
+          ? daysUntilLunar(item.target)
+          : daysUntilGregorian(item.target);
+      }
+
+      function daysUntilDueDate(dueDate) {
+        return daysUntilGregorian(dueDate);
+      }
+
+      function countdownTargetLabel(item) {
+        if (item.calendar === "lunar") {
+          const [month, day] = item.target.split("-").map(Number);
+          return `农历 ${month}月${day}日（每年）`;
+        }
+        return `公历 ${item.target}`;
+      }
+
+      function taskDescription(item) {
+        if (!item.dueDate) return item.done ? "已完成" : "待办";
+        const remaining = daysUntilDueDate(item.dueDate);
+        const dueTimestamp = chinaMidnightTimestamp(
+          item.dueDate.split("-").reduce(
+            (parts, value, index) => {
+              parts[["year", "month", "day"][index]] = Number(value);
+              return parts;
+            },
+            {},
+          ),
+        );
+        const exactRemaining = Number.isFinite(dueTimestamp)
+          ? Math.ceil((dueTimestamp - Date.now()) / DAY_MS)
+          : remaining;
+        let text = exactRemaining < 0 ? `已逾期 ${Math.abs(exactRemaining)} 天` : exactRemaining === 0 ? "今天截止" : `还有 ${exactRemaining} 天`;
+        if (item.done) text = `已完成 · ${text}`;
+        return text;
       }
 
       async function request(path, options = {}) {
@@ -365,9 +487,31 @@ data:
         const response = await fetch(`${API_BASE}${path}`, requestOptions);
         const payload = response.status === 204 ? null : await response.json();
         if (!response.ok) {
-          throw new Error(payload?.error || `请求失败（${response.status}）`);
+          const error = new Error(payload?.error || `请求失败（${response.status}）`);
+          error.status = response.status;
+          throw error;
         }
         return payload;
+      }
+
+      async function requestProtected(path, options = {}) {
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          const headers = { ...(options.headers || {}) };
+          if (portalPassword) headers["X-Portal-Password"] = portalPassword;
+          try {
+            return await request(path, { ...options, headers });
+          } catch (requestError) {
+            lastError = requestError;
+            if (requestError.status !== 401) throw requestError;
+            portalPassword = "";
+            if (attempt === 2) break;
+            const password = await requestPassword();
+            if (!password) throw new Error("操作已取消");
+            portalPassword = password;
+          }
+        }
+        throw lastError || new Error("验证失败");
       }
 
       function findGroup(groupName) {
@@ -448,9 +592,9 @@ data:
         card.id = `portal-countdown-${item.id}`;
         card.classList.add("portal-countdown-bookmark");
         card.dataset.countdownId = item.id;
-        setBookmarkText(card, item.label, `还有 ${daysUntil(item.target)} 天`);
+        setBookmarkText(card, item.label, `还有 ${daysUntilCountdown(item)} 天`);
         const anchor = prepareAnchor(card, item.label, () => openCountdownDialog(item));
-        if (anchor) anchor.title = `${item.label} · ${item.target}`;
+        if (anchor) anchor.title = `${item.label} · ${countdownTargetLabel(item)}`;
         return card;
       }
 
@@ -460,7 +604,7 @@ data:
         card.classList.add("portal-task-bookmark");
         card.classList.toggle("portal-task-done", item.done);
         card.dataset.taskId = item.id;
-        setBookmarkText(card, item.title, item.done ? "已完成" : "待办");
+        setBookmarkText(card, item.title, taskDescription(item));
 
         const anchor = card.querySelector("a");
         const icon = card.querySelector(".bookmark-icon");
@@ -532,17 +676,24 @@ data:
         }
       }
 
-      function refreshCountdownValues() {
+      function refreshDynamicValues() {
         state.countdowns.forEach((item) => {
           const card = Array.from(document.querySelectorAll(".portal-countdown-bookmark")).find(
             (candidate) => candidate.dataset.countdownId === item.id,
           );
           const description = card?.querySelector(".bookmark-description");
-          if (description) description.textContent = `还有 ${daysUntil(item.target)} 天`;
+          if (description) description.textContent = `还有 ${daysUntilCountdown(item)} 天`;
+        });
+        state.tasks.forEach((item) => {
+          const card = Array.from(document.querySelectorAll(".portal-task-bookmark")).find(
+            (candidate) => candidate.dataset.taskId === item.id,
+          );
+          const description = card?.querySelector(".bookmark-description");
+          if (description) description.textContent = taskDescription(item);
         });
       }
 
-      function modal(title) {
+      function modal(title, onClose) {
         const overlay = element("div", "portal-tools-modal-overlay");
         const dialog = element("div", "portal-tools-modal");
         dialog.setAttribute("role", "dialog");
@@ -558,6 +709,7 @@ data:
         function close() {
           document.removeEventListener("keydown", onKeyDown);
           overlay.remove();
+          onClose?.();
         }
 
         function onKeyDown(event) {
@@ -589,6 +741,47 @@ data:
         return { footer, submit };
       }
 
+      function requestPassword() {
+        return new Promise((resolve) => {
+          let settled = false;
+          const dialogState = modal("验证密码", () => {
+            if (!settled) {
+              settled = true;
+              resolve("");
+            }
+          });
+          const form = element("form", "portal-tools-form");
+          const passwordInput = element("input", "portal-tools-input");
+          passwordInput.type = "password";
+          passwordInput.required = true;
+          passwordInput.autocomplete = "current-password";
+          const error = element("p", "portal-tools-form-error");
+          const footerState = formFooter(dialogState.close, "验证");
+          form.append(field("密码", passwordInput), error, footerState.footer);
+          dialogState.dialog.append(form);
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (!passwordInput.value) {
+              error.textContent = "请输入密码";
+              return;
+            }
+            settled = true;
+            dialogState.close();
+            resolve(passwordInput.value);
+          });
+          passwordInput.focus();
+        });
+      }
+
+      function lunarOptions(select, max, selected) {
+        for (let value = 1; value <= max; value += 1) {
+          const option = element("option", "", String(value));
+          option.value = String(value).padStart(2, "0");
+          option.selected = option.value === selected;
+          select.append(option);
+        }
+      }
+
       function openCountdownDialog(item) {
         const dialogState = modal(item ? "编辑倒计时" : "新增倒计时");
         const form = element("form", "portal-tools-form");
@@ -598,10 +791,25 @@ data:
         labelInput.required = true;
         labelInput.autocomplete = "off";
         labelInput.value = item?.label || "";
+
+        const calendarInput = element("select", "portal-tools-input");
+        const gregorianOption = element("option", "", "公历");
+        gregorianOption.value = "gregorian";
+        const lunarOption = element("option", "", "农历（每年循环）");
+        lunarOption.value = "lunar";
+        calendarInput.append(gregorianOption, lunarOption);
+        calendarInput.value = item?.calendar || "gregorian";
+
         const dateInput = element("input", "portal-tools-input");
         dateInput.type = "date";
-        dateInput.required = true;
-        dateInput.value = item?.target || "";
+        dateInput.value = item?.calendar === "lunar" ? "" : item?.target || "";
+        const lunarMonthInput = element("select", "portal-tools-input");
+        const lunarDayInput = element("select", "portal-tools-input");
+        const lunarTargetParts = item?.calendar === "lunar" ? item.target.split("-") : ["01", "01"];
+        lunarOptions(lunarMonthInput, 12, lunarTargetParts[0]);
+        lunarOptions(lunarDayInput, 30, lunarTargetParts[1]);
+        const lunarFields = element("div", "portal-tools-lunar-fields");
+        lunarFields.append(field("月", lunarMonthInput), field("日", lunarDayInput));
         const error = element("p", "portal-tools-form-error");
         const footerState = formFooter(
           dialogState.close,
@@ -613,18 +821,40 @@ data:
               }
             : null,
         );
-        form.append(field("名称", labelInput), field("日期", dateInput), error, footerState.footer);
+        const gregorianField = field("日期", dateInput);
+        const calendarField = field("日历", calendarInput);
+        form.append(field("名称", labelInput), calendarField, gregorianField, lunarFields, error, footerState.footer);
         dialogState.dialog.append(form);
+
+        function updateDateFields() {
+          const lunar = calendarInput.value === "lunar";
+          gregorianField.hidden = lunar;
+          lunarFields.hidden = !lunar;
+          dateInput.required = !lunar;
+          lunarMonthInput.required = lunar;
+          lunarDayInput.required = lunar;
+        }
+
+        calendarInput.addEventListener("change", updateDateFields);
+        updateDateFields();
 
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           const label = labelInput.value.trim();
+          const calendar = calendarInput.value;
+          const target = calendar === "lunar"
+            ? `${lunarMonthInput.value}-${lunarDayInput.value}`
+            : dateInput.value;
           if (!isPlainText(label, 48)) {
             error.textContent = "名称只能包含普通文字和 emoji";
             return;
           }
-          if (!/^\d{4}-\d{2}-\d{2}$/u.test(dateInput.value)) {
-            error.textContent = "请选择有效日期";
+          if (calendar === "gregorian" && !/^\d{4}-\d{2}-\d{2}$/u.test(target)) {
+            error.textContent = "请选择有效公历日期";
+            return;
+          }
+          if (calendar === "lunar" && !/^\d{2}-\d{2}$/u.test(target)) {
+            error.textContent = "请选择有效农历月日";
             return;
           }
           footerState.submit.disabled = true;
@@ -632,7 +862,9 @@ data:
           try {
             const path = item ? `/countdowns/${encodeURIComponent(item.id)}` : "/countdowns";
             const method = item ? "PATCH" : "POST";
-            await request(path, { method, body: JSON.stringify({ label, target: dateInput.value }) });
+            const requestOptions = { method, body: JSON.stringify({ label, target, calendar }) };
+            if (item) await requestProtected(path, requestOptions);
+            else await request(path, requestOptions);
             dialogState.close();
             await loadData();
           } catch (requestError) {
@@ -652,6 +884,9 @@ data:
         titleInput.required = true;
         titleInput.autocomplete = "off";
         titleInput.value = item?.title || "";
+        const dueDateInput = element("input", "portal-tools-input");
+        dueDateInput.type = "date";
+        dueDateInput.value = item?.dueDate || "";
         const error = element("p", "portal-tools-form-error");
         const footerState = formFooter(
           dialogState.close,
@@ -663,7 +898,7 @@ data:
               }
             : null,
         );
-        form.append(field("任务", titleInput), error, footerState.footer);
+        form.append(field("任务", titleInput), field("截止日期（可选）", dueDateInput), error, footerState.footer);
         dialogState.dialog.append(form);
 
         form.addEventListener("submit", async (event) => {
@@ -678,7 +913,12 @@ data:
           try {
             const path = item ? `/tasks/${encodeURIComponent(item.id)}` : "/tasks";
             const method = item ? "PATCH" : "POST";
-            await request(path, { method, body: JSON.stringify({ title }) });
+            const requestOptions = {
+              method,
+              body: JSON.stringify({ title, dueDate: dueDateInput.value || null }),
+            };
+            if (item) await requestProtected(path, requestOptions);
+            else await request(path, requestOptions);
             dialogState.close();
             await loadData();
           } catch (requestError) {
@@ -691,7 +931,7 @@ data:
 
       async function updateTask(id, changes) {
         try {
-          await request(`/tasks/${encodeURIComponent(id)}`, {
+          await requestProtected(`/tasks/${encodeURIComponent(id)}`, {
             method: "PATCH",
             body: JSON.stringify(changes),
           });
@@ -705,7 +945,7 @@ data:
       async function deleteCountdown(item) {
         if (!window.confirm(`删除“${item.label}”？`)) return;
         try {
-          await request(`/countdowns/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+          await requestProtected(`/countdowns/${encodeURIComponent(item.id)}`, { method: "DELETE" });
           await loadData();
         } catch (requestError) {
           state.error = requestError.message;
@@ -716,7 +956,7 @@ data:
       async function deleteTask(item) {
         if (!window.confirm(`删除“${item.title}”？`)) return;
         try {
-          await request(`/tasks/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+          await requestProtected(`/tasks/${encodeURIComponent(item.id)}`, { method: "DELETE" });
           await loadData();
         } catch (requestError) {
           state.error = requestError.message;
@@ -734,7 +974,7 @@ data:
       function start() {
         renderGroups();
         loadData(true);
-        window.setInterval(refreshCountdownValues, 60000);
+        window.setInterval(refreshDynamicValues, 60000);
         new MutationObserver(() => {
           if (groupsNeedRender()) renderGroups();
         }).observe(document.body, { childList: true, subtree: true });

@@ -17,7 +17,7 @@ spec:
       labels:
         app.kubernetes.io/name: portal-data
       annotations:
-        checksum/portal-data-config: "332ca83914aea3d8d888e3dd9d5933ada1f4142d6adc102ec239104a9155d44b"
+        checksum/portal-data-config: "5b56e3501cb72380378afc45a7cb4114e3d2bf8108078949e75d07bc250a5111"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -38,6 +38,18 @@ spec:
               value: "8080"
             - name: PORTAL_DATA_DB
               value: /data/portal.db
+            - name: PORTAL_DATA_PASSWORD_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: portal-data-auth
+                  key: password-hash
+                  optional: true
+            - name: PORTAL_DATA_SYNC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: portal-data-auth
+                  key: sync-token
+                  optional: true
           ports:
             - name: http
               containerPort: 8080
