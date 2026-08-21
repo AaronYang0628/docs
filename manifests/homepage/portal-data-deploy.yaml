@@ -17,7 +17,7 @@ spec:
       labels:
         app.kubernetes.io/name: portal-data
       annotations:
-        checksum/portal-data-config: "5b56e3501cb72380378afc45a7cb4114e3d2bf8108078949e75d07bc250a5111"
+        checksum/portal-data-config: "b6fbaed57e2327d99946aac858a00b6e74ebdde6b3f886a1a4dde3ed7adea577"
     spec:
       securityContext:
         runAsNonRoot: true

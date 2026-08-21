@@ -115,6 +115,7 @@ def initialize_db():
                 label TEXT NOT NULL,
                 target TEXT NOT NULL,
                 calendar TEXT NOT NULL DEFAULT 'gregorian',
+                recurring INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
@@ -134,6 +135,13 @@ def initialize_db():
         if "calendar" not in countdown_columns:
             connection.execute(
                 "ALTER TABLE countdowns ADD COLUMN calendar TEXT NOT NULL DEFAULT 'gregorian'"
+            )
+        if "recurring" not in countdown_columns:
+            connection.execute(
+                "ALTER TABLE countdowns ADD COLUMN recurring INTEGER NOT NULL DEFAULT 0"
+            )
+            connection.execute(
+                "UPDATE countdowns SET recurring = 1 WHERE calendar = 'lunar'"
             )
         task_columns = {row[1] for row in connection.execute("PRAGMA table_info(tasks)")}
         if "due_date" not in task_columns:
@@ -158,6 +166,7 @@ def row_to_countdown(row):
         "label": row["label"],
         "target": row["target"],
         "calendar": row["calendar"],
+        "recurring": bool(row["recurring"]),
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
@@ -234,6 +243,14 @@ def validate_countdown_target(value, calendar):
             raise ValueError("lunar target must be an MM-DD date")
         return value
     return validate_target(value)
+
+
+def validate_recurring(value, calendar):
+    if not isinstance(value, bool):
+        raise ValueError("recurring must be boolean")
+    if calendar == "gregorian" and value:
+        raise ValueError("gregorian countdowns cannot recur")
+    return value
 
 
 def validate_due_date(value):
@@ -494,14 +511,17 @@ class PortalHandler(BaseHTTPRequestHandler):
         label = validate_text(payload.get("label"), "label", 48)
         calendar = validate_calendar(payload.get("calendar", "gregorian"))
         target = validate_countdown_target(payload.get("target"), calendar)
+        recurring = validate_recurring(
+            payload.get("recurring", calendar == "lunar"), calendar
+        )
         connection = connect_db()
         try:
             if connection.execute("SELECT COUNT(*) FROM countdowns").fetchone()[0] >= MAX_COUNTDOWNS:
                 raise ValueError("too many countdowns")
             timestamp = now_iso()
-            item = (new_id(), label, target, calendar, timestamp, timestamp)
+            item = (new_id(), label, target, calendar, int(recurring), timestamp, timestamp)
             connection.execute(
-                "INSERT INTO countdowns (id, label, target, calendar, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO countdowns (id, label, target, calendar, recurring, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 item,
             )
             connection.commit()
@@ -511,7 +531,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def update_countdown(self, item_id, payload):
         item_id = validate_id(item_id)
-        if not {"label", "target", "calendar"}.intersection(payload):
+        if not {"label", "target", "calendar", "recurring"}.intersection(payload):
             raise ValueError("nothing to update")
         connection = connect_db()
         try:
@@ -522,10 +542,12 @@ class PortalHandler(BaseHTTPRequestHandler):
             label = validate_text(payload.get("label", current["label"]), "label", 48)
             calendar = validate_calendar(payload.get("calendar", current["calendar"]))
             target = validate_countdown_target(payload.get("target", current["target"]), calendar)
+            default_recurring = calendar == "lunar" if "calendar" in payload else bool(current["recurring"])
+            recurring = validate_recurring(payload.get("recurring", default_recurring), calendar)
             timestamp = now_iso()
             connection.execute(
-                "UPDATE countdowns SET label = ?, target = ?, calendar = ?, updated_at = ? WHERE id = ?",
-                (label, target, calendar, timestamp, item_id),
+                "UPDATE countdowns SET label = ?, target = ?, calendar = ?, recurring = ?, updated_at = ? WHERE id = ?",
+                (label, target, calendar, int(recurring), timestamp, item_id),
             )
             connection.commit()
             updated = connection.execute("SELECT * FROM countdowns WHERE id = ?", (item_id,)).fetchone()

@@ -77,6 +77,7 @@ class PortalDataTests(unittest.TestCase):
         countdown = next(item for item in data["countdowns"] if item["id"] == "legacy-id")
         task = next(item for item in data["tasks"] if item["id"] == "legacy-task")
         self.assertEqual(countdown["calendar"], "gregorian")
+        self.assertFalse(countdown["recurring"])
         self.assertIsNone(task["dueDate"])
 
     def test_calendar_and_due_date_validation(self):
@@ -88,6 +89,10 @@ class PortalDataTests(unittest.TestCase):
             self.app.validate_countdown_target("13-01", "lunar")
         with self.assertRaises(ValueError):
             self.app.validate_due_date("2026-02-30")
+        self.assertTrue(self.app.validate_recurring(True, "lunar"))
+        self.assertFalse(self.app.validate_recurring(False, "gregorian"))
+        with self.assertRaises(ValueError):
+            self.app.validate_recurring(True, "gregorian")
 
     def test_password_verification(self):
         self.assertTrue(self.app.verify_password("correct horse"))
@@ -120,6 +125,32 @@ class PortalDataTests(unittest.TestCase):
                 {"X-Portal-Password": "correct horse"},
             )
             self.assertEqual(status, 200)
+
+            status, lunar = self.call(base_url + "/countdowns", "POST", {
+                "label": "农历测试",
+                "target": "08-15",
+                "calendar": "lunar",
+                "recurring": False,
+            })
+            self.assertEqual(status, 201)
+            self.assertFalse(lunar["countdown"]["recurring"])
+
+            status, updated_lunar = self.call(
+                base_url + f"/countdowns/{lunar['countdown']['id']}",
+                "PATCH",
+                {"recurring": True},
+                {"X-Portal-Password": "correct horse"},
+            )
+            self.assertEqual(status, 200)
+            self.assertTrue(updated_lunar["countdown"]["recurring"])
+
+            status, _ = self.call(base_url + "/countdowns", "POST", {
+                "label": "错误循环",
+                "target": "2043-10-19",
+                "calendar": "gregorian",
+                "recurring": True,
+            })
+            self.assertEqual(status, 400)
 
             status, _ = self.call(
                 base_url + "/allowlist",

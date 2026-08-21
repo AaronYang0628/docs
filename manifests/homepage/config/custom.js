@@ -65,7 +65,9 @@
   function formatterParts(formatter, value) {
     if (!formatter) return null;
     return formatter.formatToParts(value).reduce((parts, part) => {
-      if (["year", "month", "day"].includes(part.type)) parts[part.type] = part.value;
+      if (["year", "month", "day", "relatedYear"].includes(part.type)) {
+        parts[part.type] = part.value;
+      }
       return parts;
     }, {});
   }
@@ -95,11 +97,13 @@
     return daysUntilTimestamp(chinaMidnightTimestamp({ year, month, day }));
   }
 
-  function daysUntilLunar(target) {
+  function daysUntilLunar(target, recurring) {
     if (!lunarFormatter || !/^\d{2}-\d{2}$/u.test(target || "")) return 0;
     const [targetMonth, targetDay] = target.split("-").map(Number);
     const today = gregorianParts(new Date());
     if (!today) return 0;
+    const currentLunar = formatterParts(lunarFormatter, new Date());
+    const currentLunarYear = Number(currentLunar?.relatedYear || "");
 
     let cursor = Date.UTC(today.year, today.month - 1, today.day, 12);
     for (let offset = 0; offset < 800; offset += 1) {
@@ -109,6 +113,10 @@
       const lunarMonth = Number.parseInt(lunarMonthValue, 10);
       const lunarDay = Number(lunar?.day);
       const isLeapMonth = /bis/u.test(lunarMonthValue);
+      const candidateLunarYear = Number(lunar?.relatedYear || "");
+      if (!recurring && currentLunarYear && candidateLunarYear !== currentLunarYear) {
+        return 0;
+      }
       if (!isLeapMonth && lunarMonth === targetMonth && lunarDay === targetDay) {
         return daysUntilTimestamp(
           chinaMidnightTimestamp({
@@ -125,7 +133,7 @@
 
   function daysUntilCountdown(item) {
     return item.calendar === "lunar"
-      ? daysUntilLunar(item.target)
+      ? daysUntilLunar(item.target, item.recurring)
       : daysUntilGregorian(item.target);
   }
 
@@ -136,7 +144,7 @@
   function countdownTargetLabel(item) {
     if (item.calendar === "lunar") {
       const [month, day] = item.target.split("-").map(Number);
-      return `农历 ${month}月${day}日（每年）`;
+      return `农历 ${month}月${day}日${item.recurring ? "（每年）" : "（今年）"}`;
     }
     return `公历 ${item.target}`;
   }
@@ -480,12 +488,15 @@
     labelInput.value = item?.label || "";
 
     const calendarInput = element("select", "portal-tools-input");
-    const gregorianOption = element("option", "", "公历");
+    const gregorianOption = element("option", "", "公历（不循环）");
     gregorianOption.value = "gregorian";
-    const lunarOption = element("option", "", "农历（每年循环）");
+    const lunarOption = element("option", "", "农历");
     lunarOption.value = "lunar";
     calendarInput.append(gregorianOption, lunarOption);
     calendarInput.value = item?.calendar || "gregorian";
+    const recurringInput = element("input", "portal-tools-checkbox");
+    recurringInput.type = "checkbox";
+    recurringInput.checked = item?.recurring ?? calendarInput.value === "lunar";
 
     const dateInput = element("input", "portal-tools-input");
     dateInput.type = "date";
@@ -510,16 +521,27 @@
     );
     const gregorianField = field("日期", dateInput);
     const calendarField = field("日历", calendarInput);
-    form.append(field("名称", labelInput), calendarField, gregorianField, lunarFields, error, footerState.footer);
+    const recurringField = field("每年循环", recurringInput);
+    form.append(
+      field("名称", labelInput),
+      calendarField,
+      gregorianField,
+      lunarFields,
+      recurringField,
+      error,
+      footerState.footer,
+    );
     dialogState.dialog.append(form);
 
     function updateDateFields() {
       const lunar = calendarInput.value === "lunar";
       gregorianField.hidden = lunar;
       lunarFields.hidden = !lunar;
+      recurringField.hidden = !lunar;
       dateInput.required = !lunar;
       lunarMonthInput.required = lunar;
       lunarDayInput.required = lunar;
+      recurringInput.disabled = !lunar;
     }
 
     calendarInput.addEventListener("change", updateDateFields);
@@ -549,7 +571,15 @@
       try {
         const path = item ? `/countdowns/${encodeURIComponent(item.id)}` : "/countdowns";
         const method = item ? "PATCH" : "POST";
-        const requestOptions = { method, body: JSON.stringify({ label, target, calendar }) };
+        const requestOptions = {
+          method,
+          body: JSON.stringify({
+            label,
+            target,
+            calendar,
+            recurring: calendar === "lunar" && recurringInput.checked,
+          }),
+        };
         if (item) await requestProtected(path, requestOptions);
         else await request(path, requestOptions);
         dialogState.close();
