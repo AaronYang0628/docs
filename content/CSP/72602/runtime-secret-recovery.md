@@ -3,9 +3,13 @@ title = "Runtime Secret Recovery"
 weight = 4
 +++
 
-This runbook recovers a small, approved whitelist of missing runtime Secrets
-from a pre-incident k3s etcd snapshot. It does not restore the production
-cluster, databases, PVC contents, or application data.
+This runbook documents the narrowly scoped 2026-08-02 recovery of a small,
+approved whitelist of missing runtime Secrets from a pre-incident k3s etcd
+snapshot. It does not restore the production cluster, databases, PVC contents,
+or application data. Do not reuse the old snapshot or whitelist as a generic
+current recovery recipe: later deployments added dependencies such as
+`sub2api-mcp`, and any future recovery must use a newly approved snapshot and
+an explicitly reviewed object list.
 
 ## Safety boundary
 
@@ -49,6 +53,9 @@ sub2api-redis
 ```
 
 `filing-site-upload-auth` and `72602.space-tls` were explicitly excluded.
+The list is historical. In particular, do not silently append newly created
+Secrets such as `sub2api-mcp` to this old snapshot procedure; validate each
+dependency against the selected snapshot and obtain approval for a new list.
 
 ## Preflight
 
@@ -407,14 +414,14 @@ Verify public routing, DNS, and TLS:
 
 ```bash
 getent ahostsv4 ops.agent.72602.space
-getent ahostsv4 sub2api.72602.space
-kubectl -n application get ingress ops-agent sub2api -o wide
+getent ahostsv4 token.72602.space
+kubectl -n application get ingress ops-agent sub2api-token -o wide
 kubectl -n application get certificate \
-  ops.agent.72602.space-tls sub2api.72602.space-tls
+  ops.agent.72602.space-tls token.72602.space-tls
 curl -fsS -o /dev/null -w '%{http_code}\n' \
-  https://sub2api.72602.space/health
+  https://token.72602.space/health
 curl -fsS -o /dev/null -w '%{http_code}\n' \
-  https://sub2api.72602.space/api/v1/settings/public
+  https://token.72602.space/api/v1/settings/public
 curl -sS -o /dev/null -w '%{http_code}\n' \
   https://ops.agent.72602.space/
 ```

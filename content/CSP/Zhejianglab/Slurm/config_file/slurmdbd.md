@@ -26,7 +26,8 @@ PidFile=/var/run/slurmdbd.pid
 #
 # Database info
 StorageType=accounting_storage/mysql
-StoragePass=3hCTMCtUdIRLqywX
+# Inject the database password from the private inventory at deployment time.
+StoragePass=<database-password-from-private-inventory>
 StorageUser=slurm 
 StorageLoc=slurm_acct_db
 ```

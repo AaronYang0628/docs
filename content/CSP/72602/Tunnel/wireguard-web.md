@@ -13,13 +13,18 @@ cert-manager 管理；ECS 不复制证书，不启用 PROXY protocol，也不终
 ```text
 Internet TCP 80/443
   -> ECS HAProxy
-  -> primary: WireGuard 10.77.0.1 <-> 10.77.0.2 over UDP 51820
-  -> backup: SSH loopback 127.0.0.1:18080/18443
-  -> minipc TCP 32080/32443
-  -> ingress-nginx
+       -> primary: WireGuard 10.77.0.1 <-> 10.77.0.2 over UDP 51820
+                    -> minipc TCP 32080/32443 -> ingress-nginx
+       -> backup:  ECS-loopback SSH Web path 127.0.0.1:18080/18443
+                    -> minipc TCP 32080/32443 -> ingress-nginx
 ```
 
-## Live Configuration
+The WireGuard and SSH Web paths are alternative HAProxy backends, not a
+serial chain. The SSH Web fallback is an independent ECS-loopback service;
+its host-local unit and credentials are kept in private host state/
+`ops-private`, not reproduced in this repository.
+
+## Reference Configuration (verify live state; audit snapshot 2026-08-13)
 
 | Item | ECS | 72602-minipc |
 |---|---|---|
@@ -28,7 +33,7 @@ Internet TCP 80/443
 | Config | `/etc/wireguard/wg0.conf` | `/etc/wireguard/wg0.conf` |
 | Public UDP | listens on `51820` | initiates to ECS with keepalive |
 | Web role | HAProxy `80/443` | ingress NodePort `32080/32443` |
-| SSH Web backup | loopback `18080/18443` | independent autossh user service |
+| SSH Web backup | ECS loopback `18080/18443` | independent fallback service (private host state) |
 
 Both WireGuard configs and private keys are root-only mode `0600`. Never print,
 copy, commit, or place private keys in a ticket. Public keys are identifiers but
@@ -38,8 +43,11 @@ do not need to be published in this handbook.
 
 - The Aliyun security group and ECS UFW permit UDP `51820` only from the current
   72602 public IPv4 `/32`.
-- `/home/aaron/bin/update-sg-ip.sh` updates UDP `51820` together with TCP
-  `22`, `10021`, and `10022` when the home public IP changes.
+- On `72602-minipc`, the live `/home/aaron/bin/update-sg-ip.sh` reconciles TCP
+  `22`, `10021`, `10022`, and UDP `51820`. The ZJLAB copy and the repository
+  template currently reconcile TCP only; do not replace the 72602 live script
+  with either copy. Verify the live rule against the current 72602 egress IP
+  before troubleshooting.
 - minipc UFW allows the WireGuard subnet to reach only TCP `32080` and `32443`.
 - Do not expose `32080/32443` through the Aliyun security group.
 
@@ -76,10 +84,12 @@ The WireGuard handshake alone is not sufficient. A valid handshake with a
 failed NodePort or HAProxy backend still breaks Web traffic, so monitor both the
 public HTTPS URL and the direct ECS-to-NodePort path.
 
-ECS runs `/opt/tunnel-monitor/tunnel-healthcheck.sh` every minute. It checks the
-HAProxy frontend, WireGuard primary, SSH Web backup, SSH rescue listeners, and
-Mail public/loopback ports. DingTalk receives a message only when the state
-changes:
+The ECS host-local Web/tunnel monitor (private runtime configuration; verify it
+live before relying on its path or unit name) checks the HAProxy frontend,
+WireGuard primary, SSH Web backup, 72602 SSH listeners, and Mail
+public/loopback ports. DingTalk receives a message only when the state changes.
+The ZJLAB `10023/10024` check-only monitor is independent and is not managed by
+this Web monitor:
 
 - `PRIMARY`: WireGuard serves Web and the SSH backup is ready.
 - `BACKUP`: WireGuard failed and HAProxy automatically uses SSH.
@@ -104,33 +114,37 @@ If public Web fails, inspect in this order:
 5. The Aliyun security group and ECS UFW still allow UDP `51820` from the current home public IP.
 
 Do not restart `reverse-tunnel-ecs-10021.service` during Web troubleshooting;
-it is the independent rescue path from ZJLAB. Do not enable PROXY protocol on
-HAProxy unless ingress-nginx is changed in the same reviewed operation.
+it is the independent 72602 SSH access/rescue path. Keep the 72602 primary and
+backup SSH services operationally separate, and do not touch the ZJLAB
+system-level `10023/10024` path from this runbook. Do not enable PROXY protocol
+on HAProxy unless ingress-nginx is changed in the same reviewed operation.
 
 ## Automatic Failover
 
 HAProxy marks WireGuard as the primary backend and the independent SSH loopback
 path as `backup`. Checks run every two seconds with `fall 2` and `rise 2`.
-Controlled tests measured automatic failover in approximately 8-9 seconds and
-automatic return to WireGuard after recovery. Existing connections may fail and
-must reconnect; new connections use the healthy path.
+The dated controlled test record measured automatic failover in approximately
+8-9 seconds and automatic return to WireGuard after recovery. Treat that as a
+test observation, not an SLO; existing connections may fail and must reconnect,
+while new connections use the healthy path.
 
-The SSH Web backup service is
-`reverse-tunnel-ecs-web-backup.service`. It must remain independent from
-`10021` (rescue) and `10022` (SSH + Mailu). Never bind its `18080/18443`
-listeners publicly; they are ECS loopback-only.
+The approved SSH Web backup service is referenced as
+`reverse-tunnel-ecs-web-backup.service` in private host state. It must remain
+independent from `10021` (72602 SSH) and `10022` (SSH + Mailu). Never bind its
+`18080/18443` listeners publicly; they are ECS loopback-only.
 
-## Emergency Web Rollback
+## Emergency Web Rollback (historical pre-migration path)
 
 Use this only when WireGuard cannot be restored promptly and the independent
-`10021` SSH rescue path has been authenticated first.
+`10021` 72602 SSH access path has been authenticated first. This is not the
+ZJLAB `10023/10024` ProxyJump path.
 
 1. Keep `10021` authenticated and do not stop Mail HAProxy frontends.
 2. Restore the saved HAProxy configuration or the independent SSH Web backup
    service from `ops-private`; validate with `haproxy -c` before reload.
 3. If HAProxy itself cannot be restored, only then remove the Web frontends and
    restore the pre-migration `10022` unit containing `-R 80` and `-R 443`.
-4. Confirm listener ownership, both SSH rescue entries, Mail loopbacks, and
+4. Confirm listener ownership, both 72602 SSH entries, Mail loopbacks, and
    strict public TLS.
 
 Do not delete WireGuard keys, uninstall packages, change DNS, or alter

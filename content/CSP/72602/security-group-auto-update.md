@@ -17,7 +17,10 @@ weight = 5
 
 定时检测公网 IP，变化时自动更新阿里云安全组规则。
 
-所有阿里云安全组和 AliDNS 操作统一从 `72602-minipc` 执行。
+`72602-minipc` 是本页安全组与 AliDNS 维护的主执行入口。ZJLAB 上另有一套
+独立的用户级 updater，只维护 ZJLAB 出口来源的安全组白名单；两套脚本的端口
+集合、部署层级和运行时配置不同，不能互相覆盖。安全组的端口角色由 ECS
+隧道拓扑决定，脚本只维护已登记出口 IP 的来源白名单，不改变端口归属。
 
 ## 工作原理
 
@@ -47,16 +50,16 @@ weight = 5
 
 | 端口 | 用途 |
 |------|------|
-| 22 | ECS SSH 直接连接、反向隧道 |
-| 10021 | 预留 |
-| 10022 | SSH 反向隧道（72602-minipc 入口） |
+| 22 | ECS SSH 管理连接，以及两个环境建立反向隧道时使用的 ECS sshd 入口 |
+| 10021 | 72602-minipc 主 SSH 反向隧道（公网、来源受限） |
+| 10022 | 72602-minipc 备 SSH 反向隧道；同时承载 Mailu loopback forwards（公网、来源受限） |
 | 51820/UDP | WireGuard Web 数据通道（仅允许当前 72602 公网出口 IP） |
 
 ## 文件位置
 
 | 文件 | 说明 |
 |------|------|
-| `/home/aaron/bin/update-sg-ip.sh` | 主脚本（`0755`，仅属主可写） |
+| `/home/aaron/bin/update-sg-ip.sh` | 各主机的运行时脚本（`0755`，仅属主可写；端口集合按主机区分） |
 | `/home/aaron/.aliyun-keys` | 阿里云 AccessKey（`0600`，仅属主可读写） |
 | `/etc/systemd/system/update-sg-ip.service` | 72602 系统级 systemd service（`User=aaron`） |
 | `/etc/systemd/system/update-sg-ip.timer` | 72602 系统级 systemd timer（`OnBootSec=30`、`OnUnitActiveSec=5min`、`Persistent=true`） |
@@ -67,9 +70,11 @@ weight = 5
 
 `/tmp` 下不再保留持久状态；断电或重启后历史只在持久目录里。
 
-## Live 部署快照（已核实事实）
+## Live 部署快照（已核实事实；2026-08-13 审计，动态状态需 live verify）
 
-72602 live：
+72602 live：系统级 updater 当前维护 TCP `22`、`10021`、`10022` 以及
+WireGuard UDP `51820`。这段端口集合以 `72602-minipc` 上的 live 脚本为准，
+不要用 ZJLAB 或仓库模板直接覆盖：
 
 - `update-sg-ip.service` 与 `update-sg-ip.timer` 已部署在
   `/etc/systemd/system/`；`User=aaron`。
@@ -78,6 +83,11 @@ weight = 5
   `active (waiting)`；手动运行 `update-sg-ip.service` 一次成功。
 - 脚本 `/home/aaron/bin/update-sg-ip.sh` 权限 `0755`；持久状态目录
   `/home/aaron/.local/state/update-sg-ip/`。
+
+ZJLAB 与仓库模板：ZJLAB 上的同名用户级 updater，以及本仓库私有模板，当前
+只维护 TCP `22`、`10021`、`10022`，不维护 UDP `51820`。两套脚本虽然文件名
+相同，但端口集合、部署层级和运行时凭据来源不同；同步或恢复前必须按目标主机
+逐项审阅，不能互相替换。
 
 ZJLAB live：
 
@@ -98,13 +108,13 @@ ZJLAB live：
 
 | 脚本 | Description | 负责的协议/端口 |
 |------|-------------|-----------------|
-| `update-sg-ip-72602-minipc` | `update-sg-ip-72602-minipc` | 72602-minipc 当前自动更新的 TCP `22` / `10021` / `10022` 与 UDP `51820` |
-| `update-sg-ip-zjlab` | `update-sg-ip-zjlab` | ZJLAB SSH / 反向隧道来源的 TCP `10021` / `10022` |
+| `update-sg-ip-72602-minipc` | `update-sg-ip-72602-minipc` | 72602-minipc live updater 自动更新 TCP `22` / `10021` / `10022` 和 UDP `51820` |
+| `update-sg-ip-zjlab` | `update-sg-ip-zjlab` | ZJLAB 出口来源的 TCP `22` / `10021` / `10022` 白名单；ZJLAB 的 `10023` / `10024` 仍为 ECS loopback-only listener，不应有公网规则 |
 
 迁移与兼容要点（已核实）：
 
 - 旧的 `zjlab-ubuntu-SSH` 目标规则当前已迁移为新 Description（`update-sg-ip-zjlab`），新写入按新 Description 归属。
-- 此前遗留的 8 条 `auto-updated-ip` 规则已经逐条审计并清理：无法证明仍在使用的历史来源已删除；仍有连接证据的 72602/ZJLAB 来源规则改为对应的新 Description；仅绑定 ECS loopback 的 `10023` / `10024` 规则也已删除。当前 live 安全组中 `auto-updated-ip` 为 0 条。
+- 此前遗留的 8 条 `auto-updated-ip` 规则已经逐条审计并清理：无法证明仍在使用的历史来源已删除；仍有连接证据的 72602/ZJLAB 来源规则改为对应的新 Description；仅绑定 ECS loopback 的 `10023` / `10024` 规则也已删除。当前 live 安全组中 `auto-updated-ip` 为 0 条。当前 `10023` / `10024` 不属于公网访问面。
 - 72602 live 脚本后续新增规则统一使用新 Description 写入，再按 Description 归属做替换与去重。
 
 排障/审计提示：
@@ -123,7 +133,7 @@ ZJLAB live：
 
 - 官方 AliDNS SDK 使用独立虚拟环境 `/home/aaron/.local/venvs/alidns`。
 - SDK 或依赖需要下载时，使用 HTTP 代理 `http://192.168.0.25:17890`。
-- 当前凭证具备 `72602.online` 区域的 AliDNS 记录管理能力，也具备 ECS 安全组变更能力。
+- 当前凭证具备 `72602.space` 区域的 AliDNS 记录管理能力，也具备 ECS 安全组变更能力。
 - DNS 变更前应限定目标区域和记录，并在变更后分别执行权威 DNS 与公共 DNS 验证。
 
 ## 常用命令
@@ -162,9 +172,12 @@ journalctl --user -u update-sg-ip.service -f
 
 ## 钉钉通知
 
-脚本支持钉钉机器人通知。现网从 mode `0600` 的运行时凭据文件读取
-`DING_TOKEN`，脚本本身不得硬编码 token；变量值不应出现在版本控制、日志或
-本页面里。恢复模板使用环境变量占位符。
+脚本支持钉钉通知。`ops-private` 恢复模板要求从 mode `0600` 的运行时凭据
+文件或环境占位符读取通知配置，变量值不应出现在版本控制、日志或本页面里。
+2026-08-13 审计发现 72602 live `/home/aaron/bin/update-sg-ip.sh` 与仓库模板
+不一致并包含内嵌的钉钉运行时配置/凭据；本次未输出、复制或修改这些值。后续
+应在维护窗口迁移到受权限保护的凭据文件并轮换旧凭据，不能把 live 脚本直接
+复制回仓库。
 
 通知端到端送达（钉钉服务器 → 群）无法从主机单独证明。已核实的层面仅是「脚本进入了成功发送路径」：
 
@@ -216,11 +229,15 @@ stat -c '%n %y' /home/aaron/.local/state/update-sg-ip/*
 
 ## 紧急临时访问设计（尚未部署）
 
-当前安全组只允许已登记的 72602 与 ZJLAB 出口 IP 访问 ECS 的 TCP `22`、`10021`、`10022`。紧急访问不建议使用无认证的传统端口敲门序列；序列可被监听、重放或扫描。推荐使用一个独立的、仅密钥认证的 SSH gate：
+当前安全组只允许已登记的 72602 与 ZJLAB 出口来源访问 ECS 的 TCP `22`、
+`10021`、`10022`；端口用途仍分别由 72602 主/备入口和 ECS sshd 决定。ZJLAB
+的 `10023` / `10024` 监听器仅在 ECS loopback 上提供 ProxyJump 目标，不应通过
+安全组公开。紧急访问不建议使用无认证的传统端口敲门序列；序列可被监听、重放
+或扫描。推荐使用一个独立的、仅密钥认证的 SSH gate：
 
 1. ECS 单独监听一个 gate 端口，例如 TCP `2222`；该端口只允许专用用户 `sg-gate`，不提供 shell、PTY、端口转发或 Agent forwarding。
 2. `sg-gate` 只接受一把独立的、带密码短语的 emergency key。认证成功后由 forced command 读取 `SSH_CONNECTION` 的实际来源 IP，不接受用户自行传入任意 IP。
-3. 默认只为该来源 IP 添加 TCP `22` 的 `/32` 临时规则，Description 使用 `emergency-ssh-<request-id>`；如确实要访问 72602 反向入口，必须显式选择只包含 `10021` / `10022` 的 tunnel profile，不默认开放。
+3. 默认只为该来源 IP 添加 TCP `22` 的 `/32` 临时规则，Description 使用 `emergency-ssh-<request-id>`；如确实要访问 72602 反向入口，必须显式选择只包含 `10021` / `10022` 的 tunnel profile，不默认开放，也不得选择 `10023` / `10024`。
 4. 临时授权最大有效期固定为 3600 秒。授权器保存 RuleId、来源、端口和 UTC 到期时间；root-only 的过期任务每分钟扫描并按 RuleId 删除，重启后先执行一次过期清理。删除失败必须重试并告警，不能只依赖启动授权的 SSH 会话。
 5. 授权、续期和删除都要记录审计日志；重复请求不得创建重复规则。用户 IP 发生变化时，必须从新 IP 重新执行 gate。
 
@@ -241,6 +258,17 @@ ssh -i ~/.ssh/ecs-admin root@47.110.67.161
 该设计目前仅记录方案，尚未开放 gate 端口、创建 emergency key、创建 RAM 身份或部署授权器。
 
 ## Recent Operations
+
+### 2026-08-13: ZJLAB egress-IP incident
+
+- ZJLAB 的 Internet 出口 IPv4 发生变化，ECS 安全组的 TCP `22` 来源白名单
+  未及时匹配新地址。
+- 两条独立的 ZJLAB reverse SSH session 因无法通过 ECS sshd 建立而同时失效；
+  ECS 侧监控随后对 `primary` 和 `backup` 报告 `ssh_banner_failed`。
+- 处理顺序应是先确认当前 ZJLAB 出口 IPv4、ECS 安全组 TCP `22` allowlist、
+  ECS 防火墙和 sshd，再检查已建立的 SSH child/session、loopback listener
+  和 banner。不要把两个同时告警直接判断为端口映射改变或两套服务必然同时
+  崩溃。
 
 ### 2026-08-11: approved ECS security-group cleanup
 

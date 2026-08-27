@@ -6,7 +6,8 @@ weight = 1
 
 # SSH 反向隧道：72602-minipc → ecs-99（双入口）
 
-本文档是 72602-minipc 的新标准方案，目标是避免单端口掉线导致完全失联。
+本文档是 72602-minipc 的当前参考方案；执行前应核对 live unit、ECS 安全组、
+SSH banner 和监控状态，目标是避免单端口掉线导致完全失联。
 
 - 主入口：`10021`
 - 备入口：`10022`
@@ -15,14 +16,16 @@ weight = 1
 ## 一、架构
 
 ```text
-外网任意机器                          ecs-99 (47.110.67.161)                     72602-minipc (192.168.0.25)
+已登记且获安全组授权的来源客户端        ecs-99 (47.110.67.161)                     72602-minipc (192.168.0.25)
 ssh -p 10021 aaron@47.110.67.161  ->   0.0.0.0:10021 (sshd) --SSH reverse-->      localhost:22
 ssh -p 10022 aaron@47.110.67.161  ->   0.0.0.0:10022 (sshd) --SSH reverse-->      localhost:22
 ECS HAProxy :25/:465/:587/:993 -> 127.0.0.1:10225/:10465/:10587/:10993 (sshd)
                                       --SSH reverse--> minipc hostPort :25/:465/:587/:993
 ```
 
-> 说明：反向隧道必须由 72602-minipc 主动发起。ECS 上看到端口监听，才表示隧道在线。
+> 说明：反向隧道必须由 72602-minipc 主动发起。`0.0.0.0` 是 ECS 上
+> sshd 的 reverse-bind，并不等于对任意公网来源开放；安全组来源限制、SSH
+> key 认证、已建立的 SSH child/session、banner 和监控恢复都必须分别验证。
 
 ## 二、上线前检查
 
@@ -54,13 +57,15 @@ GatewayPorts clientspecified
 sudo systemctl reload sshd
 ```
 
-安全组放行：`10021/tcp`、`10022/tcp`（授权范围按你自己的安全策略）。
+安全组仅应按当前 72602 出口地址来源受限地放行 `10021/tcp`、`10022/tcp`。
+不要为 ZJLAB 的 `10023/tcp`、`10024/tcp` 添加公网规则；那两条 listener
+属于 ECS loopback-only 的 ProxyJump 路径。
 
 同时确认 ECS 本机防火墙（UFW）放行这两个端口：
 
 ```bash
 sudo ufw status numbered
-# 至少应包含 10021/tcp 和 10022/tcp 的 ALLOW 规则
+# 应包含 10021/tcp 和 10022/tcp 的 ALLOW 规则；公网来源边界由云安全组控制
 ```
 
 ## 三、创建双 service（72602-minipc 上执行）
@@ -178,7 +183,8 @@ loginctl show-user aaron | grep Linger
 ssh root@47.110.67.161 "ss -tlnp | grep -E '10021|10022'"
 ```
 
-期望看到：
+期望看到（监听归属示例；地址、来源限制和健康状态需按 2026-08-13 之后的
+live 状态复核）：
 
 - `0.0.0.0:10021`
 - `0.0.0.0:10022`
@@ -203,7 +209,8 @@ ssh -p 10022 aaron@47.110.67.161
 
 ### 4.3 Mailu 入口验证
 
-在 ECS 上确认公网端口归 HAProxy、高位端口归 sshd：
+在 ECS 上确认公网 Web/Mail 端口归 HAProxy；`10021/10022` SSH listener 和
+`10225/10465/10587/10993` Mailu loopback backend 归 sshd：
 
 ```bash
 sudo systemctl is-active haproxy
@@ -241,13 +248,12 @@ export XDG_RUNTIME_DIR=/run/user/$(id -u)
 systemctl --user status reverse-tunnel-ecs-10021.service --no-pager
 systemctl --user status reverse-tunnel-ecs-10022.service --no-pager
 
-# 2) 重启 service
-systemctl --user restart reverse-tunnel-ecs-10021.service
-systemctl --user restart reverse-tunnel-ecs-10022.service
+# 2) 一次只处理一条；先处理 backup，验证 listener/banner/监控恢复后再决定是否处理 primary
+TUNNEL_SERVICE=reverse-tunnel-ecs-10022.service
+systemctl --user restart "$TUNNEL_SERVICE"
 
 # 3) 看日志
-journalctl --user -u reverse-tunnel-ecs-10021.service --since "10 min ago" --no-pager
-journalctl --user -u reverse-tunnel-ecs-10022.service --since "10 min ago" --no-pager
+journalctl --user -u "$TUNNEL_SERVICE" --since "10 min ago" --no-pager
 
 # 4) 验证到 ECS 的基础连通
 ssh -o ConnectTimeout=5 root@47.110.67.161 echo ok
@@ -276,21 +282,20 @@ loginctl show-user aaron | grep Linger
 ```bash
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
-# 重载并重启
+# 重载；重启时一次只选择一个入口，验证 listener/banner/监控后再处理另一个
 systemctl --user daemon-reload
-systemctl --user restart reverse-tunnel-ecs-10021.service
-systemctl --user restart reverse-tunnel-ecs-10022.service
+TUNNEL_SERVICE=reverse-tunnel-ecs-10021.service
+systemctl --user restart "$TUNNEL_SERVICE"
 
-# 停止
-systemctl --user stop reverse-tunnel-ecs-10021.service
-systemctl --user stop reverse-tunnel-ecs-10022.service
+# 停止（仅在明确授权的维护窗口内；一次只停止一个入口）
+TUNNEL_SERVICE=reverse-tunnel-ecs-10021.service
+systemctl --user stop "$TUNNEL_SERVICE"
 
 # 日志实时跟踪
-journalctl --user -u reverse-tunnel-ecs-10021.service -f
-journalctl --user -u reverse-tunnel-ecs-10022.service -f
+journalctl --user -u "$TUNNEL_SERVICE" -f
 ```
 
-## 七、和现网监控的关系
+## 七、和现网监控的关系（72602；2026-08-13 审计快照，动态状态需 live verify）
 
 ECS 上原有巡检继续只监控 72602-minipc 的两个公开入口；其端口列表、脚本、
 unit、timer 和状态文件保持不变。
@@ -301,7 +306,7 @@ unit、timer 和状态文件保持不变。
 - `/etc/tunnel-healthcheck-ports.conf` 包含 `10021`、`10022`
 - `/etc/tunnel-healthcheck.env` 企业应用参数可用（`DINGTALK_CLIENT_ID/SECRET/AGENT_ID/USER_IDS`）
 
-当前线上实现：
+按该审计快照记录的 72602 线上实现：
 
 - 告警通道为钉钉企业应用 API（非 webhook）
 - 告警消息为 Markdown 格式（标题：`🚨 ECS Tunnel Alert`）
