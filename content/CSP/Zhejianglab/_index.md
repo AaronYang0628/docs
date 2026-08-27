@@ -177,8 +177,12 @@ queries were served by the existing 72602 Prometheus datasource used by
 Grafana. No Grafana datasource change was required.
 
 The receiving Prometheus reported zero failed and retried remote-write samples.
-There were approximately 300 pending samples and a send delay of about 21
-seconds during the check; continue watching the queue if the delay grows.
+After the user-authorized 2026-08-14 metrics reset, the local
+`monitoring/zjlab-prometheus-server` TSDB PVC was recreated while this
+remote-write configuration remained unchanged. The old local history was not
+backed up and is intentionally unrecoverable. The sender queue drained and the
+72602 receiver again exposed fresh `cluster="zjlab"` samples; continue watching
+the pending queue if its delay grows.
 
 ### Prometheus Storage Diagnosis (2026-08-05)
 

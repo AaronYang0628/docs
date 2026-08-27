@@ -7,7 +7,7 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.6`, image `ghcr.io/wei-shaw/sub2api:0.1.168`
+- Current release: OCI chart `0.1.8`, image `ghcr.io/wei-shaw/sub2api:0.1.176`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -93,6 +93,24 @@ sha256sum \
   > "$BACKUP_DIR/SHA256SUMS"
 sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 ```
+
+### Verified backup: 2026-08-14
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260814T063611Z`
+  (directory mode `700`, files mode `600`). Only the shared PostgreSQL
+  `sub2api` database was dumped; n8n and other databases were not touched.
+- The host had no `pg_restore`; PostgreSQL Pod `database/postgresql-0` had
+  `pg_restore 18.3` and GNU `tar 1.34`. The dump was copied temporarily with
+  `kubectl cp`, checked with Pod-local `pg_restore --list`, and the temporary
+  Pod file was removed. The previous `kubectl exec -i` streaming validation was
+  not reused.
+- Non-empty artifacts: `sub2api.dump` (19,640,824 bytes),
+  `sub2api-data.tgz` (10,616,251 bytes), and `sub2api.dump.list` (77,853
+  bytes). Git revision, manifest, and PVC metadata were also captured.
+- `sha256sum -c SHA256SUMS` and `pg_restore --list` both succeeded. The
+  captured `origin/main` revision was
+  `ce838b424f10316fc604a4a21517c90c7b6b97ae`. No failure occurred; no
+  upgrade, Argo CD sync, or GitOps/cluster change was performed.
 
 ### Restore PostgreSQL Safely
 

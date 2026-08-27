@@ -5,6 +5,14 @@ This OpenCode instance runs as the `application/ops-agent` Deployment in the
 process after changing `opencode.json`, agents, skills, plugins, or other
 startup configuration.
 
+Every running 72602 middleware has a service-specific skill under
+`.opencode/skills/`. Before operating a named service, load its
+`<service>-72602-operations` skill and follow its fixed ownership, read,
+mutation, verification, and rollback path. If no skill exists, create the
+coverage entry before routine operation. Do not repeat a full architecture or
+deployment investigation when the skill already records the fact; investigate
+only verified drift and write the corrected fact back to the owning skill.
+
 After a startup configuration change, validate the files and restart the
 managed workload with:
 

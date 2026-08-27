@@ -1,1 +1,188 @@
-# test pre-commit hook
+.portal-countdown-bookmark .bookmark-description {
+  font-variant-numeric: tabular-nums;
+}
+
+.portal-task-bookmark .bookmark-icon {
+  cursor: pointer;
+}
+
+.portal-task-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: rgb(34 211 238);
+  cursor: pointer;
+}
+
+.portal-tools-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: rgb(34 211 238);
+  cursor: pointer;
+}
+
+.portal-task-bookmark .bookmark-name {
+  overflow-wrap: anywhere;
+}
+
+.portal-task-bookmark.portal-task-done .bookmark-name {
+  color: rgb(148 163 184 / 75%);
+  text-decoration: line-through;
+}
+
+.portal-bookmark-icon-text {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.portal-add-bookmark .bookmark-icon {
+  color: rgb(125 211 252);
+}
+
+.portal-tools-button {
+  min-height: 2rem;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  color: rgb(226 232 240);
+  background: rgb(30 41 59 / 78%);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.portal-tools-button:hover,
+.portal-tools-button:focus-visible {
+  border-color: rgb(125 211 252 / 75%);
+  background: rgb(51 65 85 / 90%);
+  outline: none;
+}
+
+.portal-tools-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.portal-tools-primary {
+  border-color: rgb(56 189 248 / 45%);
+  background: rgb(14 116 144 / 76%);
+}
+
+.portal-tools-secondary {
+  background: transparent;
+}
+
+.portal-tools-icon-button {
+  width: 2rem;
+  min-width: 2rem;
+  padding: 0.35rem;
+  text-align: center;
+}
+
+.portal-tools-danger-button:hover,
+.portal-tools-danger-button:focus-visible {
+  border-color: rgb(251 113 133 / 75%);
+  color: rgb(254 205 211);
+}
+
+.portal-tools-modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(2 6 23 / 70%);
+}
+
+.portal-tools-modal {
+  width: min(100%, 28rem);
+  box-sizing: border-box;
+  padding: 1rem;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 8px;
+  background: rgb(15 23 42);
+  box-shadow: 0 20px 50px rgb(2 6 23 / 45%);
+}
+
+.portal-tools-modal-header,
+.portal-tools-form-footer,
+.portal-tools-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.portal-tools-modal-title {
+  margin: 0;
+  color: rgb(241 245 249);
+  font-size: 1rem;
+}
+
+.portal-tools-form {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.portal-tools-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.portal-tools-field-label {
+  color: rgb(203 213 225);
+  font-size: 0.78rem;
+}
+
+.portal-tools-input {
+  width: 100%;
+  min-height: 2.1rem;
+  box-sizing: border-box;
+  border: 1px solid rgb(148 163 184 / 32%);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  color: rgb(241 245 249);
+  background: rgb(15 23 42 / 64%);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.portal-tools-input:focus {
+  border-color: rgb(125 211 252 / 75%);
+  outline: 2px solid rgb(125 211 252 / 18%);
+}
+
+.portal-tools-input[type="date"],
+.portal-tools-input[type="password"],
+select.portal-tools-input {
+  color-scheme: dark;
+}
+
+.portal-tools-lunar-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.portal-tools-form-error {
+  min-height: 1rem;
+  margin: 0;
+  color: rgb(251 113 133);
+  font-size: 0.74rem;
+}
+
+.portal-tools-form-footer {
+  margin-top: 0.25rem;
+}
+
+.portal-tools-form-actions {
+  justify-content: flex-end;
+}

@@ -63,7 +63,7 @@ spec:
                 type: tempo
                 uid: tempo
                 access: proxy
-                url: http://tempo.monitor.svc.cluster.local:3100
+                url: http://tempo.monitor.svc.cluster.local:3200
                 editable: false
                 jsonData:
                   tracesToLogsV2:
@@ -99,8 +99,17 @@ spec:
                 editable: true
                 options:
                   path: /var/lib/grafana/dashboards/agent
+              - name: kubernetes
+                orgId: 1
+                folder: Kubernetes
+                type: file
+                disableDeletion: false
+                editable: true
+                options:
+                  path: /var/lib/grafana/dashboards/kubernetes
         dashboardsConfigMaps:
           agent: grafana-agent-dashboard
+          kubernetes: grafana-kubernetes-dashboard
   syncPolicy:
     automated:
       prune: true

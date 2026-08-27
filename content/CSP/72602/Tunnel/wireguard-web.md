@@ -41,14 +41,20 @@ do not need to be published in this handbook.
 
 ## Firewall
 
-- The Aliyun security group and ECS UFW permit UDP `51820` only from the current
-  72602 public IPv4 `/32`.
-- On `72602-minipc`, the live `/home/aaron/bin/update-sg-ip.sh` reconciles TCP
-  `22`, `10021`, `10022`, and UDP `51820`. The ZJLAB copy and the repository
-  template currently reconcile TCP only; do not replace the 72602 live script
-  with either copy. Verify the live rule against the current 72602 egress IP
-  before troubleshooting.
-- minipc UFW allows the WireGuard subnet to reach only TCP `32080` and `32443`.
+- UDP `51820` 在公网路径上有两层入口：阿里云安全组的 `/32` 规则（云端边界）
+  和 ECS 本机 UFW 的 `/32` 规则（实例边界）。两者都由
+  `72602-minipc` 上同一个 5 分钟 systemd timer
+  （`update-sg-ip.timer` / `update-sg-ip.service`）协调：安全组由协调器
+  通过官方 Aliyun ECS / VPC SDK 写入；ECS UFW 规则（comment
+  `wg 72602-minipc`）由协调器通过专用受限 SSH key 调用 ECS 上
+  root-only 的 forced-command 助手 `/usr/local/sbin/72602-wireguard-ufw-reconcile`
+  调整。两条规则在协调器「两端都已核实」之前都会被保留。
+- 协调器只在 Aliyun 安全组与 ECS UFW 这两个 consumer 都验证生效后才清理旧
+  的 updater-owned 规则并落盘持久状态；任意一侧失败都会让新规则保留、旧
+  managed 规则保留到下一次重试，重试本身幂等。协调器在
+  `/home/aaron/.local/state/update-sg-ip/` 写入的最近已知 IP 与上一次
+  「两端都已核实」时间戳只描述成功的协调结果，不描述 IP 探测成功本身。
+- minipc UFW 允许 WireGuard 子网访问 TCP `32080` 和 `32443`。
 - Do not expose `32080/32443` through the Aliyun security group.
 
 ## Health Checks

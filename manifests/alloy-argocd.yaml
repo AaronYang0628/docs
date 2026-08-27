@@ -48,17 +48,85 @@ spec:
                   endpoint = "0.0.0.0:4318"
                 }
                 output {
-                  traces  = [otelcol.processor.batch.default.input]
+                  traces  = [otelcol.processor.attributes.sanitize_traces.input]
                   metrics = [otelcol.processor.batch.default.input]
                   logs    = [otelcol.processor.batch.default.input]
                 }
               }
 
+              otelcol.processor.attributes "sanitize_traces" {
+                action {
+                  pattern = `(?i)^(http\.(request|response)\.header\..*|db\.(query\.text|statement)|url\.full|ai\.(prompt|response\.(text|object|toolCalls)|toolCall\.(args|result))|gen_ai\.(prompt|completion|input|output).*)$`
+                  action  = "delete"
+                }
+
+                output {
+                  traces = [otelcol.processor.filter.trace_noise.input]
+                }
+              }
+
+              otelcol.processor.filter "trace_noise" {
+                error_mode = "ignore"
+
+                traces {
+                  span = [
+                    `name == "GlobalHttpApi.health"`,
+                    `name == "http.server GET" and attributes["url.path"] == "/global/health"`,
+                    `name == "ProjectCopy.register"`,
+                    `name == "SQLiteDrizzle.make"`,
+                    `name == "sql.execute"`,
+                    `name == "ModelsDev.refresh"`,
+                    `name == "Truncate.cleanup"`,
+                    `IsMatch(name, "^Flock\\.(acquire|effect|release)$")`,
+                  ]
+                }
+
+                output {
+                  traces = [otelcol.processor.batch.default.input]
+                }
+              }
+
               otelcol.processor.batch "default" {
                 output {
-                  traces  = [otelcol.exporter.otlp.tempo.input]
+                  traces  = [otelcol.exporter.otlp.tempo.input, otelcol.connector.spanmetrics.agent.input]
                   metrics = [otelcol.exporter.prometheus.default.input]
                   logs    = [otelcol.exporter.loki.default.input]
+                }
+              }
+
+              otelcol.connector.spanmetrics "agent" {
+                namespace                       = "ops_agent"
+                aggregation_cardinality_limit = 5000
+                metrics_flush_interval         = "15s"
+                resource_metrics_key_attributes = ["service.name", "agent.project"]
+
+                dimension {
+                  name = "agent.project"
+                }
+                dimension {
+                  name = "ai.model.id"
+                }
+                dimension {
+                  name = "ai.model.provider"
+                }
+                dimension {
+                  name = "tool.name"
+                }
+
+                histogram {
+                  unit = "s"
+                  explicit {
+                    buckets = ["10ms", "50ms", "100ms", "250ms", "500ms", "1s", "2s", "5s", "10s", "30s", "1m", "2m", "5m", "10m"]
+                  }
+                }
+
+                exemplars {
+                  enabled            = true
+                  max_per_data_point = 2
+                }
+
+                output {
+                  metrics = [otelcol.exporter.prometheus.default.input]
                 }
               }
 
@@ -98,6 +166,10 @@ spec:
         service:
           enabled: true
           type: ClusterIP
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "12345"
+            prometheus.io/path: /metrics
   syncPolicy:
     automated:
       prune: true
