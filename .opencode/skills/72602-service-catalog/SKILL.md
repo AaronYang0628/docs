@@ -44,6 +44,7 @@ operations without loading the matching service skill first.
 | WireGuard Web tunnel | `wireguard-72602-operations` | 72602-minipc and ECS |
 | ECS HAProxy | `haproxy-72602-operations` | ECS |
 | Mail routing forwards | `mail-routing-72602-operations` | 72602-minipc and ECS |
+| Temporary ECS access leases | `temporary-access-72602-operations` | 72602-minipc and ECS security group |
 
 ## Operating rule
 

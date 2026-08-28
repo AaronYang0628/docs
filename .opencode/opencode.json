@@ -293,6 +293,13 @@
       "model": "ollama/minimax-m3"
     }
   },
+  "command": {
+    "pass": {
+      "description": "Grant a one-hour temporary IPv4 ECS access lease with /pass <ip>.",
+      "agent": "build",
+      "template": "Handle `/pass <ip>` as a live temporary ECS security-group lease. Accept exactly one literal IPv4 address from $ARGUMENTS; reject empty, multiple values, CIDR, hostname, and IPv6. Never infer the address from Web headers, conversation history, or the tool host. Load temporary-access-72602-operations and aliyun-72602-operations, then run the mutation through the approved minipc SSH alias from the Ops Agent Pod: ssh minipc /home/aaron/bin/temporary-ecs-access.sh grant <validated-ip>. The lease is exactly 3600 seconds and must open only TCP 22, 10021, 10022 and UDP 51820, preserving unrelated rules. Repeating an active lease must not extend it. Do not open TCP 10023, 10024, 3128, or 56396. Do not mutate UFW, WireGuard, SSH, HAProxy, DNS, or Kubernetes. Report only source, ports, lease ID, expiry, verification, and sanitized errors. Never print credentials, keys, or unrelated rules."
+    }
+  },
   "mcp": {
     "sub2api-admin": {
       "type": "local",
@@ -351,7 +358,6 @@
   },
   "plugin": [
     "opencode-vibeguard@0.1.0",
-    "@tarquinen/opencode-dcp@3.1.14",
     "@prevalentware/opencode-goal-plugin@0.1.24"
   ],
   "share": "disabled",
@@ -361,7 +367,7 @@
   },
   "compaction": {
     "auto": true,
-    "prune": true,
+    "prune": false,
     "tail_turns": 4
   },
   "experimental": {

@@ -1,9 +1,10 @@
 ---
 description: Operates the 72602 k3s cluster from 72602-minipc; use for diagnostics, GitOps changes, ingress, certificates, tunnels, proxies, Sub2API administration and recharge, and application operations in the 72602 environment.
 mode: subagent
-model: openai/gpt-5.6-luna
+model: openai/gpt-5.6-terra
 variant: medium
 permission:
+  bash: allow
   "sub2api-admin_describe": allow
   "sub2api-admin_health": allow
   "sub2api-admin_read": allow
@@ -71,6 +72,7 @@ Load exactly one primary service skill for each operation. Related dependencies 
 | WireGuard Web tunnel | `wireguard-72602-operations` | `72602-minipc` / ECS |
 | ECS HAProxy | `haproxy-72602-operations` | ECS |
 | Mail routing forwards | `mail-routing-72602-operations` | `72602-minipc` / ECS |
+| Temporary ECS access leases | `temporary-access-72602-operations` | `72602-minipc` / ECS security group |
 
 `ops-docs` owns the child Application declarations and GitOps source for the
 application stack. Do not treat a child Application as an invitation to patch

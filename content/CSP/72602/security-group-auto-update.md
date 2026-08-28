@@ -16,10 +16,19 @@ weight = 5
 ## 解决方案
 
 定时检测公网 IP，变化时统一协调两处 consumer：阿里云 ECS 安全组的 TCP
-`22` / `10021` / `10022` 与 UDP `51820` 规则，以及 ECS 本机 UFW 的
-`51820/udp` 规则（comment `wg 72602-minipc`）。所有云端写操作统一从
-`72602-minipc` 上的同一个 5 分钟 systemd timer 发起；ECS 上只放一个最小化、
-root-only 的 forced-command 助手负责 UFW 这一侧。
+`22` / `10021` / `10022` / `3128` / `56396` 与 UDP `51820` 规则，以及 ECS
+本机 UFW 的 `51820/udp`（comment `wg 72602-minipc`）与 `3128/tcp`
+（comment `squid 72602-minipc`）规则。所有云端写操作统一从 `72602-minipc`
+上的同一个 5 分钟 systemd timer 发起；ECS 上只放一个最小化、root-only 的
+forced-command 助手负责 UFW 这一侧。
+
+ECS UFW 助手只固定管理两条规则：`51820/udp`（WireGuard）和 `3128/tcp`
+（Squid 公共前向代理），分别通过 UFW comment `wg 72602-minipc` 和
+`squid 72602-minipc` 识别。云端 `56396/tcp`（mihomo/clash 外网面板）
+当前只纳入 `update-sg-ip-72602-minipc` 的云安全组维护范围；ECS UFW 仍为
+broad allow，暂未对 56396 做 IP 收窄。后续如要把 56396 真正转为 IP 白名单，
+需要单独变更并评估与现网 0.0.0.0/0 行为之间的差异，本页不主张在
+`update-sg-ip` 内一并实现。
 
 ## 工作原理
 
@@ -43,15 +52,16 @@ root-only 的 forced-command 助手负责 UFW 这一侧。
                                                                   ├── 未变化 ──> 退出，不动 SG / UFW / 状态
                                                                   └── 已变化 ──> 进入「先建新、再验证、后清理」
                                                                                     │
-                                                                                    1. 通过 Aliyun SDK 在安全组内写入新 /32
-                                                                                       （TCP 22 / 10021 / 10022 与 UDP 51820）
-                                                                                    2. 通过专用受限 SSH key（路径仅运行时存在）
-                                                                                       以 root 身份调用 ECS 端的 forced-command 助手
-                                                                                       /usr/local/sbin/72602-wireguard-ufw-reconcile
-                                                                                       仅调整 `51820/udp` 的 UFW 规则
-                                                                                       （comment `wg 72602-minipc`）
-                                                                                    3. 两个 consumer（Aliyun SG 与 ECS UFW）都验证生效后
-                                                                                       才写入持久状态并清理旧的 updater-owned 规则
+                                                                                     1. 通过 Aliyun SDK 在安全组内写入新 /32
+                                                                                        （TCP 22 / 10021 / 10022 / 3128 / 56396 与 UDP 51820）
+                                                                                     2. 通过专用受限 SSH key（路径仅运行时存在）
+                                                                                        以 root 身份调用 ECS 端的 forced-command 助手
+                                                                                        /usr/local/sbin/72602-wireguard-ufw-reconcile
+                                                                                        仅调整 `51820/udp`（comment `wg 72602-minipc`）
+                                                                                        与 `3128/tcp`（comment `squid 72602-minipc`）
+                                                                                        的 UFW 规则
+                                                                                     3. 两个 consumer（Aliyun SG 与 ECS UFW）都验证生效后
+                                                                                        才写入持久状态并清理旧的 updater-owned 规则
                                                                                     │
                                                                                     └── 任意一步失败 ──> 新规则保留，
                                                                                                         旧 managed 规则不删除；
@@ -76,30 +86,46 @@ root-only 的 forced-command 助手负责 UFW 这一侧。
 | TCP `22` | Aliyun 安全组 `/32` 规则 | `update-sg-ip.service` 通过 Aliyun SDK 描述与对比验证 |
 | TCP `10021` | Aliyun 安全组 `/32` 规则 | `update-sg-ip.service` 通过 Aliyun SDK 描述与对比验证 |
 | TCP `10022` | Aliyun 安全组 `/32` 规则 | `update-sg-ip.service` 通过 Aliyun SDK 描述与对比验证 |
+| TCP `3128` | Aliyun 安全组 `/32` 规则 + ECS UFW `/32` 规则（comment `squid 72602-minipc`） | Aliyun SDK 与 ECS UFW helper 两侧都需要「先建新 + 验证生效」才算落地 |
+| TCP `56396` | Aliyun 安全组 `/32` 规则 | `update-sg-ip.service` 通过 Aliyun SDK 描述与对比验证（**仅云端**；ECS UFW 当前仍 broad allow，暂未收窄） |
 | UDP `51820` | Aliyun 安全组 `/32` 规则 + ECS UFW `/32` 规则（comment `wg 72602-minipc`） | Aliyun SDK 与 ECS UFW helper 两侧都需要「先建新 + 验证生效」才算落地 |
 
-UDP `51820` 是「双 consumer」：Aliyun 安全组由 `update-sg-ip.service` 写入；ECS
-本机的 UFW 规则由 `update-sg-ip.service` 通过专用受限 SSH key 调用 ECS 上
-root-only 的 forced-command 助手调整。两个 consumer 都验证生效后，协调器才
-清理旧的 updater-owned 规则并落盘持久状态。任意一侧失败都会让新规则保留、
-旧 managed 规则保留到下一次重试，重试本身幂等。
+`51820/udp` 与 `3128/tcp` 是「双 consumer」：Aliyun 安全组由
+`update-sg-ip.service` 写入；ECS 本机的 UFW 规则由 `update-sg-ip.service`
+通过专用受限 SSH key 调用 ECS 上 root-only 的 forced-command 助手
+`/usr/local/sbin/72602-wireguard-ufw-reconcile` 调整。两个 consumer 都验证
+生效后，协调器才清理旧的 updater-owned 规则并落盘持久状态。任意一侧失败都会
+让新规则保留、旧 managed 规则保留到下一次重试，重试本身幂等。
+
+`56396/tcp` 是「单 consumer」：只写 Aliyun 安全组；ECS UFW 仍维持当前
+broad allow。协调器不会去收窄 UFW 这一侧；任何把 56396 真正变成 IP 白名单
+的变更都需要单独评审，并不会通过 `update-sg-ip` 顺带实现。
 
 ## 双 consumer 协调与安全的部分失败
 
-UDP `51820` 在公网路径上有两层入口：阿里云安全组的 `/32` 规则（云端边界）
-和 ECS 本机 UFW 的 `/32` 规则（实例边界）。只更新其中一层，WireGuard 数据
-通道仍可能在另一层被丢包，因此协调器把两者视作一个事务来推进：
+`51820/udp`（WireGuard）和 `3128/tcp`（Squid 公共前向代理）在公网路径上各
+有两层入口：阿里云安全组的 `/32` 规则（云端边界）和 ECS 本机 UFW 的 `/32`
+规则（实例边界）。只更新其中一层，目标端口的流量仍可能在另一层被丢包，
+因此协调器把两者视作一个事务来推进：
 
 1. **先建新规则**：协调器先按 Description `update-sg-ip-72602-minipc` 在
    Aliyun 安全组中写入新 `/32`，并通过 SSH 调用 ECS 上的
-   `72602-wireguard-ufw-reconcile` 在 UFW 中加入新 `/32`（comment
-   `wg 72602-minipc`）。
+   `72602-wireguard-ufw-reconcile` 在 UFW 中加入新 `/32`：`51820/udp`
+   使用 comment `wg 72602-minipc`，`3128/tcp` 使用 comment
+   `squid 72602-minipc`。
 2. **两边都验证**：协调器再次描述安全组、再次触发 UFW helper 的 status
-   输出，确认两条新规则都已经落地并匹配当前探测到的公网 IP。
+   输出，确认所有新规则都已经落地并匹配当前探测到的公网 IP。
 3. **再清理旧规则**：两侧验证都通过后才删除旧 updater-owned 规则，再把
    「最近已知 IP + 上一次双 consumer 已核实时间戳」写入持久状态目录。
 4. **失败回退**：只要任意一侧验证失败，协调器就立刻退出，不删除旧规则、
    不推进持久状态。新规则保留，下一个 5 分钟周期由协调器幂等重试。
+
+协调器在「IP 未变化」的周期也会跑一次只读的 `3128/tcp` 与 `51820/udp`
+UFW 一致性检查：发现 UFW 与持久状态不符（例如上一次 IP 变化期间 ECS 侧
+helper 调用被中断，或 UFW 被人手改回旧 IP）时，会把当前持久 IP 重新作为
+新规则写回 UFW、验证后再清理旧的 managed 规则；幂等性保证重复执行不会
+产生重复条目。这条「无变化补齐」逻辑正是 2026-08-27 那次旧 UFW 3128 白名
+单未及时刷新故障的直接修复。
 
 这一顺序保证了三件事：
 
@@ -132,7 +158,7 @@ AccessKey 的实际路径。
 | `/home/aaron/.config/systemd/user/update-sg-ip.timer` | ZJLAB 用户级 systemd timer（`OnUnitActiveSec=5min`、`Persistent=true`，链接位于 `timers.target.wants`） |
 | `/home/aaron/.local/state/update-sg-ip/` | 持久状态目录：最近已知 IP、上一次「两端都已核实」的时间戳、连续探测失败计数与告警状态；状态文件 `0600`，仅属主可读写 |
 | `update-sg-ip.service` / `update-sg-ip.timer` 的 `journald` | 失败原因、API 退出码、是否推进状态等副作用日志 |
-| `/usr/local/sbin/72602-wireguard-ufw-reconcile` | ECS 上 root-only forced-command 助手；只接受来自专用受限 SSH key 的连接，仅调整 `51820/udp` UFW 规则（comment `wg 72602-minipc`），不开放 shell / port forwarding；源 IP 取自 ECS 上看到的实际 `SSH_CONNECTION` |
+| `/usr/local/sbin/72602-wireguard-ufw-reconcile` | ECS 上 root-only forced-command 助手；只接受来自专用受限 SSH key 的连接，仅调整 `51820/udp`（comment `wg 72602-minipc`）和 `3128/tcp`（comment `squid 72602-minipc`）两条 UFW 规则，不开放 shell / port forwarding；源 IP 取自 ECS 上看到的实际 `SSH_CONNECTION` |
 | ECS 端的专用受限 SSH key | 路径与权限仅在运行时存在；本页面与版本控制都不复述绝对路径 |
 
 `/tmp` 下不再保留持久状态；断电或重启后历史只在持久目录里。安全组的旧
@@ -154,10 +180,11 @@ AccessKey 的实际路径。
   调起官方 Aliyun ECS / VPC SDK，不再走系统 Python。
 - 持久状态目录 `/home/aaron/.local/state/update-sg-ip/`，文件 `0600`。
 - ECS 上的 root-only forced-command 助手
-  `/usr/local/sbin/72602-wireguard-ufw-reconcile` 已部署，仅调整 `51820/udp`
-  的 UFW 规则（comment `wg 72602-minipc`），仅接受来自专用受限 SSH key 的
-  forced-command 调用，不开放 shell / port forwarding / Agent forwarding；
-  该 SSH key 的私钥路径与权限仅运行时存在，文档不公开。
+  `/usr/local/sbin/72602-wireguard-ufw-reconcile` 已部署，固定管理两条 UFW
+  规则：`51820/udp`（comment `wg 72602-minipc`）和 `3128/tcp`（comment
+  `squid 72602-minipc`）；仅接受来自专用受限 SSH key 的 forced-command
+  调用，不开放 shell / port forwarding / Agent forwarding；该 SSH key 的私钥
+  路径与权限仅运行时存在，文档不公开。
 - 当前观察到的 72602-minipc 公网 IPv4 为 `122.231.144.126`，但这只是某一次
   观察点，不应作为永久期望值；任何「当前公网 IP 应为 X」的判断都要重新探测
   后再写。
@@ -185,7 +212,7 @@ ZJLAB live：
 
 | 脚本 | Description | 负责的协议/端口 |
 |------|-------------|-----------------|
-| `update-sg-ip-72602-minipc` | `update-sg-ip-72602-minipc` | 72602-minipc 当前自动更新的 TCP `22` / `10021` / `10022` 与 UDP `51820` |
+| `update-sg-ip-72602-minipc` | `update-sg-ip-72602-minipc` | 72602-minipc 当前自动更新的 TCP `22` / `10021` / `10022` / `3128` / `56396` 与 UDP `51820`（其中 `3128` 与 `51820` 在 ECS UFW 也有对端规则，`56396` 仅云端维护） |
 | `update-sg-ip-zjlab` | `update-sg-ip-zjlab` | ZJLAB SSH / 反向隧道来源的 TCP `10021` / `10022` |
 
 迁移与兼容要点（已核实）：
@@ -237,7 +264,7 @@ ls -l /home/aaron/.local/state/update-sg-ip/
 ls -l /home/aaron/.local/venvs/alidns/bin/python
 
 # 验证 ECS 端的 UFW 规则与 helper 一致（只读）
-ssh root@47.110.67.161 'sudo ufw status | grep -E "51820/udp|wg 72602-minipc"'
+ssh root@47.110.67.161 'sudo ufw status | grep -E "51820/udp|3128/tcp|wg 72602-minipc|squid 72602-minipc"'
 ```
 
 ZJLAB 用户级（从非交互通道；`enable-linger` 状态需另行确认）：
@@ -300,15 +327,37 @@ stat -c '%n %y' /home/aaron/.local/state/update-sg-ip/*
 # 5. Aliyun 安全组中 updater-owned 规则的实际状态（只读）
 #    仅按 Description 过滤，不打印真实 IP/RuleId
 ssh root@47.110.67.161 'sudo /usr/local/sbin/72602-wireguard-ufw-reconcile status || true'
-# 6. ECS UFW 中 `wg 72602-minipc` 注释规则的实际状态（只读）
-ssh root@47.110.67.161 'sudo ufw status | grep "wg 72602-minipc"'
+# 6. ECS UFW 中 helper 管理的两条规则的实际状态（只读）：
+#    `51820/udp` 走 comment `wg 72602-minipc`，`3128/tcp` 走 comment `squid 72602-minipc`
+ssh root@47.110.67.161 'sudo ufw status | grep -E "wg 72602-minipc|squid 72602-minipc"'
+# 7. Squid 自身监听（只读），确认 `:3128` 仍在 ECS 上服务
+ssh root@47.110.67.161 'sudo ss -ltnp | grep ":3128 "'
+# 8. 走 ECS 公网 `47.110.67.161:3128` 的代理连通性（明确不经过集群内任何代理）
+ssh root@47.110.67.161 'curl --noproxy "*" -sS -o /dev/null -w "%{http_code}\n" \
+    --max-time 8 -x http://127.0.0.1:3128 https://ifconfig.me/ip'
 ```
+
+补充说明：
+
+- TCP `56396` 当前只纳入 72602 云安全组 `update-sg-ip-72602-minipc` 的
+  updater 范围，ECS UFW 仍维持 broad allow；协调器不会去收窄 UFW 这一
+  侧，因此排障时不要把它和 `wg 72602-minipc` / `squid 72602-minipc` 放在同
+  一条 UFW 命令里期待出现匹配条目。如要把 56396 真正变成 IP 白名单，需要
+  在 helper 与协调器之间单独追加变更，不在本页说明。
+- 步骤 8 的 `curl --noproxy '*'` 是为了直接验证 ECS 自己的 Squid 是否真的在
+  接受流量，不等同于独立公网观测点。本环境目前没有独立公网探测机，不能声
+  称独立公网访问已验证；任何对该结论的主张都需要外部观测数据。
 
 判定要点：
 
 - 如果定时器未处于 `active (waiting)`，先看 `journalctl` 里是否含单元语法/路径错误；不要直接重写 unit，先核对 `systemd-analyze verify`。
 - 如果 IPv4 全部失败，证实问题在出网路径而非本脚本；优先检查 ISP 与 `192.168.0.25:17890` 代理。
 - 如果 journald 显示「安全组写入成功但 UFW 助手失败」或反之，说明只完成了一半 consumer；此时新规则已经生效、旧 managed 规则不会删除，等待下一个 5 分钟周期由协调器重试，不需要立刻手工调整。
+- 如果发现 `3128/tcp` 或 `51820/udp` 的 ECS UFW 中存在两条 updater-owned
+  `/32`（旧的 IP 与当前 IP），说明上一次 IP 变化期间 UFW 这一侧未完成「先
+  建新 + 验证 + 清理旧」；当前协调器在「IP 未变化」的周期也会做幂等补齐，
+  请等待一个 5 分钟周期并复查；如果持续多条 managed `/32` 共存，请先按
+  helper 的 status 输出确认实际状态再决定是否人工介入，不要直接删除。
 - 不要在「两端都已核实」之前手工删除旧 managed 规则；否则下一次 IP 变化会同时出现旧规则缺失 + 新规则被建，造成双 consumer 一致性窗口被绕过。
 - 协调器本身是幂等的：每 5 分钟周期都会重新评估，新规则重复写入会被 Aliyun SDK / UFW 助手去重。
 
@@ -317,8 +366,8 @@ ssh root@47.110.67.161 'sudo ufw status | grep "wg 72602-minipc"'
 回滚的目标只是把协调器本身（unit、timer、脚本、approved virtualenv、持久
 状态目录、ECS UFW 助手）恢复到上一份已审核版本，**不应**回滚阿里云安全
 组或 ECS UFW 远端规则，也**不应**暴露任何备份的绝对路径或 SSH key 路径。
-在确认新的协调路径能跑通之前，不要主动删除当前 ECS `22/10021/10022` 或
-`51820/udp` 的允许 IP，否则可能把自己从 ECS 端断掉。
+在确认新的协调路径能跑通之前，不要主动删除当前 ECS `22/10021/10022`、
+`3128/tcp` 或 `51820/udp` 的允许 IP，否则可能把自己从 ECS 端断掉。
 
 一般顺序：
 
@@ -359,6 +408,57 @@ ssh -i ~/.ssh/ecs-admin root@47.110.67.161
 该设计目前仅记录方案，尚未开放 gate 端口、创建 emergency key、创建 RAM 身份或部署授权器。
 
 ## Recent Operations
+
+### 2026-08-27: 72602 出口 IP 变化导致 ECS UFW 3128 白名单失同步
+
+- 现象：72602-minipc 出口公网 IP 变化后，Aliyun ECS 安全组的 TCP `22` /
+  `10021` / `10022` / `3128` / `56396` 与 UDP `51820` 已由
+  `update-sg-ip-72602-minipc` 按 Description 全部刷新到新 IP；但 ECS 本机
+  UFW 中 `3128/tcp`（旧 `squid 72602-minipc` 注释的 `/32`）未同步刷新，
+  新 IP 通过 ECS 公共 Squid `47.110.67.161:3128` 出网时出现连接阶段超时。
+  旧 `51820/udp` UFW 规则在本次 IP 变化中由协调器按时刷新，未受影响。
+- 修复：协调器在「IP 未变化」的周期补做一次 `51820/udp` + `3128/tcp` UFW
+  一致性检查：以持久状态目录记录的最近已知 IP 与 ECS UFW 中
+  `wg 72602-minipc` / `squid 72602-minipc` 注释的 `/32` 做比对，发现差异时
+  把当前持久 IP 重新作为新规则写回 UFW、验证后再清理旧 managed 规则；调
+  用逻辑仍然走 ECS 上 root-only 的 forced-command 助手
+  `/usr/local/sbin/72602-wireguard-ufw-reconcile`，保留「先建新 + 验证 + 清理
+  旧」顺序，并依赖 Aliyun SDK / UFW 助手自身去重保证幂等。
+- 已核实（2026-08-27）：
+  - Aliyun ECS 安全组按 Description `update-sg-ip-72602-minipc` 描述验证：
+    新 IP `/32` 已落地，旧 IP `/32` 已清理；
+  - ECS UFW 中 `51820/udp`（comment `wg 72602-minipc`）与 `3128/tcp`
+    （comment `squid 72602-minipc`）的 `/32` 均与持久状态目录中的最近
+    已知 IP 一致；
+  - Squid 在 ECS `:3128` 上仍正常监听（root-only `ss` 验证），与故障前
+    行为相同；
+  - 通过 ECS 上 `curl --noproxy '*' -x http://127.0.0.1:3128
+    https://ifconfig.me/ip` 确认 Squid 仍能向出口出网并取得与持久状态一
+    致的公网 IPv4。
+- 未核实：本环境当前没有独立公网探测机，不能把上述验证等同于独立公网访
+  问已通过；任何对外部独立访问性的主张都需要外部观测数据。
+- 未触碰：Kubernetes、安全组旧 `auto-updated-ip` 历史规则、SSH 反向隧道、
+  HAProxy、Mailu、`wg-quick@wg0`、凭据、AccessKey 或 token。回滚保持通用
+  顺序，不要先于新协调路径验证就主动删除 ECS `22/10021/10022`、
+  `3128/tcp` 或 `51820/udp` 的允许 IP。
+
+### 2026-08-27: ZJLAB IPv4 探测多 endpoint `curl 28` 风暴后自愈
+
+- 当前 ZJLAB 用户级 `update-sg-ip.service` 在一个观测窗口内出现三个或多个
+  endpoint 同时返回连接阶段 `curl 28` 超时，随后自动恢复；该窗口内 ZJLAB
+  出口公网 IP 未发生实际变化，未触发任何云端写操作，未推进持久状态。
+- 已部署行为：
+  - 5 个 endpoint 参与探测（保留 `ifconfig.me` / `ip.sb` / `icanhazip.com`，
+    新增现场验证通过的 `ifconfig.co/ip` / `ipinfo.io/ip`）；
+  - 至少两个 endpoint 返回同一合法 IPv4 才会被采纳；
+  - 连续三次探测失败才发送一次 `[ZJLAB] public IPv4 detection failed`
+    通知，恢复后只发送一次恢复通知；
+  - 失败 / 恢复通知在 DingTalk 上若有 pending 状态，会在下一个健康周期
+    重试，不会在日志里重复刷屏。
+- 当前事实：ZJLAB 出口 IP 未变化，云端 AliDNS / 安全组 / UFW / WireGuard
+  / SSH 反向隧道均未触发更新；通知凭据与 endpoint 凭据不在本页面复述。
+  后续若窗口再次扩大或某个 endpoint 持续不可达，先看 journald 与 dingtalk
+  通知侧的实际状态，再决定是否调整 endpoint 列表或告警阈值。
 
 ### 2026-08-20: ZJLAB public IPv4 detection quorum and alert debounce
 

@@ -307,7 +307,6 @@ recharge idempotency.
 ### 🔌Plugins
 
 - `opencode-vibeguard@0.1.0`: redacts configured credential patterns before model requests.
-- `@tarquinen/opencode-dcp@3.1.14`: prunes stale context while protecting agent, skill, and cluster-profile files.
 - `@prevalentware/opencode-goal-plugin@0.1.24`: persists long-running goals and evidence-gated completion state.
 
 Langfuse is not installed or enabled.
