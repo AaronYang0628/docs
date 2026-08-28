@@ -32,9 +32,10 @@ virtualenv and protected credential file recorded by `aliyun-72602-operations`.
 Never invoke the Aliyun SDK from the Ops Agent Pod directly, from ZJLAB, or
 from an arbitrary workstation.
 
-Approved connection path from the Ops Agent Pod: `ssh minipc` uses the pod's
-`~/.ssh/config` alias. The remote user is `aaron` with passwordless `sudo`.
-The alias name is `minipc`, not `72602-minipc`.
+Approved connection path from the 72602 execution boundary:
+`ssh 72602-minipc-local` uses the host's `~/.ssh/config` alias. The remote user
+is `aaron` with passwordless `sudo`. The canonical alias is
+`72602-minipc-local`; do not use the old unqualified `minipc` name.
 
 The installed entrypoint is:
 
@@ -45,7 +46,7 @@ The installed entrypoint is:
 Invoke it through the approved host path:
 
 ```text
-ssh minipc /home/aaron/bin/temporary-ecs-access.sh grant <ip>
+ssh 72602-minipc-local /home/aaron/bin/temporary-ecs-access.sh grant <ip>
 ```
 
 The long-running cleanup is owned by:

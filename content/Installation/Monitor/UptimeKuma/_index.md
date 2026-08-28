@@ -56,6 +56,25 @@ After the Push monitors are created:
 The private inventory owns the exact check interval, Push URLs, monitor unit,
 and rollback procedure. The public runbook intentionally omits those values.
 
+### ZJLAB Relay HTTP Monitors
+
+The two important ZJLAB `dev` relay Deployments are monitored through their
+public business paths. Do not target their ECS loopback listeners from Kuma;
+those listeners are intentionally private.
+
+Create these monitors in the Uptime Kuma UI and attach the existing
+notification policy:
+
+| Name | Type | URL | Accepted status code |
+|---|---|---|---|
+| `ZJLAB MaaS Relay` | HTTP(s) | `https://llm.72602.space/` | `404` |
+| `ZJLAB NewAPI Relay` | HTTP(s) | `https://newapi.zjlab.72602.space/v1/models` | `401` |
+
+Use a 60-second interval, 15-second timeout, and three retries. The NewAPI
+probe is deliberately unauthenticated, so `401` is the expected healthy
+response. Accept only the exact status listed for each monitor; `502`, timeout,
+TLS failure, or another status must remain a failure.
+
 The completed ECS integration maps listener `10023` to the ZJLAB `primary`
 check and listener `10024` to `backup`. These are independent of the 72602
 public tunnel listeners `10021` and `10022`. The ECS checker sends `up` after a

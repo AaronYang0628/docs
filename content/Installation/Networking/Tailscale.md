@@ -170,13 +170,10 @@ sudo chattr +i /etc/resolv.conf
 
 ### 2. 本地 SSH 配置（外网设备）
 
-编辑 `~/.ssh/config`：
+使用现有的 canonical SSH 配置，不再创建未登记的 `minipc` 别名：
 
 ```text
-Host minipc
-    HostName minipc.72602.online
-    Port 10022
-    User 你的内网机器用户名
+ssh 72602-minipc-proxy
 ```
 
 ### 3. DNS A 记录
@@ -188,4 +185,5 @@ Host minipc
 
 ---
 
-完成后链路即为：`ssh minipc` -> 公网 `10022` -> ECS `iptables` -> Tailscale 隧道 -> 内网主机 `22`。
+完成后链路使用 canonical alias：`ssh 72602-minipc-proxy` -> approved ECS
+forwarding path -> Tailscale 隧道 -> 内网主机 `22`。

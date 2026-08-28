@@ -13,12 +13,18 @@ ZJLAB operational inventory and network details are private. Public pages contai
 ## Access
 
 ```bash
-ssh zjlab hostname
-ssh zjlab 'kubectl get nodes'
-ssh zjlab-backup hostname
+ssh zjlab-ubuntu-local hostname       # when running on ZJLAB
+ssh zjlab-ubuntu-local 'kubectl get nodes'
+ssh zjlab-ubuntu-proxy hostname       # when running on 72602
 ```
 
-The aliases are provisioned from private inventory and use an ECS ProxyJump to loopback-only reverse SSH listeners. Do not publish their resolved endpoints, ports, users, internal topology, or service names.
+Use `zjlab-ubuntu-local` for direct access from ZJLAB and
+`zjlab-ubuntu-proxy` for the forwarded path from 72602. These are SSH config
+aliases, not DNS names: validate configuration with `ssh -G` and reachability
+with SSH, not with `getent hosts`. The aliases are provisioned from private
+inventory and use an ECS ProxyJump to loopback-only reverse SSH listeners. Do
+not publish their resolved endpoints, ports, users, internal topology, or
+service names.
 
 Detailed inventory and tunnel recovery procedures are maintained in the private `ops-private` repository with SOPS-encrypted values.
 
@@ -97,11 +103,13 @@ proxy variables. The installed `clashctl` is a shell function, so
 non-interactive sessions must source it explicitly.
 
 ```bash
-ssh zjlab 'kubectl config current-context'
-ssh zjlab 'kubectl get nodes'
-ssh zjlab 'kubectl get namespace'
-ssh zjlab 'kubectl get applications.argoproj.io -A'
-ssh zjlab 'kubectl get ingress,certificate -A'
+# On ZJLAB, use zjlab-ubuntu-local; on 72602, use zjlab-ubuntu-proxy.
+ZJLAB_SSH_ALIAS=zjlab-ubuntu-local
+ssh "$ZJLAB_SSH_ALIAS" 'kubectl config current-context'
+ssh "$ZJLAB_SSH_ALIAS" 'kubectl get nodes'
+ssh "$ZJLAB_SSH_ALIAS" 'kubectl get namespace'
+ssh "$ZJLAB_SSH_ALIAS" 'kubectl get applications.argoproj.io -A'
+ssh "$ZJLAB_SSH_ALIAS" 'kubectl get ingress,certificate -A'
 ```
 
 ## Independent Prometheus Deployment Attempt
@@ -224,8 +232,8 @@ co-located. Rollback is to remove only the new ArgoCD Application and its new
 resources; do not remove existing local-path data. NFS is the secondary
 option, and ephemeral storage is not recommended for Prometheus. Direct
 worker-host journal and host-permission inspection remains a verification gap
-because this diagnostic session was restricted to the approved `zjlab` SSH
-entry point and did not create a debug Pod.
+because this diagnostic session was restricted to the approved canonical ZJLAB
+SSH entry point and did not create a debug Pod.
 
 ### Prometheus Storage Follow-up (2026-08-05)
 

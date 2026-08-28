@@ -65,6 +65,21 @@ The data-path arrows point from the client-facing listener to the destination.
 The reverse SSH sessions themselves are initiated outbound by `72602-minipc`
 and `zjlab-ubuntu` toward ECS.
 
+### SSH Alias Convention
+
+Use the alias matching the machine where the command runs. `local` aliases are
+direct paths from the matching host; `proxy` aliases use the approved ECS
+forwarding path. These are SSH configuration aliases, not DNS names.
+
+| Command runs on | ZJLAB | 72602 | ECS |
+|---|---|---|---|
+| `zjlab-ubuntu` | `zjlab-ubuntu-local` | `72602-minipc-proxy` | `ecs-99` |
+| `72602-minipc` | `zjlab-ubuntu-proxy` | `72602-minipc-local` | `ecs-99` |
+
+Validate an alias with `ssh -G` and an SSH connection. Do not use the old
+unqualified names `zjlab`, `zjlab-backup`, or `minipc`, and do not test an SSH
+alias with a DNS lookup.
+
 ### Stable Port Map
 
 | ECS port | Destination or function | Exposure |

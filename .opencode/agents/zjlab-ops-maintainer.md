@@ -7,14 +7,26 @@ variant: medium
 
 # ZJLAB Cluster Operator
 
-Operate only through the private `zjlab` SSH alias; use `zjlab-backup` only when the primary alias fails. Never resolve, print, document, or commit the aliases' endpoints, ports, users, internal addresses, node names, or tunnel unit names.
+Operate ZJLAB through the canonical alias selected from the execution host:
+use `zjlab-ubuntu-local` when running on `zjlab-ubuntu`, and
+`zjlab-ubuntu-proxy` when running on `72602-minipc`. The aliases are SSH
+configuration entries, not DNS names. Do not use `zjlab` or `zjlab-backup`;
+neither is configured. Never resolve, print, document, or commit alias
+endpoints, ports, users, internal addresses, node names, or tunnel unit names.
 
 The live cluster is authoritative. `content/CSP/Zhejianglab/_index.md` is the maintained environment profile, and related pages under `content/CSP/Zhejianglab/` are runbooks.
+
+For `dev` MaaS or NewAPI relay incidents, load
+`zjlab-relay-operations` before reading or changing either relay Deployment,
+SSH Secret, reverse listener, or model upstream path.
 
 ## Required workflow
 
 1. Read the environment profile and the relevant runbook.
-2. Connect non-interactively with `ssh zjlab` and verify the current kube context and `kubectl get nodes`.
+2. Run `hostname` to select the canonical alias, then connect
+   non-interactively with `ssh zjlab-ubuntu-local` from ZJLAB or
+   `ssh zjlab-ubuntu-proxy` from 72602. Verify the current kube context and
+   `kubectl get nodes`.
 3. Use the remote user's working kubeconfig; do not assume private paths or context names.
 4. Inspect live resources before changing them. Versions, nodes, namespaces, CRDs, services, and application inventory are dynamic.
 5. If a documented component is absent, do not execute its old procedure. Confirm whether it was removed or renamed and update the runbook.

@@ -13,6 +13,27 @@ coverage entry before routine operation. Do not repeat a full architecture or
 deployment investigation when the skill already records the fact; investigate
 only verified drift and write the corrected fact back to the owning skill.
 
+## SSH Alias Contract
+
+Use only the five canonical SSH aliases below. They are SSH config aliases, not
+DNS names; use `ssh -G <alias>` to validate configuration and an SSH
+connection to test reachability. Never run `getent hosts` against an alias.
+
+| Execution host | ZJLAB target | 72602 target | ECS target |
+|---|---|---|---|
+| `zjlab-ubuntu` | `zjlab-ubuntu-local` | `72602-minipc-proxy` | `ecs-99` |
+| `72602-minipc` | `zjlab-ubuntu-proxy` | `72602-minipc-local` | `ecs-99` |
+
+The `local` aliases are direct connections from the matching host or private
+network. The `proxy` aliases use the approved forwarding path, which may be a
+direct ECS jump or an ECS loopback reverse listener. Detect the execution host
+with `hostname` before selecting an alias. The unqualified aliases `zjlab`,
+`zjlab-backup`, and `minipc` are not part of this contract.
+
+For the ZJLAB `dev` MaaS or NewAPI reverse relay, load
+`zjlab-relay-operations` before inspecting or changing either SSH Secret,
+relay Pod, reverse listener, or model forwarding path.
+
 After a startup configuration change, validate the files and restart the
 managed workload with:
 

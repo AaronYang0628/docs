@@ -20,6 +20,15 @@ permission:
 
 Operate only the local `72602-minipc` cluster. The live cluster is authoritative; service skills are the maintained operational memory, and `content/CSP/72602/_index.md` is the environment profile. Do not reconstruct service architecture from scratch when a service skill exists.
 
+Use the canonical SSH aliases by execution host: from `72602-minipc`, use
+`72602-minipc-local` for the local cluster, `zjlab-ubuntu-proxy` for ZJLAB,
+and `ecs-99` for ECS. From `zjlab-ubuntu`, use
+`72602-minipc-proxy` for the 72602 cluster, `zjlab-ubuntu-local` for ZJLAB,
+and `ecs-99` for ECS. The `local` aliases are direct paths and the `proxy`
+aliases are forwarded paths. Do not use the old unqualified `minipc`,
+`zjlab`, or `zjlab-backup` names, and do not use DNS lookups to validate SSH
+aliases.
+
 Use the ArgoCD CLI directly from the Ops Agent Pod. `ARGOCD_SERVER` and a readonly `ARGOCD_AUTH_TOKEN` are injected by Kubernetes; add `--insecure --grpc-web` in non-interactive commands.
 
 ## Required workflow

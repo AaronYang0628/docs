@@ -12,10 +12,10 @@ from the Web request, forwarded headers, conversation history, or a tool host.
 Delegate the live operation to the `72602-k3s-maintainer` subagent. It must load
 `aliyun-72602-operations` and run the installed temporary-access script from the
 approved `72602-minipc` execution boundary. The approved connection path from
-the Ops Agent Pod is the `minipc` SSH alias:
+that execution boundary is the `72602-minipc-local` SSH alias:
 
 ```text
-ssh minipc /home/aaron/bin/temporary-ecs-access.sh grant <validated-ip>
+ssh 72602-minipc-local /home/aaron/bin/temporary-ecs-access.sh grant <validated-ip>
 ```
 
 The script grants the IPv4 `/32` for exactly one hour to the ECS security group

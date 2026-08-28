@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "2"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"zjlab-newapi-reverse-tunnel"},"name":"zjlab-newapi-reverse-tunnel","namespace":"dev"},"spec":{"replicas":1,"selector":{"matchLabels":{"app.kubernetes.io/name":"zjlab-newapi-reverse-tunnel"}},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"zjlab-newapi-reverse-tunnel"}},"spec":{"automountServiceAccountToken":false,"containers":[{"args":["-M","0","-N","-T","-i","/ssh/id_ed25519","-o","IdentitiesOnly=yes","-o","BatchMode=yes","-o","ExitOnForwardFailure=yes","-o","ServerAliveInterval=30","-o","ServerAliveCountMax=3","-o","StrictHostKeyChecking=yes","-o","GlobalKnownHostsFile=/dev/null","-F","/ssh/config","-o","UserKnownHostsFile=/ssh/known_hosts","-R","127.0.0.1:18582:47.97.162.53:20080","ecs-newapi-reverse-tunnel"],"env":[{"name":"AUTOSSH_GATETIME","value":"0"},{"name":"AUTOSSH_POLL","value":"30"},{"name":"AUTOSSH_FIRST_POLL","value":"15"}],"image":"crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/zjlab-newapi-relay@sha256:145323250e04f4db6c0a592e3b7d12f42e50593056db0fe2206d42b1e4da7677","imagePullPolicy":"IfNotPresent","name":"autossh","resources":{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true},"volumeMounts":[{"mountPath":"/ssh","name":"ssh","readOnly":true},{"mountPath":"/tmp","name":"tmp"}]}],"imagePullSecrets":[{"name":"aliyun-registry"}],"securityContext":{"fsGroup":10001,"fsGroupChangePolicy":"OnRootMismatch","runAsGroup":10001,"runAsNonRoot":true,"runAsUser":10001,"seccompProfile":{"type":"RuntimeDefault"}},"serviceAccountName":"zjlab-newapi-reverse-tunnel","volumes":[{"name":"ssh","secret":{"defaultMode":256,"secretName":"zjlab-newapi-reverse-tunnel-ssh"}},{"emptyDir":{"medium":"Memory","sizeLimit":"16Mi"},"name":"tmp"}]}}}}
+  creationTimestamp: "2026-08-14T03:27:04Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/name: zjlab-newapi-reverse-tunnel
+  name: zjlab-newapi-reverse-tunnel
+  namespace: dev
+  resourceVersion: "27794447"
+  uid: 3fc55a51-217f-4c47-ab42-b9036b836173
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zjlab-newapi-reverse-tunnel
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-08-14T11:29:01+08:00"
+      labels:
+        app.kubernetes.io/name: zjlab-newapi-reverse-tunnel
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - -M
+        - "0"
+        - -N
+        - -T
+        - -i
+        - /ssh/id_ed25519
+        - -o
+        - IdentitiesOnly=yes
+        - -o
+        - BatchMode=yes
+        - -o
+        - ExitOnForwardFailure=yes
+        - -o
+        - ServerAliveInterval=30
+        - -o
+        - ServerAliveCountMax=3
+        - -o
+        - StrictHostKeyChecking=yes
+        - -o
+        - GlobalKnownHostsFile=/dev/null
+        - -F
+        - /ssh/config
+        - -o
+        - UserKnownHostsFile=/ssh/known_hosts
+        - -R
+        - 127.0.0.1:18582:47.97.162.53:20080
+        - ecs-newapi-reverse-tunnel
+        env:
+        - name: AUTOSSH_GATETIME
+          value: "0"
+        - name: AUTOSSH_POLL
+          value: "30"
+        - name: AUTOSSH_FIRST_POLL
+          value: "15"
+        image: crpi-wixjy6gci86ms14e.cn-hongkong.personal.cr.aliyuncs.com/ay-dev/zjlab-newapi-relay@sha256:145323250e04f4db6c0a592e3b7d12f42e50593056db0fe2206d42b1e4da7677
+        imagePullPolicy: IfNotPresent
+        name: autossh
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /ssh
+          name: ssh
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: aliyun-registry
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: zjlab-newapi-reverse-tunnel
+      serviceAccountName: zjlab-newapi-reverse-tunnel
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: ssh
+        secret:
+          defaultMode: 256
+          secretName: zjlab-newapi-reverse-tunnel-ssh
+      - emptyDir:
+          medium: Memory
+          sizeLimit: 16Mi
+        name: tmp
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2026-08-14T03:27:04Z"
+    lastUpdateTime: "2026-08-14T03:29:05Z"
+    message: ReplicaSet "zjlab-newapi-reverse-tunnel-6944cfdbdf" has successfully
+      progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2026-08-14T03:36:13Z"
+    lastUpdateTime: "2026-08-14T03:36:13Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  terminatingReplicas: 0
+  updatedReplicas: 1

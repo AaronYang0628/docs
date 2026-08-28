@@ -474,7 +474,7 @@ ssh -i ~/.ssh/ecs-admin root@47.110.67.161
 
 ### 2026-08-20: ZJLAB public IPv4 detection quorum and alert debounce
 
-- 通过批准的 `ssh zjlab` 路径修复了 ZJLAB 用户级 updater 的诊断和告警质量。
+- 通过批准的 `zjlab-ubuntu-local` 路径修复了 ZJLAB 用户级 updater 的诊断和告警质量。
   旧逻辑按 endpoint 顺序采纳首个成功结果；本次观测到既有 endpoint 在一段时间内
   同时出现连接阶段 `curl 28` 超时，恢复后无需云端动作。
 - 保留 `ifconfig.me`、`ip.sb`、`icanhazip.com`，新增并现场验证
