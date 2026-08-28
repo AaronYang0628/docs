@@ -54,6 +54,21 @@ check and listener `10024` reports the `backup` check. This is separate from
 the 72602 public tunnel listeners on `10021` and `10022`, which are not Kuma
 Push sources for this monitor.
 
+The stable access map is: `10023` is the ZJLAB primary SSH reverse listener and
+`10024` is the backup listener. Both are loopback-only on ECS and are reached
+through the ECS ProxyJump path; they are not public endpoints and must not be
+added to the ECS security group. The ZJLAB initiators are the system-level
+`zjlab-loopback-reverse-primary.service` and
+`zjlab-loopback-reverse-backup.service`. User-level services with the same
+names are legacy duplicates and must remain stopped and disabled; running both
+layers causes listener ownership conflicts and reconnect loops.
+
+When both monitors report `ssh_banner_failed`, first verify the current ZJLAB
+egress IPv4 and the ECS security-group allowlist for TCP `22`, then check ECS
+sshd and the established SSH child/session. A systemd `active` state alone only
+proves that the supervisor is running; it does not prove that the reverse
+listener has been established.
+
 The private checker keeps the Push request as a best-effort reporting path.
 Healthy checks send `up`; failed checks send `down` with a fixed reason. Push
 HTTP failures do not change listener judgment, failure counters, DingTalk
@@ -67,13 +82,19 @@ send fails, the alert state is retained and the next healthy check retries it.
 Short failures that never cross the alert threshold do not generate a recovery
 message.
 
-Deployment verification confirmed the checker dry-run and service run were
-healthy for both labels across more than two complete 60-second timer cycles.
+Deployment verification on 2026-08-13 confirmed the checker dry-run and service
+run were healthy for both labels across more than two complete 60-second timer
+cycles; recheck live before maintenance.
 Rollback restores the root-only ECS backup and encrypted private inventory
 backup, then restarts only `zjlab-tunnel-healthcheck.service`; tunnel units are
 not restarted as part of monitoring rollback.
 
 ## Preflight
+
+For host-level proxy checks, follow the
+[shared Clash/Mihomo runbook](../clashctl/) before trying ports or changing
+proxy variables. The installed `clashctl` is a shell function, so
+non-interactive sessions must source it explicitly.
 
 ```bash
 ssh zjlab 'kubectl config current-context'

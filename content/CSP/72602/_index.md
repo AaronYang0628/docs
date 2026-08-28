@@ -75,6 +75,9 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 | `n8n.72602.space` | A | `47.110.67.161` | N8N workflow |
 | `webhook.n8n.72602.space` | A | `47.110.67.161` | N8N webhook receiver |
 | `ops.agent.72602.space` | A | `47.110.67.161` | OpenCode operations agent |
+| `grafana.72602.space` | A | `47.110.67.161` | Grafana observability UI |
+| `otlp.72602.space` | A | `47.110.67.161` | OTLP ingest endpoint |
+| `prometheus-write.72602.space` | A | `47.110.67.161` | Prometheus remote-write endpoint |
 | `uptime.72602.space` | A | `47.110.67.161` | Uptime Kuma |
 | `clash.72602.space` | A | `47.110.67.161` | Clash/mihomo panel |
 | `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
@@ -141,7 +144,7 @@ Mail records are managed in the `72602.space` zone with TTL `600`:
 |---|---|---|---|
 | `mail` | A | `47.110.67.161` | |
 | `@` | MX | `mail.72602.space.` | `10` |
-| `@` | TXT | `v=spf1 mx -all` | |
+| `@` | TXT | `v=spf1 mx ip4:<current-72602-egress-ip> -all` (maintained dynamically) | |
 | `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:admin@72602.space` | |
 | `dkim._domainkey` | TXT | `v=DKIM1; k=rsa; p=<derived-public-key>` | |
 
@@ -221,16 +224,25 @@ passwords, or DKIM private-key contents during these checks.
 
 `txt2img.agent.72602.online` is retired. Its DNS record, certificate, TLS Secret, and unreferenced `ai` data claims have been removed.
 
-DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
+DNS for `72602.space` is managed in AliDNS. Active service records should point
+to the ECS public address only when the corresponding Ingress and certificate
+are Ready; do not describe this zone as dual-managed by Cloudflare.
 
 ## Deployed ArgoCD Apps
 
 | App | Namespace | Type | Source | Ingress |
 |---|---|---|---|---|
-| argocd | argocd | Helm (arco-cd) | argo-cd 9.5.4 | argocd.72602.space |
+| argocd | argocd | Helm (argo-cd) | argo-cd 9.5.4 | argocd.72602.space |
 | cert-manager | basic-components | Helm (Jetstack) | cert-manager 1.20.2 | internal |
 | ingress-nginx | basic-components | Helm | ingress-nginx 4.15.1 | shared ingress controller |
 | ops-docs | application | manifests (Git) | docs.git/main | ops.docs.72602.space |
+| ops-agent | application | manifests (Git) | docs.git/main | ops.agent.72602.space |
+| mailu | mailu | Helm (Mailu) | mailu 2.7.3 | mail.72602.space |
+| prometheus | monitor | Helm (Prometheus Community) | prometheus 29.18.0 | prometheus-write.72602.space |
+| grafana | monitor | Helm (Grafana) | grafana 10.5.15 | grafana.72602.space |
+| loki | monitor | Helm (Grafana) | loki 6.55.0 | internal |
+| tempo | monitor | Helm (Grafana) | tempo 1.24.4 | otlp.72602.space |
+| alloy | monitor | Helm (Grafana) | alloy 1.10.1 | otlp.72602.space |
 | homepage | monitor | manifests (Git) | docs.git/main | port.72602.space |
 | uptime-kuma | monitor | manifests (Git) | docs.git/main | uptime.72602.space |
 | sub2api | application | ArgoCD (Git → OCI Helm) | sub2api 0.1.6 / ghcr.io/wei-shaw/sub2api:0.1.168 | token.72602.space |
@@ -241,14 +253,21 @@ DNS is managed via Cloudflare / Aliyun DNS (add A record → ECS IP).
 
 `filing-site` is uninstalled. Commit
 `0c250db869ae45c6c6a5a850876728783f1b08dd` removed its manifest from the
-`ops-docs` source. The dated 2026-07-28 filing-site entries below are retained
-as historical deployment records and do not describe the current state.
+`ops-docs` source. Detailed filing-site deployment checks are intentionally
+omitted from this current-state page; use Git history when an older incident
+record is required.
 
-`argocd/ops-docs` manages the child `argocd/sub2api` Application from
-`https://github.com/AaronYang0628/docs.git`, path `manifests`. Sub2API uses the
-`application` namespace, nginx Ingress, a Ready TLS certificate, a `10Gi`
-`local-path` RWO application PVC, and an `8Gi` `local-path` RWO Redis PVC with
-AOF enabled.
+`argocd/ops-docs` reconciles the repository's `manifests` path and owns the
+application workloads and their child Applications, including `sub2api` and
+`mailu`. The same source also defines the observability Applications listed
+above. Sub2API uses the `application` namespace, nginx Ingress, a Ready TLS
+certificate, a `10Gi` `local-path` RWO application PVC, and an `8Gi`
+`local-path` RWO Redis PVC with AOF enabled.
+
+The `alloy` Application is also live in `monitor` (Grafana Alloy chart
+`1.10.1`) and receives OTLP traffic at `otlp.72602.space`; it forwards traces,
+metrics, and logs to Tempo, Prometheus, and Loki. Confirm the Application and
+its endpoints before changing the observability pipeline.
 
 ### Ops Docs Publishing
 
@@ -323,6 +342,12 @@ PVC. Do not copy HTML directly or patch the Deployment, ConfigMap, or PVC.
 
 ## Network Proxy
 
+For host-level command loading and the standard read-only preflight, use the
+[shared Clash/Mihomo runbook](../clashctl/). In particular, `clashctl` is a
+shell function and must be sourced explicitly in non-interactive agent shells;
+do not probe guessed ports when `clashctl status` and the runtime configuration
+provide the answer directly.
+
 ### Egress Proxy Architecture
 
 ```
@@ -334,7 +359,7 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
   - Key setting: `allow-lan: false` (只监听 localhost)
 - **socat bridge**: `0.0.0.0:17890` → `127.0.0.1:7890` (桥接使 k8s Pod 可达)
   - 进程: `socat -d -d TCP-LISTEN:17890,fork,reuseaddr,bind=0.0.0.0 TCP:127.0.0.1:7890`
-- **k8s Service**: `argocd-egress-proxy.argocd.svc.cluster.local` (ClusterIP: `10.43.42.223:17890`) → Host `192.168.0.25:17890`
+- **k8s Service**: `argocd-egress-proxy.argocd.svc.cluster.local:17890` → Host `192.168.0.25:17890`; use the Service DNS name rather than a mutable ClusterIP.
 - **App proxy env**: 应统一使用 `http://192.168.0.25:17890`（**不是** `192.168.0.25:7890`，因为 mihomo 仅绑定 `127.0.0.1`）
 
 ### 关键约束
@@ -346,13 +371,17 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
 
 ## Known Incident Pattern
 
-- Symptom: HTTPS handshake fails for `argocd.72602.online` (`tls alert internal error`).
+- Historical pattern (legacy `.72602.online` hostname): HTTPS handshake fails
+  with `tls alert internal error`.
 - Root cause: ECS Docker/derper occupies public `443`, traffic never reaches k3s ingress.
 - Fix baseline: derper must expose `8443:443`, keep public `443` for ingress NodePort `32443`.
 
 - Symptom: n8n 所有 workflow 报 `connect ECONNREFUSED 192.168.0.25:7890`。
 - Root cause: HTTP_PROXY 指向 `192.168.0.25:7890`，但 mihomo 只监听 `127.0.0.1:7890`（`allow-lan: false`）。Pod 无法直连 mihomo 的 LAN IP。
-- Fix baseline: HTTP_PROXY/HTTPS_PROXY 必须使用 socat 桥接端口 `192.168.0.25:17890`（或 k8s Service `10.43.19.4:17890`），该端口由 socat 转发至 `127.0.0.1:7890`。
+- Fix baseline: HTTP_PROXY/HTTPS_PROXY 必须使用 socat 桥接端口
+  `192.168.0.25:17890`（或 Service DNS
+  `argocd-egress-proxy.argocd.svc.cluster.local:17890`），该端口由 socat
+  转发至 `127.0.0.1:7890`。
 
 ## Host-Level Services
 
@@ -381,70 +410,52 @@ k8s Pod (10.42.x.x) --HTTP_PROXY--> 192.168.0.25:17890 (socat) --forward--> 127.
   - TLS secret per host.
 - `argocd-egress-proxy` 由 `ops-docs` ArgoCD Application 管理，并为 repo-server 提供 Git/Helm 出站代理。
 - mihomo `allow-lan: false` 意味着 **Pod 代理地址必须是 socat 桥接端口 `17890`，不能用 `7890`**。
-- SSH 隧道依赖 `loginctl enable-linger` 保持用户级 systemd 服务运行。
+- 72602 的 SSH 隧道当前由两个独立的用户级 systemd 服务维护，并依赖
+  `loginctl enable-linger` 在登出和重启后继续运行；ZJLAB 的对应 loopback
+  隧道采用独立的系统级服务，不能把两套服务模型混写。
 - ECS must allow inbound TCP `25,465,587,993` from `0.0.0.0/0` and UFW must
   allow the same ports before testing public mail delivery. Preserve the existing
   default firewall policies and unrelated rules.
 
 ## Mailu Public Mail Path
 
-- The live route is `Internet -> ECS 47.110.67.161:25/465/587/993 -> HAProxy TCP passthrough with PROXY v2 -> ECS 127.0.0.1:10225/10465/10587/10993 -> reverse-tunnel-ecs-10022 -> 72602-minipc Mailu front hostPort`.
-- ECS public mail ports are owned by HAProxy and the four loopback backends are
-  owned by `sshd`; the
-  `reverse-tunnel-ecs-10022.service` is active. The `10021` service is independent
-  and must not be restarted during mail changes.
-- `ops-docs` is currently synced and healthy at `19e6691`; its child `mailu`
-  Application targets Mailu chart `2.7.3` and is synced and healthy.
-- Mailu admin, Dovecot, Postfix, front, and the supporting workloads are Ready.
-  `mailu-front` and the automatically generated `mailu-front-ext` ClusterIP
-  Services both have non-empty endpoints. The current `PORTS` ConfigMap value
-  includes `587`.
-- The `19e6691` source enables PROXY protocol for `imaps`, `smtp`, `smtps`, and
-  `submission`, with `realIpFrom=127.0.0.1/32` and an empty `realIpHeader`.
-  Automatic reconciliation recreated `mailu-front`; the Deployment is `1/1`
-  Ready with endpoints for all four mail ports. Do not manually restart or
-  patch the workload during verification.
-- A prior black-box verification was not healthy: `465`/`993` TLS and `587`
-  STARTTLS close with EOF, and the non-authenticated probe accepted an external
-  `RCPT TO` with `250` before `DATA`; no message data was sent. This does not
-  prove delivery, but it fails the required rejection check.
-- A prior live Dovecot front config had `haproxy=yes` for these listeners but trusted
-  only `127.0.0.1/32`. With Mailu `hostPort` and the k3s CNI path, the front
-  sees the transport source as `10.42.0.1` and logs `Client not trusted`. This
-  source/trust mismatch was the blocker at that time. Correct it through a reviewed
-  Git source change and automatic ArgoCD reconciliation; do not manually apply,
-  sync, or restart Mailu.
+- Inbound mail remains `Internet -> ECS 47.110.67.161:25/465/587/993 ->
+  HAProxy TCP passthrough with PROXY v2 -> ECS loopback backends
+  127.0.0.1:10225/10465/10587/10993 -> independent 10022 reverse tunnel ->
+  72602-minipc Mailu front hostPort`.
+- ECS public mail ports are owned by HAProxy; the four loopback backends are
+  owned by `sshd`. The `10021` SSH service is independent and must not be
+  restarted during mail changes.
+- The current Mailu source trusts the k3s CNI gateway `10.42.0.1/32` for PROXY
+  traffic and exposes PROXY ports `993`, `25`, `465`, and `587`. Read-only
+  verification on 2026-08-13 confirmed the Mailu workloads were Ready and the
+  `465`/`993` TLS and `587` STARTTLS handshakes completed. The old
+  `127.0.0.1/32` trust mismatch and EOF observations are historical incident
+  records, not the current baseline.
 
 ### Mailu outbound delivery and SPF
 
-- Mailu's outbound path is the Mailu Postfix Pod, the minipc home egress, the
-  `reverse-tunnel-ecs-10022` path, and ECS HAProxy. Recent Postfix logs identify
-  the actual SMTP source IP as `36.24.59.216`; earlier attempts used
-  `125.121.102.50`, confirming dynamic egress churn. The ECS address
-  `47.110.67.161` is only the public ingress/tunnel endpoint.
-- The authoritative SPF record is the single AliDNS record
-  `2082063796864313344` (`@`/`TXT`, TTL `600`):
-  `v=spf1 mx ip4:36.24.59.216 -all`. Both `dns15.hichina.com` and
-  `dns16.hichina.com`, plus `1.1.1.1` and `8.8.8.8`, returned this value and
-  no duplicate SPF TXT was present. `update-mailu-spf.timer` is enabled and
-  runs hourly. Its first run at `2026-07-31 13:31:56 CST` failed on the
-  state-directory permission, then the retry at `13:32:18` succeeded.
-- QQ previously rejected registration-code deliveries at the `DATA` stage
-  with `550 SPF check failed` and named `36.24.59.216`. After the existing
-  updater corrected SPF, one minimal test to the controlled QQ mailbox at
-  `2026-07-31 14:20:38 CST` received `250 OK: queued as`; Postfix recorded
-  `dsn=2.0.0 status=sent` and removed the queue item. This verifies the QQ
-  SPF gate at that moment, not final inbox placement or reputation.
+- Mailu outbound delivery is direct from Postfix through the 72602 home
+  egress. It does not traverse ECS `10022` or ECS HAProxy; those are inbound
+  mail paths. The egress address is dynamic, so `update-mailu-spf.timer`
+  refreshes the AliDNS SPF record hourly. Query the current record and current
+  egress IP during an incident rather than treating an observed historical IP
+  as a permanent value.
+- The 2026-08-13 audit observed home egress and authoritative/public SPF as
+  `36.24.58.213`; the single SPF record is maintained by
+  `update-mailu-spf.timer`. Treat that address, and the `36.24.59.216` and
+  `125.121.102.50` values in the dated 2026-07-31 delivery record, as dated
+  observations rather than permanent allowlist values. A successful SMTP queue
+  response still does not prove final inbox placement or reputation.
 - Rspamd logged `DKIM_SIGNED` for `72602.space` with selector `dkim`. The
   corresponding DNS record is `2082130099188750336`; DMARC is record
   `2082063800085560320` with `p=none`. PTR lookups for both the dynamic
   egress IP and ECS `47.110.67.161` returned NXDOMAIN. A fixed outbound SMTP
   relay remains the reliable solution; no relay was configured.
-- Roll back the updater's SPF change with the official AliDNS SDK by restoring
-  record `2082063796864313344` to `v=spf1 mx -all` with TTL `600`. Do not
-  delete the DKIM record or regenerate the Mailu key. The one-hour polling
-  interval leaves a race after a home IP changes, so SPF auto-update alone
-  cannot guarantee QQ delivery.
+- SPF automation still has a one-hour polling interval and cannot guarantee
+  delivery immediately after a home IP change. Preserve the timer and inspect
+  its last run before making any manual DNS change; do not hard-code a transient
+  egress address in this current-state section.
 
 Useful checks:
 
@@ -546,9 +557,11 @@ rollback, and do not delete Mailu Secrets or PVCs.
   `application/opencode-model` contained only the `api-key` key and the live
   Deployment injected only `OPENAI_API_KEY`. No Secret value was read or
   printed.
-- Commit `ddb69f1` on `main` routes both the OpenAI and Grok providers to
-  `https://sub2api.72602.space/v1`. The Secret was merge-patched through stdin
-  to update `api-key` and add `grok-api-key`, preserving its other fields, and
+- Commit `ddb69f1` on `main` routes both the OpenAI and Grok providers to the
+  then-current endpoint `https://sub2api.72602.space/v1`. The current public
+  endpoint is `https://token.72602.space/v1`; this dated record is retained as
+  history, not as a current endpoint instruction. The Secret was merge-patched
+  through stdin to update `api-key` and add `grok-api-key`, preserving its other fields, and
   `manifests/ops-agent/deployment.yaml` was applied. No credential was written
   to Git or a temporary file, and no `sub2api` or unrelated resource was
   changed.
@@ -560,7 +573,7 @@ rollback, and do not delete Mailu Secrets or PVCs.
 - The authenticated internal `/global/health` check returned `healthy=true`.
   Separate, read-only `/v1/models` requests from the Pod returned HTTP `200`
   with the OpenAI credential and HTTP `200` with the Grok credential. Filtered
-  live merged configuration showed both provider base URLs as
+  live merged configuration at that time showed both provider base URLs as
   `https://sub2api.72602.space/v1`; new-Pod logs contained no
   `Invalid API key` message.
 - DNS for `ops.agent.72602.space` resolved to `47.110.67.161`; Ingress
@@ -777,9 +790,18 @@ sudo ss -lntp | grep -E ':80|:443|:8443|:32080|:32443|:7890|:17890|:9090'
 sudo iptables -t nat -L PREROUTING -n -v --line-numbers
 sudo iptables -t nat -L DOCKER -n -v --line-numbers
 
-# Egress proxy 完整性
-curl -s --connect-timeout 3 -x http://127.0.0.1:17890 http://httpbin.org/ip
-kubectl exec -n n8n deploy/n8n -- env | grep -E 'HTTP_PROXY|HTTPS_PROXY'
+# Egress proxy 完整性：先读实际端口，再做一次已知 204 检查
+CLASH_HOME=/home/aaron/clashctl
+. "$CLASH_HOME/scripts/cmd/clashctl.sh"
+clashctl status
+proxy_port="$("$CLASH_HOME/bin/yq" '."mixed-port" // .port // 7890' \
+  "$CLASH_HOME/resources/runtime.yaml")"
+curl --proxy "http://127.0.0.1:${proxy_port}" \
+  --connect-timeout 5 --max-time 12 --silent --show-error \
+  --output /dev/null --write-out 'proxy_http_code=%{http_code}\n' \
+  https://www.gstatic.com/generate_204
+kubectl exec -n n8n deploy/n8n -- sh -c \
+  'test -n "$HTTP_PROXY" && test -n "$HTTPS_PROXY"'
 
 # SSH 隧道
 journalctl --user -u reverse-tunnel-ecs-10021.service --since "1 hour ago" --no-pager
