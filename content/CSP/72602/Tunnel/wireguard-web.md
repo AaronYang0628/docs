@@ -109,6 +109,31 @@ Notifications include the diagnosed layer, active path, whether automatic
 service recovery succeeded, timestamp, and host. They use DingTalk plain-text
 messages with real line breaks, not escaped `\n` text.
 
+## Runtime Recovery
+
+ECS uses `wg-quick@wg0` and `/etc/wireguard/wg0.conf` as the sole owner of the
+WireGuard interface address and peer configuration. Do not add a competing
+`/etc/systemd/network/10-wg0.network` file.
+
+The ECS runtime repair timer `72602-wireguard-runtime-repair.timer` runs every
+30 seconds after boot. Its root-owned check restarts `wg-quick@wg0` only when
+the service is inactive, `wg0` lacks `10.77.0.1/30`, or the route to
+`10.77.0.2` does not use `wg0`. A healthy interface is not restarted. Verify it
+with:
+
+```bash
+systemctl list-timers 72602-wireguard-runtime-repair.timer --all
+sudo journalctl -t 72602-wireguard-repair --since "-15 min"
+```
+
+`systemd-networkd` also retries failures with a five-second delay and a
+60-second, 12-start limit. The previous outage was not automatically repaired
+because networkd's watchdog restart loop hit its default five-start limit after
+repeated `203/EXEC` failures, while `wg-quick@wg0` is a successful
+`Type=oneshot` unit with `RemainAfterExit=yes` and no restart policy. That unit
+therefore remained `active (exited)` after its address was lost and had no
+runtime address/route check.
+
 ## Failure Handling
 
 If public Web fails, inspect in this order:
