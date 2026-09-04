@@ -29,10 +29,15 @@ spec:
           resources:
             requests:
               cpu: 1000m
-              memory: 512Mi
+              memory: 2Gi
             limits:
               cpu: 2000m
-              memory: 1024Mi
+              memory: 2Gi
+          extendedConfiguration: |
+            checkpoint_timeout = 15min
+            max_wal_size = 2GB
+            shared_buffers = 512MB
+            wal_compression = lz4
           persistence:
             enabled: true
             storageClass: local-path
