@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+spec:
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+  project: default
+  source:
+    repoURL: https://aaronyang0628.github.io/helm-chart-mirror/charts
+    chart: postgresql
+    targetRevision: 18.1.8
+    helm:
+      releaseName: postgresql
+      values: |
+        global:
+          security:
+            allowInsecureImages: true
+        architecture: standalone
+        auth:
+          database: n8n
+          username: n8n
+          existingSecret: postgresql-credentials
+        primary:
+          resources:
+            requests:
+              cpu: 1
+              memory: 2Gi
+            limits:
+              cpu: 2
+              memory: 2Gi
+          extendedConfiguration: |
+            checkpoint_timeout = 15min
+            max_wal_size = 2GB
+            shared_buffers = 512MB
+            wal_compression = lz4
+          persistence:
+            enabled: true
+            storageClass: local-path
+            size: 8Gi
+        readReplicas:
+          replicaCount: 1
+          persistence:
+            enabled: true
+            storageClass: local-path
+            size: 8Gi
+        backup:
+          enabled: false
+        image:
+          registry: m.daocloud.io/registry-1.docker.io
+          pullPolicy: IfNotPresent
+        volumePermissions:
+          enabled: false
+          image:
+            registry: m.daocloud.io/registry-1.docker.io
+            pullPolicy: IfNotPresent
+        metrics:
+          enabled: false
+          image:
+            registry: m.daocloud.io/registry-1.docker.io
+            pullPolicy: IfNotPresent
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: database
