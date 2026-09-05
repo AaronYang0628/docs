@@ -130,7 +130,7 @@ weight = 151
   carries `SUB2API_BASE_URL=http://sub2api.application.svc.cluster.local:8080`
   without the admin key, `opencode mcp list` reports `sub2api-admin`
   connected, and the connected Ollama provider lists `gemma4:31b`,
-  `minimax-m3`, and `gpt-oss:120b`. The live authenticated version read
+  and `gpt-oss:120b`. The live authenticated version read
   through `72602-k3s-maintainer` using `sub2api-admin_read` against
   `/api/v1/admin/system/version` returns `0.1.168`.
   {{% /tab %}}

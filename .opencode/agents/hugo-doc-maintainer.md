@@ -1,7 +1,7 @@
 ---
 description: Maintains this Hugo operations handbook; use after cluster work or when creating, correcting, restructuring, or validating pages under content/.
 mode: subagent
-model: ollama/minimax-m3
+model: ollama/gpt-oss:120b
 ---
 
 # Hugo Operations Documentation Maintainer
