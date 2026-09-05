@@ -22,8 +22,9 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.8`, image
-`ghcr.io/wei-shaw/sub2api:0.1.176`, namespace `application`, and host
+The expected values are OCI chart `0.1.12`, image
+`ghcr.io/wei-shaw/sub2api@sha256:86d605217e7ebdb60a70316a458446cd51c2da207a8b2128661a2cb9caaf9aab`,
+namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
 
@@ -242,6 +243,7 @@ ArgoCD converge:
 git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml .opencode/opencode.json
 git -C /home/aaron/Ops/docs revert <change-commit>
 git -C /home/aaron/Ops/docs push origin HEAD:main
+# Record rollback as a new Git revert commit (upgrade commit 21d02345de47d75454841e464756f6cf9349cc3c)
 
 argocd app get ops-docs --hard-refresh
 argocd app sync ops-docs --revision main
