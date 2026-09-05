@@ -10,10 +10,10 @@ Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate
 ## Fixed 72602 facts
 
 - GitOps manifest: `manifests/sub2api-argocd.yaml` in the docs repository.
-- Chart source: the maintained colleague chart at `https://github.com/ben-wangz/k8s-at-home/tree/main/application/sub2api/chart`.
-- OCI chart: `oci://ghcr.io/ben-wangz/k8s-at-home-charts/sub2api`.
-- The accepted production target is chart `0.1.8` with image `ghcr.io/wei-shaw/sub2api:0.1.176`.
-- Chart `appVersion` can remain incorrectly labelled `0.1.168`; determine the application version from the explicit image tag and running image digest, never from that label.
+- Chart source: the maintained colleague chart at `https://github.com/ben-wangz/k8s-at-home/tree/main/application/sub2api/chart`, mirrored through `oci://ghcr.io/aaronyang0628/helm-chart-mirror/sub2api`.
+- OCI chart: `oci://ghcr.io/aaronyang0628/helm-chart-mirror/sub2api`.
+- The accepted production target is chart `0.1.11` with image `ghcr.io/wei-shaw/sub2api:0.2.0` pinned to digest `sha256:271bb3b34661803681cabf54e99811ab8e248b0dd4c88b09ea1226e22dea5751`.
+- The chart `appVersion` and image tag are now `0.2.0`; determine the running image from the explicit digest and Pod status when verifying a release.
 - PostgreSQL is intentionally shared in the `database` namespace. Sub2API owns the `sub2api` database/user inside that instance; the PostgreSQL initialization values mentioning n8n are not a Sub2API incident and must not trigger repeated investigation.
 - Sub2API uses its own Redis workload, not `storage/redis-shared`. Treat the application and its `sub2api-redis` data as one operational unit.
 - Git owns Helm/deployment configuration. PostgreSQL owns the database and Redis owns scheduler/cache state.
@@ -49,7 +49,7 @@ Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate
 
 ## Balance Recharge
 
-Balance is a USD-style internal credit in Sub2API v0.1.168, not a declared fiat currency account.
+Balance is a USD-style internal credit in Sub2API, not a declared fiat currency account.
 
 1. Require an exact email address and positive amount from the user.
 2. Call `sub2api-admin_preview_recharge`. The server fuzzy-searches but accepts only one exact normalized email match.
@@ -63,7 +63,7 @@ Do not use `set` or `subtract` as recharge operations. Do not recharge inactive 
 
 ## Limits And Model Availability
 
-Sub2API v0.1.168 does not provide a configurable per-model RPM limit.
+Sub2API does not provide a configurable per-model RPM limit.
 
 - User RPM: `PUT /api/v1/admin/users/:id` with `rpm_limit`; use `sub2api-admin_update_user_limits` after exact email/ID verification.
 - User concurrency: the same user route with `concurrency`. Existing requests retain acquired slots.

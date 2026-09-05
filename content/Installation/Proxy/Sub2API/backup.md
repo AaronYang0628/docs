@@ -7,7 +7,7 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.8`, image `ghcr.io/wei-shaw/sub2api:0.1.176`
+- Current release: OCI chart `0.1.11`, app `0.2.0`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -107,10 +107,25 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 - Non-empty artifacts: `sub2api.dump` (19,640,824 bytes),
   `sub2api-data.tgz` (10,616,251 bytes), and `sub2api.dump.list` (77,853
   bytes). Git revision, manifest, and PVC metadata were also captured.
-- `sha256sum -c SHA256SUMS` and `pg_restore --list` both succeeded. The
-  captured `origin/main` revision was
+- `sha256sum -c SHA256SUMS` and `pg_restore --list` both succeeded.
+- The captured `origin/main` revision was
   `ce838b424f10316fc604a4a21517c90c7b6b97ae`. No failure occurred; no
   upgrade, Argo CD sync, or GitOps/cluster change was performed.
+
+### Verified upgrade: 2026-09-05
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260905T000035Z`
+  (upgrade commit `5230546610c437a02ee45f5b80cd804779c9170c`). The scoped
+  `sub2api.dump` (47,520,105 bytes) and `sub2api-data.tgz` (10,192,905 bytes)
+  were non-empty; `pg_restore --list` and SHA-256 checks passed.
+- `schema_migrations` advanced from 268 to 277 records; the latest migration
+  is `233_group_free_openai_fast.sql`.
+- ArgoCD reported `Synced/Healthy`; Deployment was 1/1 on the pinned
+  `ghcr.io/wei-shaw/sub2api@sha256:271bb3b34661803681cabf54e99811ab8e248b0dd4c88b09ea1226e22dea5751`
+  image.
+- Existing application and Redis PVCs remained Bound, Service endpoints were
+  Ready, and public health/settings checks succeeded.
+- No rollback was required.
 
 ### Restore PostgreSQL Safely
 
