@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: k8s-at-home-charts-oci
+  name: helm-chart-mirror-sub2api-oci
   namespace: argocd
   labels:
     argocd.argoproj.io/secret-type: repository
 type: Opaque
 stringData:
-  name: k8s-at-home-charts-oci
+  name: helm-chart-mirror-sub2api-oci
   type: helm
   enableOCI: "true"
-  url: ghcr.io/ben-wangz/k8s-at-home-charts
+  url: ghcr.io/aaronyang0628/helm-chart-mirror
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -36,13 +36,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
   source:
-    repoURL: ghcr.io/ben-wangz/k8s-at-home-charts
+    repoURL: ghcr.io/aaronyang0628/helm-chart-mirror
     chart: sub2api
-    targetRevision: 0.1.9
+    targetRevision: 0.1.11
     helm:
-      parameters:
-        - name: image.tag
-          value: 0.1.179
       values: |
         updateStrategy:
           type: RollingUpdate
