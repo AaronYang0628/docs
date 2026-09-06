@@ -37,12 +37,71 @@ spec:
           size: 20Gi
           annotations:
             argocd.argoproj.io/sync-options: Delete=false
+            argocd.argoproj.io/sync-wave: "-2"
 
         ssh:
-          source: secret
-          secret:
-            name: roaminal-ssh
-            defaultMode: 288
+          source: pvc
+
+        extraDeploy:
+          - apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: roaminal-ssh-bootstrap
+              namespace: roaminal
+              annotations:
+                argocd.argoproj.io/sync-wave: "-1"
+            spec:
+              backoffLimit: 3
+              activeDeadlineSeconds: 120
+              template:
+                metadata:
+                  labels:
+                    app.kubernetes.io/name: roaminal-ssh-bootstrap
+                spec:
+                  automountServiceAccountToken: false
+                  restartPolicy: OnFailure
+                  securityContext:
+                    runAsNonRoot: true
+                    runAsUser: 1000
+                    runAsGroup: 1000
+                    fsGroup: 1000
+                    seccompProfile:
+                      type: RuntimeDefault
+                  containers:
+                    - name: copy-ssh-material
+                      image: ghcr.io/ben-wangz/roaminal@sha256:ef0784f5bb0e385dd97ed32331da0703f00d24acdaecbf49ed3701efac0ed4a6
+                      imagePullPolicy: IfNotPresent
+                      command:
+                        - /bin/sh
+                        - -ec
+                        - |
+                          umask 077
+                          mkdir -p /mnt/roaminal-data/ssh
+                          for name in config known_hosts_72602 known_hosts_zjlab known_hosts_ecs id_ed25519_72602 id_ed25519_zjlab id_ed25519_ecs; do
+                            cp "/mnt/roaminal-ssh/$name" "/mnt/roaminal-data/ssh/$name"
+                            chmod 600 "/mnt/roaminal-data/ssh/$name"
+                          done
+                          chmod 700 /mnt/roaminal-data/ssh
+                      securityContext:
+                        allowPrivilegeEscalation: false
+                        readOnlyRootFilesystem: true
+                        capabilities:
+                          drop:
+                            - ALL
+                      volumeMounts:
+                        - name: roaminal-data
+                          mountPath: /mnt/roaminal-data
+                        - name: roaminal-ssh
+                          mountPath: /mnt/roaminal-ssh
+                          readOnly: true
+                  volumes:
+                    - name: roaminal-data
+                      persistentVolumeClaim:
+                        claimName: roaminal-data
+                    - name: roaminal-ssh
+                      secret:
+                        secretName: roaminal-ssh
+                        defaultMode: 288
 
         ingress:
           enabled: true
