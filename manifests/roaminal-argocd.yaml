@@ -1,0 +1,77 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: roaminal
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: roaminal
+  source:
+    repoURL: https://github.com/ben-wangz/roaminal.git
+    targetRevision: d8415b9017796c364c56a7dfdaece59534e504b6
+    path: chart
+    helm:
+      values: |
+        image:
+          digest: sha256:ef0784f5bb0e385dd97ed32331da0703f00d24acdaecbf49ed3701efac0ed4a6
+
+        app:
+          host: 0.0.0.0
+          port: 9846
+          acceptTerms: true
+          initialCwd: /workspace
+          maxConnectionInstances: 16
+          maxClientsPerConnectionInstance: 8
+
+        auth:
+          existingSecret: roaminal-auth
+          passwordKey: password
+
+        persistence:
+          enabled: true
+          storageClass: local-path
+          size: 20Gi
+          annotations:
+            argocd.argoproj.io/sync-options: Delete=false
+
+        ssh:
+          source: secret
+          secret:
+            name: roaminal-ssh
+            defaultMode: 288
+
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hostname: roam.72602.space
+          path: /
+          pathType: Prefix
+          tls: true
+          tlsSecret: roam.72602.space-tls
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/proxy-body-size: 10g
+            nginx.ingress.kubernetes.io/proxy-buffering: "off"
+            nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+            nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: "2"
+            memory: 2Gi
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

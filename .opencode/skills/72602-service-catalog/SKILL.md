@@ -24,6 +24,7 @@ operations without loading the matching service skill first.
 | n8n | `n8n-72602-operations` | `n8n` |
 | ops-agent | `ops-agent-72602-operations` | `application` |
 | ops-docs | `ops-docs-72602-operations` | `application` |
+| roaminal | `roaminal-72602-operations` | `roaminal` |
 | postgresql | `postgresql-72602-operations` | `database` |
 | prometheus | `prometheus-72602-operations` | `monitor` |
 | redis-shared | `redis-shared-72602-operations` | `storage` |
