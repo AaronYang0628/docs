@@ -44,6 +44,18 @@ hostPath, an existing SSH Secret, or an existing tunnel listener. If a target
 path is not yet provisioned, keep the application deployed but report the
 missing transport instead of weakening this boundary.
 
+## Remote Agent prerequisites
+
+- The ZJLAB target uses a user-scoped tmux binary at
+  `/home/aaron/.local/bin/tmux`. That path is a small wrapper which exports
+  `LC_ALL`, `LANG`, and `LC_CTYPE` as `C.UTF-8`, then execs the preserved tmux
+  binary under `/home/aaron/.local/lib/roaminal-tmux/`.
+- Keep the wrapper in place when recreating `roaminal-codex`. tmux 3.6 emits
+  format-field separators as underscores under the target's POSIX locale,
+  which prevents the Roaminal Codex Hook from validating its tmux identity.
+- Verify Agent state through the Roaminal connection API and the remote Hook;
+  a manually invoked Hook must provide the target tmux pane context.
+
 ## Mutation and rollback
 
 Before changing the chart source, SSH transport, Secret metadata, or live
