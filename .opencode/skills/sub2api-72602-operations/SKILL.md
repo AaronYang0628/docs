@@ -1,6 +1,6 @@
 ---
 name: sub2api-72602-operations
-description: Use ONLY when operating Sub2API or its dedicated Redis in the 72602 cluster, including GitOps upgrades, safe database backups, admin diagnostics, account scheduling, user RPM or concurrency controls, model availability, and exact-account balance recharge.
+description: Use ONLY when operating Sub2API or its dedicated Redis in the 72602 cluster, including /sub2api-release upgrade, GitOps upgrades, safe database backups, admin diagnostics, account scheduling, user RPM or concurrency controls, model availability, and exact-account balance recharge.
 ---
 
 # Sub2API 72602 Operations
@@ -12,18 +12,49 @@ Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate
 - GitOps manifest: `manifests/sub2api-argocd.yaml` in the docs repository.
 - Chart source: the maintained colleague chart at `https://github.com/ben-wangz/k8s-at-home/tree/main/application/sub2api/chart`, mirrored through `oci://ghcr.io/aaronyang0628/helm-chart-mirror/sub2api`.
 - OCI chart: `oci://ghcr.io/aaronyang0628/helm-chart-mirror/sub2api`.
-- The accepted production target is chart `0.1.11` with image `ghcr.io/wei-shaw/sub2api:0.2.0` pinned to digest `sha256:271bb3b34661803681cabf54e99811ab8e248b0dd4c88b09ea1226e22dea5751`.
-- The chart `appVersion` and image tag are now `0.2.0`; determine the running image from the explicit digest and Pod status when verifying a release.
+- Last verified release on 2026-09-05: chart `0.1.12`, application `0.2.1`, and Linux amd64 image digest `sha256:86d605217e7ebdb60a70316a458446cd51c2da207a8b2128661a2cb9caaf9aab`. This is historical evidence, not a release target.
+- Treat chart version, `appVersion`, tag, image digest, ArgoCD revision, and Pod image as dynamic. Resolve them from the GitOps manifest, published OCI chart, ArgoCD Application, and running Pod for every release check.
 - PostgreSQL is intentionally shared in the `database` namespace. Sub2API owns the `sub2api` database/user inside that instance; the PostgreSQL initialization values mentioning n8n are not a Sub2API incident and must not trigger repeated investigation.
 - Sub2API uses its own Redis workload, not `storage/redis-shared`. Treat the application and its `sub2api-redis` data as one operational unit.
 - Git owns Helm/deployment configuration. PostgreSQL owns the database and Redis owns scheduler/cache state.
 
-## Standard routine path
+## Release Check And Upgrade
 
-1. Load this skill and identify whether the request is application admin work or GitOps/deployment work.
-2. For a routine check, read the ArgoCD Application, Deployment/Pod, Service endpoint, and `/health`; do not rediscover the chart source or database topology.
-3. For an application upgrade, use exactly: inspect worktree -> take one verified backup -> make the minimal manifest change -> obtain the Git commit SHA with `git rev-parse` -> push -> wait for ArgoCD -> verify -> stop.
-4. Do not expand a completed upgrade into optional documentation or unrelated service work. Update the runbook only when the operation changed the reusable procedure or corrected drift.
+Use `helm-chart-mirror-operations` for upstream discovery and chart publication. Do not change the cluster until the requested chart is published to GHCR and has passed the anonymous pull check.
+
+### Check Mode
+
+For a read-only release check, report:
+
+1. Latest stable upstream application release, resolved from GitHub Releases; ignore drafts and prereleases.
+2. Latest published mirror chart, its `appVersion`, and the Linux amd64 image digest.
+3. GitOps `targetRevision`, ArgoCD observed revision/health, and the running Pod image digest.
+4. Whether an update is needed and the expected next chart version, marked provisional until the mirror update script resolves it.
+5. Any open update PR, update/publish workflow result, or GHCR publication blocker.
+
+Do not dispatch a workflow, create a backup, change Git, sync ArgoCD, or access Secrets in check mode.
+
+### Upgrade Preview And Confirmation
+
+Before every release mutation, state the exact target, current value, proposed value, blast radius, and rollback. For a cluster upgrade, the preview must also name the backup scope and resulting GitOps change.
+
+- Chart publication blast radius: the immutable mirror package, Helm index, GHCR OCI artifact, and Pages index. Roll back with a new mirror revert PR; never delete or overwrite a published chart.
+- Cluster upgrade blast radius: one rolling replacement of `application/sub2api`, automatic forward-only migrations, and the application/Redis dependencies. Roll back deployment configuration with a new Git revert; a database rollback requires isolated restore and deliberate configuration switching.
+- A request for `publish` or `upgrade` starts discovery and the preview. It is not confirmation. Obtain explicit confirmation after presenting the preview.
+- If the generated PR resolves a different application version, chart version, or digest than the confirmed preview, stop and request confirmation of the exact new tuple.
+
+### Confirmed Cluster Upgrade Path
+
+After the mirror chart is published and anonymously verified:
+
+1. Inspect the docs worktree and preserve unrelated changes.
+2. Create exactly one new scoped backup before changing Git: the `sub2api` PostgreSQL database and mounted `/app/data` PVC only.
+3. Keep the backup outside the repository; verify non-empty artifacts, `pg_restore --list`, archive listing, and SHA-256 checksums.
+4. Change only `manifests/sub2api-argocd.yaml` `targetRevision` to the published chart version.
+5. Run `git diff --check`, commit only the manifest, resolve the commit SHA with `git rev-parse`, and push.
+6. Wait for ArgoCD automated sync. Verify ArgoCD `Synced/Healthy`, observed chart revision, rollout, Pod readiness/restarts, running image digest, Service endpoint, internal `/health`, and dedicated Redis readiness.
+7. Update the Sub2API runbook with the verified release, backup location, Git commit, rollback, and verification facts. Do not invent migration details.
+8. Stop after verification. Do not add unrelated service work.
 
 ## Boundaries
 
@@ -43,7 +74,7 @@ Operate the `application/sub2api` deployment only in the 72602 cluster. Delegate
 - Before any image/chart change that can run migrations, back up only the `sub2api` PostgreSQL database and the mounted `/app/data` PVC. Do not dump the whole shared PostgreSQL instance.
 - Keep the backup outside the repository. Verify `pg_restore --list` and SHA-256 checksums before changing Git.
 - Use a non-secret pipeline. Never print a Secret, password, JWT, API key, provider credential, or storage credential. Validate a streamed dump inside the PostgreSQL container when client-side `kubectl exec -i` I/O is unreliable; do not repeat a failing stream blindly.
-- The verified upgrade backup was `/home/aaron/Ops/backups/sub2api/upgrade-20260814T063611Z` with `sub2api.dump` and `sub2api-data.tgz`; treat it as historical evidence, not as a new backup.
+- Verified upgrade backups are historical evidence only. Generate a new timestamped backup directory for every image or chart change.
 - Roll back deployment configuration with a new Git revert. `kubectl rollout undo`, deleting PVCs, or deleting Secrets is not a database rollback. Because migrations are forward-only, a true database rollback requires restoring the dump to an isolated database and then switching configuration deliberately.
 - Resolve every version, digest, and commit SHA by command. Never hand-type a full SHA or image digest into a release marker.
 

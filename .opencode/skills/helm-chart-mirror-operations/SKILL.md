@@ -1,6 +1,6 @@
 ---
 name: helm-chart-mirror-operations
-description: Use ONLY when operating the AaronYang0628/helm-chart-mirror repository, its Sub2API chart mirror, GitHub Actions update PRs, GitHub Pages index, or GHCR OCI publication.
+description: Use ONLY when operating the AaronYang0628/helm-chart-mirror repository, its Sub2API chart mirror, /sub2api-release check or publish, GitHub Actions update PRs, GitHub Pages index, or GHCR OCI publication.
 ---
 
 # Helm Chart Mirror Operations
@@ -23,10 +23,12 @@ live 72602 application or GitOps work.
 - Pages deployment is owned by `.github/workflows/jekyll-gh-pages.yml` and is
   triggered by a push to `main`.
 
-The initial mirrored release is chart `0.1.11`, application `0.2.0`, with the
-Linux amd64 image pinned by its resolved registry digest. Never infer a new
+The last verified mirror release on 2026-09-05 is chart `0.1.12`, application
+`0.2.1`, with Linux amd64 image digest
+`sha256:86d605217e7ebdb60a70316a458446cd51c2da207a8b2128661a2cb9caaf9aab`.
+This is historical evidence, not a release target. Never infer a new
 application version from the upstream chart's `appVersion`; resolve the
-stable release and image manifest by command.
+latest stable release and image manifest by command.
 
 ## Automation ownership
 
@@ -40,8 +42,52 @@ stable release and image manifest by command.
 - `.github/workflows/publish-sub2api.yml` runs after a merged PR, verifies each
   newly merged package, publishes it to GHCR, and anonymously pulls it back to
   prove that the public OCI content matches Git.
-- The update path opens a PR only. Do not auto-merge or deploy a release from
-  this automation.
+- The update path opens a PR only. It never auto-merges or deploys a release.
+
+## Sub2API Release Modes
+
+### Check
+
+For `/sub2api-release` or `/sub2api-release check`, perform read-only discovery:
+
+1. Resolve the latest stable GitHub Release from `Wei-Shaw/sub2api`; exclude
+   drafts and prereleases.
+2. Inspect the newest mirror package, `charts/index.yaml`, published OCI chart,
+   image tag/digest, and open update PR/workflow state.
+3. Resolve the Linux amd64 image manifest digest for the upstream release.
+4. Report the upstream release, current mirror chart/application/digest,
+   whether an update is needed, and provisional next chart version.
+
+Do not dispatch workflows, create branches or PRs, merge, publish, or change
+the 72602 cluster in check mode.
+
+### Publish Preview And Confirmation
+
+For `/sub2api-release publish` or the chart stage of `upgrade`, first give a
+read-only preview containing the current and proposed application/chart/image
+tuple, affected GitHub repository/package, workflow/PR behavior, blast radius,
+and rollback. The command mode alone is not approval; wait for explicit user
+confirmation before dispatching the update workflow.
+
+If the update workflow resolves a version or Linux amd64 digest that differs
+from the confirmed tuple, stop before merging and request confirmation again.
+
+### Confirmed Publication Path
+
+1. Read `git status --short --branch`; preserve unrelated worktree changes.
+2. Dispatch `Update Sub2API chart` on `main` and wait for it to finish.
+3. Inspect the generated `automation/sub2api-update` PR, package, index,
+   README, script, workflow diff, and CI. Run `bash scripts/sub2api.sh verify`
+   on the proposed package and `git diff --check`.
+4. Merge only the reviewed, successful PR. Preserve previous chart packages.
+5. Wait for `Publish Sub2API chart` and Pages workflows on the merge commit.
+   The publish workflow must complete successfully and anonymously pull the
+   OCI chart back with matching package SHA-256.
+6. Independently repeat the anonymous Helm pull and compare package SHA-256
+   before reporting the chart as published.
+7. Report the Git/PR/workflow URLs or SHAs, final chart/application/digest,
+   and exact verification result. Do not update the cluster unless the user
+   explicitly requested `upgrade` and confirms its separate cluster preview.
 
 ## Read path
 
@@ -63,9 +109,15 @@ stable release and image manifest by command.
   registry and GitHub API resolution.
 - Preserve prior chart packages. Chart versions are immutable publication
   identifiers; never replace an existing `.tgz` with different content.
-- The GHCR package must be public. One-time package visibility is managed in
-  GitHub package settings; the publish workflow deliberately fails when the
-  anonymous pull cannot read the package.
+- The GHCR package must be public. The package settings URL is
+  `https://github.com/users/AaronYang0628/packages/container/helm-chart-mirror%2Fsub2api/settings`.
+  The repository `AaronYang0628/helm-chart-mirror` must have `Write` under
+  **Manage Actions access** so its `GITHUB_TOKEN` can publish. Repository
+  association may remain `null`; it is not evidence that Actions access failed.
+- If GHCR publishing returns `403`, stop. Do not fall back to a PAT or manually
+  publish with a protected credential. Report the package settings path and
+  request that the repository be granted `Write`, then rerun the failed publish
+  workflow after the user confirms the setting.
 - Required GitHub Actions permissions are `contents: write` and
   `pull-requests: write` for the update workflow, and `packages: write` for
   the publish workflow. Repository settings must allow Actions to create pull
