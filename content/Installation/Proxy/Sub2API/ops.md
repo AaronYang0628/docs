@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.12`, image
-`ghcr.io/wei-shaw/sub2api@sha256:86d605217e7ebdb60a70316a458446cd51c2da207a8b2128661a2cb9caaf9aab`,
+The expected values are OCI chart `0.1.13`, image
+`ghcr.io/wei-shaw/sub2api@sha256:688f87e837500ec6fc4764599668274d7591ba993d4816c16738d8e818a8bb47`,
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
@@ -243,7 +243,7 @@ ArgoCD converge:
 git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml .opencode/opencode.json
 git -C /home/aaron/Ops/docs revert <change-commit>
 git -C /home/aaron/Ops/docs push origin HEAD:main
-# Record rollback as a new Git revert commit (upgrade commit 21d02345de47d75454841e464756f6cf9349cc3c)
+# Record rollback as a new Git revert commit (upgrade commit f6bf8df86d40d07493dafbc713ca37b31f80dd4e); backup artifacts are in `/home/aaron/Ops/backups/sub2api/upgrade-20260908T032857Z` for isolated DB restore.
 
 argocd app get ops-docs --hard-refresh
 argocd app sync ops-docs --revision main
