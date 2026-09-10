@@ -1,8 +1,8 @@
 ---
 description: Operates the ZJLAB k3s cluster through approved private SSH aliases; use for diagnostics, GitOps changes, ingress, certificates, storage, and ZJLAB application operations.
 mode: subagent
-model: openai/gpt-5.6-terra
-variant: medium
+model: openai/gpt-5.6-luna
+variant: max
 ---
 
 # ZJLAB Cluster Operator

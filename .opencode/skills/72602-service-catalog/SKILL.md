@@ -42,6 +42,7 @@ operations without loading the matching service skill first.
 | squid | `squid-72602-operations` | ecs-99 (`47.110.67.161`) |
 | socat egress bridge | `socat-72602-operations` | 72602-minipc |
 | ECS reverse tunnels | `reverse-tunnel-72602-operations` | 72602-minipc |
+| ZJLAB ECS loopback tunnels | `zjlab-loopback-tunnel-72602-operations` | ecs-99 and ZJLAB |
 | WireGuard Web tunnel | `wireguard-72602-operations` | 72602-minipc and ECS |
 | ECS HAProxy | `haproxy-72602-operations` | ECS |
 | Mail routing forwards | `mail-routing-72602-operations` | 72602-minipc and ECS |

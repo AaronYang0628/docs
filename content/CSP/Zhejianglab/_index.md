@@ -34,7 +34,7 @@ ECS runs an independent check-and-alert-only monitor for the approved
 `primary` and `backup` loopback listeners. For each label it requires exactly
 one listener, loopback-only binding, sole `sshd` ownership, an independent
 owner, a short-timeout SSH banner, and a stable hashed owner signature. Alerts
-start only after three consecutive failures.
+start only after ten consecutive failures.
 
 The monitor stores root-only state and emits labels and fixed reason codes only.
 It never restarts or kills a tunnel and never changes sshd, firewall, cloud
@@ -60,14 +60,34 @@ check and listener `10024` reports the `backup` check. This is separate from
 the 72602 public tunnel listeners on `10021` and `10022`, which are not Kuma
 Push sources for this monitor.
 
-The stable access map is: `10023` is the ZJLAB primary SSH reverse listener and
-`10024` is the backup listener. Both are loopback-only on ECS and are reached
-through the ECS ProxyJump path; they are not public endpoints and must not be
-added to the ECS security group. The ZJLAB initiators are the system-level
-`zjlab-loopback-reverse-primary.service` and
-`zjlab-loopback-reverse-backup.service`. User-level services with the same
-names are legacy duplicates and must remain stopped and disabled; running both
-layers causes listener ownership conflicts and reconnect loops.
+The stable access map is:
+
+- `10023` is the ZJLAB primary SSH reverse listener.
+- `10024` is the backup listener.
+- `10025` is a restricted break-glass maintenance listener.
+
+All three are loopback-only on the ECS host and are reached through the ECS
+ProxyJump path. They must never be added to the ECS security group or exposed
+publicly. The maintenance listener is provided by
+`zjlab-loopback-maintenance.service` and uses a separate restricted SSH
+account and key; use the local `zjlab-maintenance` alias only for recovery.
+Client configurations should use `HostName 127.0.0.1` for these ECS loopback
+targets rather than relying on `localhost` address-family resolution.
+
+ECS applies `ClientAliveInterval 30` and `ClientAliveCountMax 10` to the
+`zjlab-tunnel` and `zjlab-maintenance` accounts. This releases stale remote
+forward listeners quickly after a broken connection without changing the
+global SSH policy.
+
+The ZJLAB tunnel initiators are the system-level services located at
+`/etc/systemd/system/zjlab-loopback-reverse-primary.service` and
+`/etc/systemd/system/zjlab-loopback-reverse-backup.service`. These units invoke
+`/usr/bin/ssh` directly (not `autossh`) with `Restart=on-failure`,
+`RestartSec=30s` for the primary, `RestartSec=45s` for the backup, and
+`KillMode=control-group`. Legacy user-level services
+`reverse-tunnel-ecs.service` and `reverse-tunnel-ecs-10024.service` must remain
+stopped and disabled; running them alongside the system units causes listener
+ownership conflicts and reconnect loops.
 
 When both monitors report `ssh_banner_failed`, first verify the current ZJLAB
 egress IPv4 and the ECS security-group allowlist for TCP `22`, then check ECS
@@ -79,18 +99,25 @@ The private checker keeps the Push request as a best-effort reporting path.
 Healthy checks send `up`; failed checks send `down` with a fixed reason. Push
 HTTP failures do not change listener judgment, failure counters, DingTalk
 debounce, or tunnel lifecycle. The checker merges existing query parameters
-when constructing the request and does not log the Push value.
+when constructing the request and does not log the Push value. A normal tunnel
+reconnect changes the `sshd` PID and socket identity; those changes are not
+treated as failures when the listener, owner, bind address, and SSH banner are
+healthy. The checker completes an SSH key exchange with `ssh-keyscan` before
+closing its probe connection; do not replace it with a raw TCP banner read,
+which can leave `CLOSE-WAIT` channels on the reverse listener.
 
-DingTalk sends one failure notification after three consecutive failures for a
+DingTalk sends one failure notification after ten consecutive failures for a
 label. The message includes a fixed, redacted recovery action. After a notified
 failure becomes healthy, the checker sends one recovery notification; if that
 send fails, the alert state is retained and the next healthy check retries it.
 Short failures that never cross the alert threshold do not generate a recovery
 message.
 
-Deployment verification on 2026-08-13 confirmed the checker dry-run and service
-run were healthy for both labels across more than two complete 60-second timer
-cycles; recheck live before maintenance.
+Deployment verification on 2026-09-05 confirmed the primary, backup, and
+maintenance aliases returned `zjlab-ubuntu`; the ECS listeners were unique,
+loopback-only, and returned valid SSH banners. The checker dry-run and live
+service run were healthy for both labels across more than two complete
+60-second timer cycles.
 Rollback restores the root-only ECS backup and encrypted private inventory
 backup, then restarts only `zjlab-tunnel-healthcheck.service`; tunnel units are
 not restarted as part of monitoring rollback.
