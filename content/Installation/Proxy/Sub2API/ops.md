@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.13`, image
-`ghcr.io/wei-shaw/sub2api@sha256:688f87e837500ec6fc4764599668274d7591ba993d4816c16738d8e818a8bb47`,
+The expected values are OCI chart `0.1.14`, image
+`ghcr.io/wei-shaw/sub2api@sha256:4a9620931fbb966b04375c34fe3edd01b640e7e6fbbba02537a9a64d9555a59e`,
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.

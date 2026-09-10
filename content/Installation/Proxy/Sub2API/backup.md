@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.13`, application `0.2.3`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:688f87e837500ec6fc4764599668274d7591ba993d4816c16738d8e818a8bb47`
+- Current release: OCI chart `0.1.14`, application `0.2.4`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:4a9620931fbb966b04375c34fe3edd01b640e7e6fbbba02537a9a64d9555a59e`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -143,7 +143,7 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 
 ### Verified upgrade: 2026-09-08
 
-- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260908T032857Z`; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `f6bf8df86d40d07493dafbc713ca37b31f80dd4e`; ops-docs reconciled at `2026-09-08T03:39:29Z`; sub2api ArgoCD target/observed `0.1.13` Synced/Healthy operation Succeeded at `03:39:43Z`; runtime verification at `2026-09-08T03:41:29Z-03:42:17Z`: Deployment 1/1, Pod ready 0 restarts, chart `sub2api-0.1.13/app 0.2.3`, actual image digest matches, Service endpoint `10.42.0.168:8080` ready/serving, internal `/health` HTTP 200 body `{"status":"ok"}`, Redis StatefulSet 1/1, PVC Bound 8Gi.
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260910T061248Z`; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `7bd44adb5ed1b61976b507e1f32bc990738782b2`; ops-docs reconciled at `2026-09-10T06:12:48Z`; sub2api ArgoCD target/observed `0.1.14` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod ready 0 restarts, chart `sub2api-0.1.14/app 0.2.4`, actual image digest matches, Service endpoint ready/serving, internal `/health` HTTP 200 body `{"status":"ok"}`, Redis StatefulSet 1/1, PVC Bound 8Gi.
 - No rollback required.
 
 ### Restore PostgreSQL Safely
