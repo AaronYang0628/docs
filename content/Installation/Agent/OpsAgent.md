@@ -28,18 +28,16 @@ weight = 151
 
   {{% notice style="transparent" %}}
   ```bash
-  export OPENAI_API_KEY='<rotated-api-key>'
-  export GROK_API_KEY='<rotated-grok-api-key>'
-  export OLLAMA_API_KEY='<rotated-ollama-api-key>'
   ./manifests/ops-agent/create-secrets.sh
-  unset OPENAI_API_KEY GROK_API_KEY OLLAMA_API_KEY
 
   ./manifests/ops-agent/create-sub2api-mcp-secret.sh
   ```
   {{% /notice %}}
 
-  The base script requires all three model credentials so a later run cannot
-  remove an existing provider key. It creates or updates model, SSH, Git
+  `create-secrets.sh` loads the ignored repository `.env` by default (or the
+  file named by `OPENCODE_ENV_FILE`) and requires the five model variables:
+  `OPENAI_API_KEY`, `GROK_API_KEY`, `OLLAMA_API_KEY`, `BACKUP_ENDPOINT`, and
+  `BACKUP_API_KEY`. It creates or updates model, SSH, Git
   credential, Registry, and Basic Auth Secrets without writing their values
   into Git. The Sub2API helper accepts the admin API key only through its
   silent interactive prompt, validates its `admin-<hex64>` shape, writes

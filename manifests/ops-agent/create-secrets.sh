@@ -2,6 +2,8 @@
 set -euo pipefail
 
 NAMESPACE="application"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${OPENCODE_ENV_FILE:-$SCRIPT_DIR/../../.env}"
 SSH_KEY="${OPENCODE_SSH_KEY:-$HOME/.ssh/id_rsa}"
 SSH_KNOWN_HOSTS="${OPENCODE_SSH_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}"
 SSH_CONFIG="${OPENCODE_SSH_CONFIG:-$HOME/.ssh/config}"
@@ -9,7 +11,14 @@ SSH_PRIVATE_CONFIG="${OPENCODE_SSH_PRIVATE_CONFIG:-$HOME/.ssh/config.d/zjlab.con
 GIT_CREDENTIALS="${OPENCODE_GIT_CREDENTIALS:-$HOME/.git-credentials}"
 REGISTRY_SECRET_NAMESPACE="${REGISTRY_SECRET_NAMESPACE:-default}"
 
-for required_key in OPENAI_API_KEY GROK_API_KEY OLLAMA_API_KEY; do
+if [[ -r "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
+for required_key in OPENAI_API_KEY GROK_API_KEY OLLAMA_API_KEY BACKUP_ENDPOINT BACKUP_API_KEY; do
   if [[ -z "${!required_key:-}" ]]; then
     printf '%s must be set in the current environment\n' "$required_key" >&2
     exit 1
@@ -45,6 +54,8 @@ kubectl -n "$NAMESPACE" create secret generic opencode-model \
   --from-literal=api-key="$OPENAI_API_KEY" \
   --from-literal=grok-api-key="$GROK_API_KEY" \
   --from-literal=ollama-api-key="$OLLAMA_API_KEY" \
+  --from-literal=backup-endpoint="$BACKUP_ENDPOINT" \
+  --from-literal=backup-api-key="$BACKUP_API_KEY" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl -n "$NAMESPACE" create secret generic opencode-ssh \
