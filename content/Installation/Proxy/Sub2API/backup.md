@@ -141,9 +141,9 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   succeeded.
 - No rollback was required.
 
-### Verified upgrade: 2026-09-08
+### Verified upgrade: 2026-09-10
 
-- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260910T061248Z`; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `7bd44adb5ed1b61976b507e1f32bc990738782b2`; ops-docs reconciled at `2026-09-10T06:12:48Z`; sub2api ArgoCD target/observed `0.1.14` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod ready 0 restarts, chart `sub2api-0.1.14/app 0.2.4`, actual image digest matches, Service endpoint ready/serving, internal `/health` HTTP 200 body `{"status":"ok"}`, Redis StatefulSet 1/1, PVC Bound 8Gi.
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260910T061248Z`; PostgreSQL dump `46,520,009` bytes, `/app/data` archive `10,214,969` bytes; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `7bd44adb5ed1b61976b507e1f32bc990738782b2`; sub2api ArgoCD target/observed `0.1.14` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod ready 0 restarts, chart `sub2api-0.1.14/app 0.2.4`, actual image digest matches, Service endpoint ready/serving, internal `/health` HTTP 200, Redis StatefulSet 1/1.
 - No rollback required.
 
 ### Restore PostgreSQL Safely
