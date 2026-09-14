@@ -59,6 +59,7 @@ Load exactly one primary service skill for each operation. Related dependencies 
 | Mailu | `mailu-72602-operations` | `mailu` |
 | MinIO | `minio-72602-operations` | `storage` |
 | n8n | `n8n-72602-operations` | `n8n` |
+| Ollama Moderation Gateway | `ollama-moderation-gateway-72602-operations` | `moderation` |
 | Ops Agent | `ops-agent-72602-operations` | `application` |
 | Ops Docs | `ops-docs-72602-operations` | `application` |
 | PostgreSQL | `postgresql-72602-operations` | `database` |

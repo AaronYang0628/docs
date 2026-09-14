@@ -22,6 +22,7 @@ operations without loading the matching service skill first.
 | mailu | `mailu-72602-operations` | `mailu` |
 | minio | `minio-72602-operations` | `storage` |
 | n8n | `n8n-72602-operations` | `n8n` |
+| ollama-moderation-gateway | `ollama-moderation-gateway-72602-operations` | `moderation` |
 | ops-agent | `ops-agent-72602-operations` | `application` |
 | ops-docs | `ops-docs-72602-operations` | `application` |
 | roaminal | `roaminal-72602-operations` | `roaminal` |
