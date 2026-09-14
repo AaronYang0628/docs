@@ -101,6 +101,10 @@ description = "Deploy Ollama Moderation Gateway via 72602 GitOps ArgoCD"
   ```
   {{% /notice %}}
 
+{{% notice style="transparent" %}}
+**Current Operational State**: Deployment `ollama-moderation-gateway` desired replicas: **3**, available replicas: **3**. Service reports **three Ready endpoints**. Single-node resource metrics are healthy. The image, runtime configuration and Ingress remain unchanged; only `replicaCount` was changed.
+{{% /notice %}}
+
   Expected release values: chart `ollama-moderation-gateway` version `0.1.0` and image
   `ghcr.io/aaronyang0628/ollama-moderation-gateway@sha256:6957f8a32ad93577500c6952d7dd0b9ae970672b82570144852c5fe5766773c5`. The TLS certificate `moderation.llm.72602.space-tls` should be `Ready` with expiry `2026-12-13T00:55:24Z`.
 
