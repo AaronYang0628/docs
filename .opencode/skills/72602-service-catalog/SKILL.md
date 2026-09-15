@@ -15,6 +15,7 @@ operations without loading the matching service skill first.
 |---|---|---|
 | argocd | `argocd-72602-operations` | `argocd` |
 | cert-manager | `cert-manager-72602-operations` | `basic-components` |
+| charge-spot-quest | `charge-spot-quest-72602-operations` | `charge-spot` |
 | grafana | `grafana-72602-operations` | `monitor` |
 | homepage | `homepage-72602-operations` | `monitor` |
 | ingress-nginx | `ingress-nginx-72602-operations` | `basic-components` |

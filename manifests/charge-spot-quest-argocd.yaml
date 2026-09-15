@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: charge-spot-quest
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: charge-spot
+  source:
+    repoURL: https://github.com/AaronYang0628/charge-spot-quest.git
+    targetRevision: cbc5a76709e24507d2be257ec7edbb0a83b06ae7
+    path: charts/charge-spot-quest
+    helm:
+      releaseName: charge-spot-quest
+      values: |
+        fullnameOverride: charge-spot-quest
+        replicaCount: 1
+
+        image:
+          repository: ghcr.io/aaronyang0628/charge-spot-quest
+          tag: "0.1.0"
+          digest: sha256:cb107eea416fd3b9262c3678e851c52766ebae1ca46bb75e1871d6d4e921eeb5
+          pullPolicy: IfNotPresent
+
+        postgresql:
+          enabled: false
+
+        sqlite:
+          enabled: true
+          persistence:
+            enabled: true
+            size: 1Gi
+            storageClass: local-path
+
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: lets-encrypt
+            nginx.ingress.kubernetes.io/proxy-body-size: 5m
+          hosts:
+            - host: charge.72602.space
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: charge.72602.space-tls
+              hosts:
+                - charge.72602.space
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

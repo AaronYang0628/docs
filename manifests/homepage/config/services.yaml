@@ -97,6 +97,14 @@
         icon: hugo
         description: https://ops.docs.72602.space
         siteMonitor: https://ops.docs.72602.space
+    - Charge Spot Quest:
+        icon: mdi-ev-station
+        href: https://charge.72602.space
+        description: https://charge.72602.space
+        siteMonitor: https://charge.72602.space/health
+        namespace: charge-spot
+        app: charge-spot-quest
+        showStats: true
 - External Links:
     - ZJLAB Nanhu:
         href: https://zjic.zhejianglab.com/portal/navigation
