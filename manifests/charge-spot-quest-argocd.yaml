@@ -12,7 +12,7 @@ spec:
     namespace: charge-spot
   source:
     repoURL: https://github.com/AaronYang0628/charge-spot-quest.git
-    targetRevision: cbc5a76709e24507d2be257ec7edbb0a83b06ae7
+    targetRevision: d535eb9e79767d5e08fddc6186cba62566b12df6
     path: charts/charge-spot-quest
     helm:
       releaseName: charge-spot-quest
@@ -22,8 +22,8 @@ spec:
 
         image:
           repository: ghcr.io/aaronyang0628/charge-spot-quest
-          tag: "0.1.0"
-          digest: sha256:cb107eea416fd3b9262c3678e851c52766ebae1ca46bb75e1871d6d4e921eeb5
+          tag: "0.1.1"
+          digest: sha256:b4583ab3d0c0c0f40f4d082e592af92c0c65060f993e146819009e9c0495e6ed
           pullPolicy: IfNotPresent
 
         postgresql:
