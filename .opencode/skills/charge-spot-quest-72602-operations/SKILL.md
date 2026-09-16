@@ -48,7 +48,7 @@ value, blast radius, and rollback.
 ## Configuration contract
 
 - Image repository: `ghcr.io/aaronyang0628/charge-spot-quest`
-- Image tag: `0.1.1`
+- Image tag: `0.1.3`
 - SQLite path inside the container: `/app/data/chargespot.sqlite`
 - Resources: CPU `200m`, memory `512Mi` requests and limits
 - Ingress host: `charge.72602.space`
