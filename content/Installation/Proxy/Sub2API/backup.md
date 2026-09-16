@@ -146,6 +146,11 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 - Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260910T061248Z`; PostgreSQL dump `46,520,009` bytes, `/app/data` archive `10,214,969` bytes; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `7bd44adb5ed1b61976b507e1f32bc990738782b2`; sub2api ArgoCD target/observed `0.1.14` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod ready 0 restarts, chart `sub2api-0.1.14/app 0.2.4`, actual image digest matches, Service endpoint ready/serving, internal `/health` HTTP 200, Redis StatefulSet 1/1.
 - No rollback required.
 
+### Verified upgrade: 2026-09-16
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260916T053309Z` (directory mode `700`, files mode `600`). PostgreSQL dump `27,593,406` bytes, `/app/data` archive `4,579,406` bytes; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `e2c0e4576276f6a299bbd27e80f40af883f8e877` (`chore(sub2api): upgrade to chart 0.1.15`); sub2api ArgoCD target/observed `0.1.15` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod `sub2api-7c9c4b95bf-r6cpg` Running/Ready, restarts 0, chart `sub2api-0.1.15/app 0.2.5`, actual image digest matches `sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`, Service endpoint ready at `10.42.0.198:8080`, internal `/health` HTTP 200 body `{"status":"ok"}`, Redis StatefulSet ready at `10.42.0.12:6379` with 1 historical restart.
+- No rollback required.
+
 ### Restore PostgreSQL Safely
 
 Restore into a separate database first. Do not overwrite the live `sub2api`
