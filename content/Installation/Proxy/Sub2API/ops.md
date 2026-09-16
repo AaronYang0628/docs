@@ -23,7 +23,7 @@ kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
 The expected values are OCI chart `0.1.15`, image
-`ghcr.io/wei-shaw/sub2api@sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`,,
+`ghcr.io/wei-shaw/sub2api@sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`,
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
