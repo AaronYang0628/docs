@@ -12,7 +12,7 @@ spec:
     namespace: charge-spot
   source:
     repoURL: https://github.com/AaronYang0628/charge-spot-quest.git
-    targetRevision: 317b44388ca5ad7a444164fe9cd98648a0c60014
+    targetRevision: 34d5879caa58de8a33bcccdc7735cbf6e2b45224
     path: charts/charge-spot-quest
     helm:
       releaseName: charge-spot-quest
@@ -22,8 +22,8 @@ spec:
 
         image:
           repository: ghcr.io/aaronyang0628/charge-spot-quest
-          tag: "0.1.11"
-          digest: sha256:f83c8919774e54c5eb86e5cdf002fddff58c8c6615fd86c37e7a724e654eb04d
+          tag: "0.1.13"
+          digest: sha256:01716c11cc5598214cc053669889b8fb7585cb1faf2c72df7c33a1a52316cd82
           pullPolicy: IfNotPresent
 
         postgresql:
@@ -36,17 +36,10 @@ spec:
             size: 1Gi
             storageClass: local-path
 
-        extraEnv:
-          - name: DINGTALK_WEBHOOK_URL
-            valueFrom:
-              secretKeyRef:
-                name: charge-spot-dingtalk
-                key: webhook_url
-          - name: DINGTALK_SEC_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: charge-spot-dingtalk
-                key: sec_secret
+        dingtalk:
+          enabled: true
+          existingSecret: charge-spot-dingtalk
+          publicBaseUrl: https://charge.72602.space
 
         resources:
           requests:
