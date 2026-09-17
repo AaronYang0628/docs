@@ -48,10 +48,11 @@ value, blast radius, and rollback.
 ## Configuration contract
 
 - Image repository: `ghcr.io/aaronyang0628/charge-spot-quest`
-- Image tag: `0.1.11`
+- Image tag: `0.1.13`
 - SQLite path inside the container: `/app/data/chargespot.sqlite`
 - Resources: CPU `200m`, memory `512Mi` requests and limits
 - Ingress host: `charge.72602.space`
+- DingTalk: `dingtalk.enabled=true`, Secret `charge-spot-dingtalk` (`webhook_url`, `sec_secret`, `revoke_secret`), `publicBaseUrl=https://charge.72602.space`
 
 ## Verification
 

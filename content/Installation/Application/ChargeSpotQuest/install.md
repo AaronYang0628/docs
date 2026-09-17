@@ -44,7 +44,23 @@ description = "Deploy Charge Spot Quest via 72602 GitOps ArgoCD"
   `CreateNamespace=true`. SQLite is enabled; bundled and external PostgreSQL
   stay off.
 
-  <p> <b>3.sync by argocd</b> </p>
+  <p> <b>3.prepare</b> `charge-spot-dingtalk` </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  kubectl -n charge-spot create secret generic charge-spot-dingtalk \
+    --from-literal=webhook_url='https://oapi.dingtalk.com/robot/send?access_token=<replace-me>' \
+    --from-literal=sec_secret='SEC<replace-me>' \
+    --from-literal=revoke_secret="$(openssl rand -hex 32)"
+  ```
+  {{% /notice %}}
+
+  Create the Secret on the cluster only. GitOps values set `dingtalk.enabled`,
+  `dingtalk.existingSecret=charge-spot-dingtalk`, and
+  `dingtalk.publicBaseUrl=https://charge.72602.space`. Do not commit webhook,
+  SEC, or revoke tokens.
+
+  <p> <b>4.sync by argocd</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -54,7 +70,7 @@ description = "Deploy Charge Spot Quest via 72602 GitOps ArgoCD"
   ```
   {{% /notice %}}
 
-  <p> <b>4.verify</b> </p>
+  <p> <b>5.verify</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
@@ -68,6 +84,10 @@ description = "Deploy Charge Spot Quest via 72602 GitOps ArgoCD"
   kubectl -n charge-spot get pods,svc,ingress,pvc
   kubectl -n charge-spot get certificate
   kubectl -n charge-spot get pods -l app.kubernetes.io/component=postgresql
+  kubectl -n charge-spot get secret charge-spot-dingtalk \
+    -o go-template='{{range $k,$v := .data}}{{$k}}{{"\n"}}{{end}}'
+  kubectl -n charge-spot get deployment charge-spot-quest \
+    -o jsonpath='{range .spec.template.spec.containers[0].env[*]}{.name}{"\n"}{end}'
 
   curl -fsS https://charge.72602.space/health
   curl -fsS https://charge.72602.space/readyz
@@ -76,8 +96,8 @@ description = "Deploy Charge Spot Quest via 72602 GitOps ArgoCD"
   ```
   {{% /notice %}}
 
-  Expected release values: chart `charge-spot-quest` version `0.1.11` and image
-  `ghcr.io/aaronyang0628/charge-spot-quest@sha256:f83c8919774e54c5eb86e5cdf002fddff58c8c6615fd86c37e7a724e654eb04d`.
+  Expected release values: chart `charge-spot-quest` version `0.1.13` and image
+  `ghcr.io/aaronyang0628/charge-spot-quest@sha256:01716c11cc5598214cc053669889b8fb7585cb1faf2c72df7c33a1a52316cd82`.
   Ingress `/` returns `text/html`. PVC `charge-spot-quest-sqlite` is `Bound` at `1Gi`. TLS certificate
   `charge.72602.space-tls` should be `Ready` with expiry `2026-12-14T06:20:17Z`.
 
@@ -98,7 +118,7 @@ rollback.
 ```bash
 cd /home/aaron/Ops/docs
 git fetch origin main
-git revert --no-edit bb841ba
+git revert --no-edit a896fa5
 git push origin main
 argocd app sync ops-docs --revision main
 argocd app wait ops-docs --sync --health --timeout 300
