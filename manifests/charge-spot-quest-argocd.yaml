@@ -36,6 +36,18 @@ spec:
             size: 1Gi
             storageClass: local-path
 
+        extraEnv:
+          - name: DINGTALK_WEBHOOK_URL
+            valueFrom:
+              secretKeyRef:
+                name: charge-spot-dingtalk
+                key: webhook_url
+          - name: DINGTALK_SEC_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: charge-spot-dingtalk
+                key: sec_secret
+
         resources:
           requests:
             cpu: 200m
