@@ -96,8 +96,8 @@ description = "Deploy Charge Spot Quest via 72602 GitOps ArgoCD"
   ```
   {{% /notice %}}
 
-  Expected release values: chart `charge-spot-quest` version `0.1.13` and image
-  `ghcr.io/aaronyang0628/charge-spot-quest@sha256:01716c11cc5598214cc053669889b8fb7585cb1faf2c72df7c33a1a52316cd82`.
+  Expected release values: chart `charge-spot-quest` version `0.1.14` and image
+  `ghcr.io/aaronyang0628/charge-spot-quest@sha256:294507227043b9c719dc2abc47161d6fd7e4b9cc921ba58d5848b2a80adfd53f`.
   Ingress `/` returns `text/html`. PVC `charge-spot-quest-sqlite` is `Bound` at `1Gi`. TLS certificate
   `charge.72602.space-tls` should be `Ready` with expiry `2026-12-14T06:20:17Z`.
 
@@ -118,7 +118,7 @@ rollback.
 ```bash
 cd /home/aaron/Ops/docs
 git fetch origin main
-git revert --no-edit a896fa5
+git revert --no-edit e339c91
 git push origin main
 argocd app sync ops-docs --revision main
 argocd app wait ops-docs --sync --health --timeout 300
