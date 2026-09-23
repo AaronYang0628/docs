@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.15`, application `0.2.5`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`
+- Current release: OCI chart `0.1.16`, application `0.2.7`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:207790000346c53f08dc9478be2d8b3bd010bda6f0fd5715aa7173e6cda29ca6`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -149,6 +149,18 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 ### Verified upgrade: 2026-09-16
 
 - Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260916T053309Z` (directory mode `700`, files mode `600`). PostgreSQL dump `27,593,406` bytes, `/app/data` archive `4,579,406` bytes; backup artifacts and `pg_restore --list`, archive listing, SHA-256 all passed; GitOps commit `e2c0e4576276f6a299bbd27e80f40af883f8e877` (`chore(sub2api): upgrade to chart 0.1.15`); sub2api ArgoCD target/observed `0.1.15` Synced/Healthy operation Succeeded; runtime verification: Deployment 1/1, Pod `sub2api-7c9c4b95bf-r6cpg` Running/Ready, restarts 0, chart `sub2api-0.1.15/app 0.2.5`, actual image digest matches `sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`, Service endpoint ready at `10.42.0.198:8080`, internal `/health` HTTP 200 body `{"status":"ok"}`, Redis StatefulSet ready at `10.42.0.12:6379` with 1 historical restart.
+- No rollback required.
+
+### Verified upgrade: 2026-09-20 (application 0.2.7)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260920T051850Z`
+- Backup artifacts: `sub2api.dump` (29,365,379 bytes, SHA-256 `d9a0fb1870cde3405d47765291190dbc0bf17bd724708dc1fd7f448a8027eace`), `sub2api-data.tgz` (4,598,099 bytes, SHA-256 `f6b1691f6ba771f415e78caebedb0da225ef665a7af22c3b9d9854c6f4e097f7`), `pg_restore --list` (1,210 entries), archive listing (10 entries), checksums passed.
+- GitOps commit: `67d8fef5859ec579cee101da22cc4988ca789b84` (`chore: upgrade sub2api`)
+- ArgoCD status: `Synced/Healthy`, operation `Succeeded`, observed chart revision `0.1.16`
+- Deployment: 1/1 ready; Pod running/ready with 0 restarts
+- Service endpoint: `10.42.0.224:8080`
+- Internal `/health` HTTP 200 (body discarded)
+- Dedicated Redis StatefulSet: 1/1 ready; Redis Pod has 1 historical restart
 - No rollback required.
 
 ### Restore PostgreSQL Safely
