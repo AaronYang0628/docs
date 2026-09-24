@@ -40,6 +40,9 @@ spec:
           OLLAMA_READ_TIMEOUT_SECONDS: "180"
           REQUEST_TIMEOUT_SECONDS: "190"
           KEY_COOLDOWN_SECONDS: "30"
+          HTTP_PROXY: null
+          HTTPS_PROXY: null
+          NO_PROXY: null
           LOG_LEVEL: INFO
           LOG_RAW_INPUT: "false"
           ENABLE_DOCS: "false"
