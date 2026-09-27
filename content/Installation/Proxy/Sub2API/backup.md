@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.16`, application `0.2.7`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:207790000346c53f08dc9478be2d8b3bd010bda6f0fd5715aa7173e6cda29ca6`
+- Current release: OCI chart `0.1.17`, application `0.2.8`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:11b2dc8d9ea297c676581daf1322d71200eeed58ebfb5fecf2a991fa2741fb86`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -162,6 +162,35 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 - Internal `/health` HTTP 200 (body discarded)
 - Dedicated Redis StatefulSet: 1/1 ready; Redis Pod has 1 historical restart
 - No rollback required.
+
+### Verified upgrade: 2026-09-23 (chart 0.1.17 / application 0.2.8)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260923T222508Z`
+  (directory mode `700`, files mode `600`). The scoped PostgreSQL dump was
+  32,663,617 bytes and the `/app/data` archive was 4,614,791 bytes.
+  `pg_restore --list` returned 1,210 entries, the archive listing contained 10
+  entries, and all SHA-256 checks passed. The initial streamed validation timed
+  out; validation using a controlled temporary file inside the PostgreSQL
+  container passed.
+- GitOps commit: `646d50010cf39090567098bc819e74b06976a5ef`; only
+  `manifests/sub2api-argocd.yaml` changed, from chart `0.1.16` to `0.1.17`.
+  Mirror chart PR #8 merged as `87ae24c`. The image digest is
+  `sha256:11b2dc8d9ea297c676581daf1322d71200eeed58ebfb5fecf2a991fa2741fb86`.
+- ArgoCD parent and child reconciled successfully; Sub2API was `Synced/Healthy`
+  on chart `0.1.17`. Deployment was 1/1, the Pod was Ready with 0 restarts, and
+  its image ID matched the target digest. The Service endpoint
+  `10.42.0.226:8080` was ready; internal and public `/health` checks returned
+  HTTP 200. Dedicated Redis was 1/1 with a ready endpoint; both PVCs remained
+  Bound.
+- Migrations completed without errors. Preflight found 27 non-numeric legacy
+  reasoning-effort keys, which migration 239 removed without conversion; one
+  existing affiliate-ledger row received a NULL operation ID under migration
+  240, with no unique-index conflict.
+- Image pull took 10m37s and briefly caused `ProgressDeadlineExceeded`; the
+  rollout recovered. Existing pricing-repository timeout warnings remained.
+  No rollback was required. Deployment rollback is a new Git revert; migrations
+  are forward-only, so database recovery requires an isolated restore and a
+  deliberate configuration switch.
 
 ### Restore PostgreSQL Safely
 
