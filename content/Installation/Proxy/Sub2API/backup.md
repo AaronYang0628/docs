@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.17`, application `0.2.8`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:11b2dc8d9ea297c676581daf1322d71200eeed58ebfb5fecf2a991fa2741fb86`
+- Current release: OCI chart `0.1.18`, application `0.2.9`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:996a0ea43500550f233a2f653de58dcd77f42d3e244805894fcccdd32b612147`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -191,6 +191,38 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   No rollback was required. Deployment rollback is a new Git revert; migrations
   are forward-only, so database recovery requires an isolated restore and a
   deliberate configuration switch.
+
+### Verified upgrade: 2026-09-28 (chart 0.1.18 / application 0.2.9)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20260928T135349Z`
+  (directory mode `700`, files mode `600`). The scoped PostgreSQL dump was
+  37,222,935 bytes with 1,214 `pg_restore --list` entries; the `/app/data`
+  archive was 4,631,639 bytes with 10 entries. SHA-256 checks passed, and the
+  captured `origin/main` revision was
+  `622ea9171286d9e218bd15a9569ce8c1b565d48b`.
+- GitOps commit: `b37fe3549cc8c65bba6d268c45ffdda97f86d9ca`
+  (`chore(sub2api): upgrade to chart 0.1.18`); only
+  `manifests/sub2api-argocd.yaml` changed, from chart `0.1.17` to `0.1.18`.
+  Mirror chart PR #9 merged as `a748960`; the published chart `0.1.18` was
+  anonymously pulled back with package SHA-256
+  `196406aa97b89ff747cc0317ad71d2eaa3b22adbc0057c7d4aec2ec126ad35e4` matching
+  Git. The image digest is
+  `sha256:996a0ea43500550f233a2f653de58dcd77f42d3e244805894fcccdd32b612147`.
+- ArgoCD synced Sub2API to chart `0.1.18` at `2026-09-28T13:58Z`
+  (operation `Succeeded`) and reported `Synced/Healthy` by `14:00Z`.
+  Deployment was 1/1, Pod `sub2api-8c7fbd445-bhhnp` Ready with 0 restarts,
+  and its image ID matched the target digest exactly. The Service endpoint
+  `10.42.0.239:8080` was ready; internal `/health` returned
+  `{"status":"ok"}` and public `https://token.72602.space/health` returned
+  HTTP 200. Dedicated Redis was 1/1 and both PVCs remained Bound.
+- Application 0.2.9 introduced no new database migrations: the latest applied
+  migration remains `240_affiliate_ledger_operation_id.sql` (applied
+  2026-09-23) and `schema_migrations` holds 289 records. No migration or
+  startup errors appeared in the logs; the rollout completed in about two
+  minutes without `ProgressDeadlineExceeded`.
+- No rollback was required. Deployment rollback is a new Git revert;
+  migrations are forward-only, so database recovery requires an isolated
+  restore and a deliberate configuration switch.
 
 ### Restore PostgreSQL Safely
 
