@@ -368,9 +368,6 @@ spec:
                   drop:
                     - ALL
   syncPolicy:
-    automated:
-      prune: false
-      selfHeal: false
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=false
