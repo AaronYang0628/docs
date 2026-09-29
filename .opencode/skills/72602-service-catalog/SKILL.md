@@ -30,6 +30,7 @@ operations without loading the matching service skill first.
 | postgresql | `postgresql-72602-operations` | `database` |
 | prometheus | `prometheus-72602-operations` | `monitor` |
 | redis-shared | `redis-shared-72602-operations` | `storage` |
+| searxng | `searxng-72602-operations` | `searxng` |
 | sub2api | `sub2api-72602-operations` | `application` |
 | tempo | `tempo-72602-operations` | `monitor` |
 | uptime-kuma | `uptime-kuma-72602-operations` | `monitor` |
