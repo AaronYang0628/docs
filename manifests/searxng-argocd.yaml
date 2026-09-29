@@ -1,0 +1,84 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: searxng
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: searxng
+  source:
+    repoURL: ghcr.io/littleoffice/charts
+    chart: searxng
+    targetRevision: 2.0.5
+    helm:
+      releaseName: searxng
+      values: |
+        fullnameOverride: searxng
+        replicaCount: 1
+        podDisruptionBudget:
+          enabled: false
+        autoscaling:
+          enabled: false
+        image:
+          registry: m.daocloud.io/docker.io
+          repository: searxng/searxng
+          tag: 2026.9.23-3cd69d30e
+          digest: sha256:bcfaed4091d59f7ce85670bd701a2d0295872196dc19908a3965a8353b149f83
+          pullPolicy: IfNotPresent
+        service:
+          type: ClusterIP
+          port: 8080
+        ingress:
+          enabled: false
+        mcpRelay:
+          enabled: false
+        searxng:
+          baseUrl: http://searxng.searxng.svc.cluster.local:8080/
+          bindAddress: 0.0.0.0
+          existingSecret: searxng-secret
+          existingSecretKey: secret-key
+          existingSettingsSecret: searxng-settings
+          existingSettingsSecretKey: settings.yml
+          port: 8080
+          limiter:
+            enabled: false
+            publicInstance: false
+        valkey:
+          enabled: false
+        networkPolicy:
+          enabled: true
+          ingress:
+            allowSameNamespace: false
+            fromNamespaces: []
+            from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: n8n
+                podSelector:
+                  matchLabels:
+                    app.kubernetes.io/component: main
+                    app.kubernetes.io/instance: n8n
+                    app.kubernetes.io/name: n8n
+            extra: []
+          egress:
+            dns:
+              enabled: true
+            internet:
+              enabled: false
+            extra:
+              - to:
+                  - ipBlock:
+                      cidr: 192.168.0.25/32
+                ports:
+                  - protocol: TCP
+                    port: 17890
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
