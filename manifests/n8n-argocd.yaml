@@ -368,6 +368,8 @@ spec:
                   drop:
                     - ALL
   syncPolicy:
+    automated:
+      enabled: false
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=false
