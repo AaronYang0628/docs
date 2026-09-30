@@ -259,233 +259,48 @@ weight = 14
   The live credentials and PVCs are retained state. Do not delete, recreate, or replace them when updating the Argo CD Application.
   {{% /notice %}}
 
-  <p> <b>2.prepare</b> `deploy-n8n.yaml` </p>
+  <p> <b>2.review and publish the canonical source</b> `manifests/n8n-argocd.yaml` </p>
+
+  The n8n Argo CD Application is parent-managed by `argocd/ops-docs` from the repository's `main` branch and `manifests` path. n8n itself is manually synced after the parent Application has converged. The current chart is `1.24.42` and n8n is `2.40.5`.
 
   {{% notice style="transparent" %}}
   ```bash
-  kubectl -n argocd apply -f - <<'EOF'
-  apiVersion: argoproj.io/v1alpha1
-  kind: Application
-  metadata:
-    name: n8n
-    namespace: argocd
-  spec:
-    project: default
-    ignoreDifferences:
-      - group: ""
-        kind: Secret
-        name: n8n-redis
-        namespace: n8n
-        jsonPointers:
-          - /data/redis-password
-      - group: apps
-        kind: StatefulSet
-        name: n8n-redis-master
-        namespace: n8n
-        jqPathExpressions:
-          - .spec.template.metadata.annotations."checksum/secret"
-    source:
-      repoURL: https://community-charts.github.io/helm-charts
-      targetRevision: 1.16.36
-      chart: n8n
-      helm:
-        releaseName: n8n
-        values: |
-          global:
-            security:
-              allowInsecureImages: true
-          image:
-            repository: m.daocloud.io/docker.io/n8nio/n8n
-          log:
-            level: info
-          existingEncryptionKeySecret: n8n-encryption-key-existing
-          timezone: Asia/Shanghai
-          db:
-            type: postgresdb
-          externalPostgresql:
-            host: postgresql-hl.database.svc.cluster.local
-            port: 5432
-            username: "n8n"
-            database: "n8n"
-            existingSecret: "n8n-middleware-credential"
-          main:
-            count: 1
-            editorBaseUrl: "https://n8n.72602.space"
-            extraEnvVars:
-              HTTP_PROXY: "http://192.168.0.25:17890"
-              HTTPS_PROXY: "http://192.168.0.25:17890"
-              NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
-              no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
-              NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
-              N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
-              N8N_FILE_SYSTEM_ALLOWED_PATHS: "/data"
-              EXECUTIONS_TIMEOUT: "300"
-              EXECUTIONS_TIMEOUT_MAX: "600"
-              DB_POSTGRESDB_POOL_SIZE: "10"
-              CACHE_ENABLED: "true"
-              N8N_CONCURRENCY_PRODUCTION_LIMIT: "5"
-              NODE_TLS_REJECT_UNAUTHORIZED: "0"
-              N8N_SECURE_COOKIE: "false"
-              QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
-              N8N_COMMUNITY_PACKAGES_ENABLED: "true"
-              N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
-              N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
-              N8N_LICENSE_RENEW_ON_INIT: "true"
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 5Gi
-            volumes:
-              - name: downloads-volume
-                hostPath:
-                  path: /run/media/aaron/DATA
-                  type: DirectoryOrCreate
-            volumeMounts:
-              - name: downloads-volume
-                mountPath: /data
-            resources:
-              requests:
-                cpu: 1000m
-                memory: 1024Mi
-              limits:
-                cpu: 2000m
-                memory: 2048Mi
-          worker:
-            mode: queue
-            count: 2
-            waitMainNodeReady:
-              enabled: false
-            extraEnvVars:
-              HTTP_PROXY: "http://192.168.0.25:17890"
-              HTTPS_PROXY: "http://192.168.0.25:17890"
-              NO_PROXY: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
-              no_proxy: "registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com"
-              NPM_CONFIG_REGISTRY: "https://registry.npmmirror.com"
-              N8N_FILE_SYSTEM_ALLOWED_PATHS: "/data"
-              EXECUTIONS_TIMEOUT: "300"
-              EXECUTIONS_TIMEOUT_MAX: "600"
-              DB_POSTGRESDB_POOL_SIZE: "5"
-              QUEUE_BULL_REDIS_TIMEOUT_THRESHOLD: "60000"
-              N8N_COMMUNITY_PACKAGES_ENABLED: "true"
-              N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
-              N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
-              N8N_LICENSE_RENEW_ON_INIT: "true"
-            persistence:
-              enabled: true
-              accessMode: ReadWriteOnce
-              storageClass: "local-path"
-              size: 50Gi
-            volumes:
-              - name: downloads-volume
-                hostPath:
-                  path: /run/media/aaron/DATA
-                  type: DirectoryOrCreate
-            volumeMounts:
-              - name: downloads-volume
-                mountPath: /data
-            resources:
-              requests:
-                cpu: 500m
-                memory: 1024Mi
-              limits:
-                cpu: 1000m
-                memory: 2048Mi
-          nodes:
-            builtin:
-              enabled: true
-              modules:
-                - crypto
-                - fs
-            external:
-              allowAll: true
-              packages:
-                - n8n-nodes-globals
-                - n8n-nodes-wechat-formatter
-          npmRegistry:
-            enabled: true
-            url: https://registry.npmmirror.com
-          redis:
-            enabled: true
-            image:
-              registry: m.daocloud.io/docker.io
-              repository: bitnamilegacy/redis
-            master:
-              resourcesPreset: "small"
-              persistence:
-                enabled: true
-                accessMode: ReadWriteOnce
-                storageClass: "local-path"
-                size: 50Gi
-          ingress:
-            enabled: true
-            className: nginx
-            annotations:
-              kubernetes.io/ingress.class: nginx
-              cert-manager.io/cluster-issuer: lets-encrypt
-              nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-              nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-              nginx.ingress.kubernetes.io/upstream-keepalive-connections: "50"
-              nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
-            hosts:
-              - host: n8n.72602.space
-                paths:
-                  - path: /
-                    pathType: Prefix
-              - host: webhook.n8n.72602.space
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-              - hosts:
-                  - n8n.72602.space
-                  - webhook.n8n.72602.space
-                secretName: n8n.72602.space-tls
-          webhook:
-            mode: queue
-            url: "https://webhook.n8n.72602.space"
-            autoscaling:
-              enabled: false
-            waitMainNodeReady:
-              enabled: true
-            resources:
-              requests:
-                cpu: 200m
-                memory: 256Mi
-              limits:
-                cpu: 512m
-                memory: 512Mi
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: n8n
-    syncPolicy:
-      syncOptions:
-        - CreateNamespace=true
-        - ApplyOutOfSyncOnly=false
-        - RespectIgnoreDifferences=true
-  EOF
+  git diff --check
+  git diff -- manifests/n8n-argocd.yaml
+  git status --short
+  git add manifests/n8n-argocd.yaml
+  git commit -m "fix(n8n): configure AI model requests"
+  git push origin main
   ```
   {{% /notice %}}
 
-  <p> <b>3.sync by argocd</b></p>
+  <p> <b>3.wait for parent convergence, then manually sync n8n</b> </p>
 
   {{% notice style="transparent" %}}
   ```bash
-  argocd app sync argocd/n8n
+  argocd app get argocd/ops-docs --insecure --grpc-web
+  argocd app sync argocd/n8n --insecure --grpc-web
+  argocd app get argocd/n8n --insecure --grpc-web
+  kubectl -n n8n rollout status deployment/n8n --timeout=300s
   ```
   {{% /notice %}}
 
-  {{% notice style="important" title="Using AY Helm Mirror" expanded="false" %}} 
-  {{% include "/Installation/SNIPPET/_helm_chart_mirror.md" %}}
+  Verify parent `argocd/ops-docs` is synced before manually syncing `argocd/n8n`. Review the Application diff and confirm the existing credentials and PVCs remain unchanged.
+
+  <p> <b>4.verify</b> </p>
+
+  {{% notice style="transparent" %}}
+  ```bash
+  argocd app get argocd/n8n --insecure --grpc-web
+  kubectl -n n8n rollout status deployment/n8n --timeout=300s
+  kubectl -n n8n get pods
+  curl -sS -o /dev/null -w '%{http_code}\n' https://n8n.72602.space/healthz
+  curl -sS -o /dev/null -w '%{http_code}\n' https://n8n.72602.space/healthz/readiness
+  curl -sS -o /dev/null -w '%{http_code}\n' https://n8n.72602.space/
+  ```
   {{% /notice %}}
-  {{% notice style="important" title="Using AY ACR Image Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_acr_image_mirror.md" %}}
-  {{% /notice %}}
-  {{% notice style="tip" title="Using DaoCloud Mirror" expanded="false" %}} 
-  {{% include "content\Installation\SNIPPET\_daocloud_image_mirror.md" %}}
-  {{% /notice %}}
+
+  Confirm the Application is `Synced` and `Healthy`, the main Pod is Ready without restarts, and the health/readiness endpoints and public editor return HTTP 200.
 
   {{% /tab %}}
   {{< /tabs >}}
@@ -631,4 +446,33 @@ kubectl delete pods -n n8n -l app.kubernetes.io/component=worker
 **Expected**
 - `kubectl exec -n n8n deploy/n8n -- ls /home/node/.n8n/nodes/node_modules/ | grep n8n` 有输出
 - Webhook 返回正常响应（非 `Unrecognized node type`）
+{{% /expand %}}
+
+{{% expand title="Q4: AI Agent requests fail through the proxy or during tool rounds" %}}
+**Symptoms**
+- An AI Agent call fails with `AI_APICallError: Cannot connect to API: other side closed` and `UND_ERR_SOCKET`.
+- OpenAI-compatible Responses requests can work on the first turn but fail with HTTP 502 when a later tool round contains `item_reference`.
+
+**Root causes**
+- `@n8n/agents` `createModel` unconditionally constructs a `ProxyAgent` from uppercase `HTTP_PROXY`/`HTTPS_PROXY` and does not honor `NO_PROXY`. Internal cluster traffic is sent to the host proxy and can be closed.
+- The OpenAI provider uses `/v1/responses`; default stored response history includes `item_reference` in multi-step tool requests, which the configured upstream does not handle.
+
+**Fix**
+- Use the canonical `manifests/n8n-argocd.yaml`; do not create a second inline Application definition.
+- Add literal lowercase `http_proxy`, `https_proxy`, and `no_proxy` entries to `main.extraEnv` before the existing API-key Secret reference; set both proxy values to `http://192.168.0.25:17890` and `no_proxy` to `registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com,.svc,.cluster.local,10.0.0.0/8`. Keep uppercase `NO_PROXY` with the same list in `main.extraEnvVars`. Chart `1.24.42` uppercases every `main.extraEnvVars` key, so lowercase entries there do not work; inspect the Helm-rendered final environment, not only the YAML spellings. Leave worker and init-container proxy settings unchanged.
+- Set `N8N_INSTANCE_AI_MODEL=custom/gpt-6-astra`, `N8N_INSTANCE_AI_MODEL_URL=http://sub2api.application.svc.cluster.local:8080/v1`, and `N8N_INSTANCE_AI_SEARXNG_URL=http://searxng.searxng.svc.cluster.local:8080/`. Reference the key through `n8n-assistant-model` Secret key `api-key`; do not put the key in values or logs.
+- Lowercase proxy variables remain available to normal n8n HTTP transports, while the AI model factory uses the direct internal endpoint.
+
+**Verification scope**
+- Confirmed synthetic `@n8n/agents` `createModel` streaming tests reproduce the uppercase-proxy socket failure and pass when the internal model URL is direct.
+- A direct Responses request succeeds on the first turn but its second `item_reference` request returns 502; a `store:false` roundtrip passes. Selecting the custom provider's stateless `/v1/chat/completions` route passes a synthetic tool roundtrip (two steps, one tool call, no stream errors, `finishReason=stop`).
+- Repair commit `768558f` is deployed. Argo CD Application `argocd/n8n` is `Synced` and `Healthy` with Manual sync policy, chart `1.24.42`, and image `2.40.5`. Main Pod `n8n-7bbfdd6f4d-grm7p`, created `2026-09-30T05:57:07Z`, is Ready `1/1` with zero restarts.
+- The final main Pod has no uppercase `HTTP_PROXY`/`HTTPS_PROXY`; lowercase `http_proxy`/`https_proxy` and both `NO_PROXY`/`no_proxy` are present. Normal environment proxy resolution routes internal requests `DIRECT` and external requests through `http://192.168.0.25:17890`.
+- In an isolated subprocess using the final main Pod environment without candidate overrides, the n8n image's actual `createInstanceAgent` and `streamAgentRun` completed a research run with `custom/gpt-6-astra` and `@n8n/ai-utilities` `searxngSearch`: exactly one search returned three results; both `/v1/chat/completions` calls returned HTTP 200; events were `text-delta` 20, `tool-call` 1, and `tool-result` 1; final status was `completed`.
+- In that subprocess, other workflow, credential, and data-service adapters were empty or read-only, and no persisted browser session was used. The n8n UI has not been clicked, so this does not establish full UI validation.
+- Main `/healthz` and `/healthz/readiness` and the public editor return HTTP 200. A public unknown synthetic `/webhook/` route returns the expected unregistered-webhook HTTP 404. Main, worker, webhook, MCP, and Redis components are Ready with zero restarts; fresh main logs contain zero assistant socket errors.
+
+**Deploy and rollback**
+- Review and push the manifest change to `main`, wait for parent `argocd/ops-docs` convergence, then manually sync `argocd/n8n` in the order above.
+- If the repair must be rolled back, create and push a new Git revert of `768558f`, wait for parent convergence, and manually sync n8n again. Do not restore the old inline Application recipe or revert unrelated changes.
 {{% /expand %}}
