@@ -76,6 +76,12 @@ spec:
             N8N_GIT_NODE_DISABLE_BARE_REPOS: "true"
             N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
             N8N_LICENSE_RENEW_ON_INIT: "true"
+          extraEnv:
+            - name: N8N_INSTANCE_AI_MODEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-assistant-model
+                  key: api-key
           persistence:
             enabled: true
             accessMode: ReadWriteOnce
