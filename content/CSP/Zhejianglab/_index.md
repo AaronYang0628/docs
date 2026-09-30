@@ -139,7 +139,18 @@ ssh "$ZJLAB_SSH_ALIAS" 'kubectl get applications.argoproj.io -A'
 ssh "$ZJLAB_SSH_ALIAS" 'kubectl get ingress,certificate -A'
 ```
 
-## Independent Prometheus Deployment Attempt
+## ZJLAB Prometheus (Local-Only)
+
+As of 2026-10-01, ArgoCD Application `zjlab-prometheus` remains `Synced` and
+`Healthy` for local Kubernetes collection and storage. Its only
+`server.remoteWrite` entry and its dedicated password-file mount were removed;
+the 72602 receiver is retired, so ZJLAB no longer forwards metrics there. The
+Kubernetes Secret object was left in place and was not read or deleted. After
+the change, the rendered runtime configuration had zero `remote_write` entries,
+Prometheus readiness succeeded, and the local `up` query returned 18 series.
+Local scrape configuration and the TSDB PVC were preserved.
+
+### Deployment History
 
 An independent Prometheus deployment was prepared for ZJLAB with the public
 Prometheus Community `prometheus` chart version `29.18.0`, ArgoCD Application

@@ -75,9 +75,6 @@ Active service records use `72602.space` and point to `47.110.67.161`:
 | `n8n.72602.space` | A | `47.110.67.161` | N8N workflow |
 | `webhook.n8n.72602.space` | A | `47.110.67.161` | N8N webhook receiver |
 | `ops.agent.72602.space` | A | `47.110.67.161` | OpenCode operations agent |
-| `grafana.72602.space` | A | `47.110.67.161` | Grafana observability UI |
-| `otlp.72602.space` | A | `47.110.67.161` | OTLP ingest endpoint |
-| `prometheus-write.72602.space` | A | `47.110.67.161` | Prometheus remote-write endpoint |
 | `uptime.72602.space` | A | `47.110.67.161` | Uptime Kuma |
 | `clash.72602.space` | A | `47.110.67.161` | Clash/mihomo panel |
 | `api.minio.72602.space` | A | `47.110.67.161` | MinIO S3 API |
@@ -110,33 +107,20 @@ at its scheduled backoff time. The new Order became `valid` and the Certificate
 became Ready. Keep failed Orders and Challenges until normal cert-manager
 cleanup; do not repeatedly delete them.
 
-The existing Prometheus receiver also accepts ZJLAB Kubernetes metrics through
-a dedicated HTTPS write-only Ingress at `prometheus-write.72602.space`. The
-Ingress exposes only the exact `/api/v1/write` path and requires a runtime
-Basic Auth Secret; it does not expose Prometheus query, status, or admin APIs.
-The TLS certificate is issued by `lets-encrypt`. ZJLAB sends metrics with the
-external label `cluster=zjlab`, so the existing Grafana Prometheus datasource
-can query ZJLAB without a second Grafana datasource. Credentials remain in
-runtime/private secret stores and must not be added to public manifests.
+### Retired Observability
 
-The Git-provisioned Grafana dashboard `Kubernetes Resources` (UID
-`kubernetes-resources-multicluster`) is in the `Kubernetes` folder and is
-defined by `manifests/grafana-kubernetes-dashboard.yaml`. It uses the existing
-Prometheus datasource UID `prometheus`; its `Cluster` selector maps 72602 to
-the empty-label matcher (`^$`), ZJLAB to `cluster="zjlab"`, and `All` to both.
-Node and namespace selectors are dependent query variables. Node resource
-panels use the `kubernetes-service-endpoints` scrape job to avoid counting the
-ZJLAB node-exporter series twice. Verification returned one, two, and three
-unique nodes for 72602, ZJLAB, and All respectively; Pod CPU, Deployment, and
-scrape-target queries were non-empty. The previous runtime dashboard is not
-part of the operating path.
+The 72602 Prometheus, Grafana, Loki, Tempo, and Alloy stack and its public
+Grafana, OTLP, and Prometheus remote-write endpoints have been removed. The
+matching AliDNS records are absent. ZJLAB Prometheus remains available for
+local collection; its outgoing remote-write and dedicated credential mount
+were removed on 2026-10-01. No telemetry is forwarded to 72602.
 
 On 2026-08-14, the user-authorized reset deleted the 30Gi Prometheus TSDB PVCs
 `monitor/prometheus-server` in 72602 and
 `monitoring/zjlab-prometheus-server` in ZJLAB. ArgoCD recreated both PVCs and
-the existing scrape and remote-write configuration was retained. No backup was
-made; all prior metrics history is intentionally unrecoverable. Loki, Tempo,
-Grafana users, and Grafana datasource configuration were not cleared.
+the scrape and remote-write configuration remained at that time. No backup was
+made; all prior metrics history is unrecoverable. This is historical state;
+the 72602 observability stack and ZJLAB remote-write have since been removed.
 
 Mail records are managed in the `72602.space` zone with TTL `600`:
 
@@ -238,14 +222,8 @@ are Ready; do not describe this zone as dual-managed by Cloudflare.
 | ops-docs | application | manifests (Git) | docs.git/main | ops.docs.72602.space |
 | ops-agent | application | manifests (Git) | docs.git/main | ops.agent.72602.space |
 | mailu | mailu | Helm (Mailu) | mailu 2.7.3 | mail.72602.space |
-| prometheus | monitor | Helm (Prometheus Community) | prometheus 29.18.0 | prometheus-write.72602.space |
-| grafana | monitor | Helm (Grafana) | grafana 10.5.15 | grafana.72602.space |
-| loki | monitor | Helm (Grafana) | loki 6.55.0 | internal |
-| tempo | monitor | Helm (Grafana) | tempo 1.24.4 | otlp.72602.space |
-| alloy | monitor | Helm (Grafana) | alloy 1.10.1 | otlp.72602.space |
 | homepage | monitor | manifests (Git) | docs.git/main | port.72602.space |
-| uptime-kuma | monitor | manifests (Git) | docs.git/main | uptime.72602.space |
-| sub2api | application | ArgoCD (Git → OCI Helm) | sub2api 0.1.6 / ghcr.io/wei-shaw/sub2api:0.1.168 | token.72602.space |
+| sub2api | application | ArgoCD (Git → OCI Helm) | sub2api 0.1.18 / app 0.2.9, image `sha256:996a0ea43500550f233a2f653de58dcd77f42d3e244805894fcccdd32b612147` | token.72602.space |
 | postgresql | database | Helm (Bitnami) | postgresql 18.1.8 | internal |
 | redis-shared | storage | Helm (Bitnami) | redis 18.16.0 | internal |
 | minio | storage | Helm | minio 16.0.10 | console.minio.72602.space, api.minio.72602.space |
@@ -259,15 +237,15 @@ record is required.
 
 `argocd/ops-docs` reconciles the repository's `manifests` path and owns the
 application workloads and their child Applications, including `sub2api` and
-`mailu`. The same source also defines the observability Applications listed
-above. Sub2API uses the `application` namespace, nginx Ingress, a Ready TLS
+`mailu`. Sub2API uses the `application` namespace, nginx Ingress, a Ready TLS
 certificate, a `10Gi` `local-path` RWO application PVC, and an `8Gi`
 `local-path` RWO Redis PVC with AOF enabled.
 
-The `alloy` Application is also live in `monitor` (Grafana Alloy chart
-`1.10.1`) and receives OTLP traffic at `otlp.72602.space`; it forwards traces,
-metrics, and logs to Tempo, Prometheus, and Loki. Confirm the Application and
-its endpoints before changing the observability pipeline.
+Uptime Kuma is a manually applied resource set in `manifests/uptimekuma/`, not
+an ArgoCD Application. Its Deployment, Service, Ingress, and new 2Gi
+`local-path` PVC are present in namespace `monitor`. The PVC was recreated on
+2026-10-01 after the previous claim and volume disappeared; the restored
+instance has no previous monitors, notification settings, or history.
 
 ### Ops Docs Publishing
 

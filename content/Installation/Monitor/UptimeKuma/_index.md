@@ -10,6 +10,9 @@ title = "UptimeKuma"
 {{< tabs groupid="uptime-kuma-deployment" title="Depoly For" >}}
 {{< tab title="Production" icon="fa-solid fa-rocket" >}}
 
+The manifests in `manifests/uptimekuma/` are applied directly to namespace
+`monitor`; there is no ArgoCD Application for Uptime Kuma.
+
 {{% notice style="transparent" %}}
 ```bash
 kubectl get namespace monitor > /dev/null 2>&1 || kubectl create namespace monitor
@@ -20,8 +23,14 @@ kubectl -n monitor apply -f manifests/uptimekuma/
 Notes:
 - Uptime Kuma is exposed only through k8s ingress (`uptime.72602.space`).
 - Do not bind ECS host ports 80/443 for local reverse proxies, they are reserved for forwarding to miniPC ingress.
+- The 2026-10-01 recovery recreated the 2Gi `local-path` PVC after the old PVC and PV were absent. The Pod is Ready, the PVC is Bound, the Certificate is Ready, and strict-TLS `GET https://uptime.72602.space/` returned HTTP `200` and redirected to `/dashboard`.
 
 ### ZJLAB Tunnel Push Monitors
+
+The 2026-10-01 storage recovery created a fresh, empty Uptime Kuma database.
+Recreate these monitors and replace their generated Push URLs in the private
+ECS check configuration before expecting tunnel heartbeats to appear. Do not
+reuse or publish the previous Push URLs.
 
 ZJLAB's `primary` and `backup` tunnel listeners are loopback-only on the
 relay. Uptime Kuma cannot reach them directly from the Kubernetes Pod, so do
@@ -35,7 +44,7 @@ Create these monitors in the Uptime Kuma UI:
 | Monitor type | `Push` | `Push` |
 | Heartbeat interval | Match the ECS check-only monitor interval | Match the ECS check-only monitor interval |
 | Monitor timeout | Longer than one normal check interval and its network timeout | Longer than one normal check interval and its network timeout |
-| Notifications | Use the existing notification policy | Use the existing notification policy |
+| Notifications | Configure the approved policy in this instance | Configure the approved policy in this instance |
 
 Save each monitor and keep its generated Push URL secret. Store the URLs only
 in the private SOPS inventory used by the ECS check-only monitor. The monitor
@@ -62,8 +71,8 @@ The two important ZJLAB `dev` relay Deployments are monitored through their
 public business paths. Do not target their ECS loopback listeners from Kuma;
 those listeners are intentionally private.
 
-Create these monitors in the Uptime Kuma UI and attach the existing
-notification policy:
+Create these monitors in the Uptime Kuma UI and configure the approved
+notification policy in this instance:
 
 | Name | Type | URL | Accepted status code |
 |---|---|---|---|
