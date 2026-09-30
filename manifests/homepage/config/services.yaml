@@ -19,6 +19,14 @@
           url: https://argocd.72602.space
           key: "{{HOMEPAGE_VAR_ARGOCD_KEY}}"
           insecure: true
+    - Uptime Kuma:
+        icon: sh-uptime-kuma
+        href: https://uptime.72602.space/
+        description: Service Availability
+        siteMonitor: https://uptime.72602.space/
+        namespace: monitor
+        app: uptime-kuma
+        showStats: true
     - Ops Agent:
         icon: terminal
         href: https://ops.agent.72602.space

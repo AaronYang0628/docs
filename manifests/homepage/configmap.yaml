@@ -1036,7 +1036,10 @@ data:
     \       namespace: argocd\n        app: argocd-server\n        showStats: true\n
     \       widget:\n          type: argocd\n          url: https://argocd.72602.space\n
     \         key: \"{{HOMEPAGE_VAR_ARGOCD_KEY}}\"\n          insecure: true\n    -
-    Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.space\n
+    Uptime Kuma:\n        icon: sh-uptime-kuma\n        href: https://uptime.72602.space/\n
+    \       description: Service Availability\n        siteMonitor: https://uptime.72602.space/\n
+    \       namespace: monitor\n        app: uptime-kuma\n        showStats: true\n
+    \   - Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.space\n
     \       description: Cluster Operations Agent\n        namespace: application\n
     \       app: ops-agent\n        showStats: true\n- Basic Services:\n    - SSH
     At 72602:\n        icon: terminal\n        description: SSH Service At 72602 Home\n
