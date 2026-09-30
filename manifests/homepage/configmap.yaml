@@ -1036,20 +1036,12 @@ data:
     \       namespace: argocd\n        app: argocd-server\n        showStats: true\n
     \       widget:\n          type: argocd\n          url: https://argocd.72602.space\n
     \         key: \"{{HOMEPAGE_VAR_ARGOCD_KEY}}\"\n          insecure: true\n    -
-    Uptime Kuma:\n        icon: sh-uptime-kuma\n        href: https://uptime.72602.space\n
-    \       description: Service Availability\n        siteMonitor: https://uptime.72602.space\n
-    \       namespace: monitor\n        app: uptime-kuma\n        showStats: true\n
-    \   - Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.space\n
+    Ops Agent:\n        icon: terminal\n        href: https://ops.agent.72602.space\n
     \       description: Cluster Operations Agent\n        namespace: application\n
-    \       app: ops-agent\n        showStats: true\n    - Grafana:\n        icon:
-    grafana\n        href: https://grafana.72602.space\n        description: Agent
-    and cluster observability\n        siteMonitor: https://grafana.72602.space\n
-    \       namespace: monitor\n        app: grafana\n        showStats: true\n- Basic
-    Services:\n    - SSH At 72602:\n        icon: terminal\n        description: SSH
-    Service At 72602 Home\n        widget:\n          type: uptimekuma\n          url:
-    https://uptime.72602.space\n          slug: 72602-minipc-ssh\n    - Clash At 72602:\n
-    \       icon: clash\n        href: https://clash.72602.space/ui/\n        description:
-    https://clash.72602.space/ui/\n        siteMonitor: https://clash.72602.space/ui/\n
+    \       app: ops-agent\n        showStats: true\n- Basic Services:\n    - SSH
+    At 72602:\n        icon: terminal\n        description: SSH Service At 72602 Home\n
+    \   - Clash At 72602:\n        icon: clash\n        href: https://clash.72602.space/ui/\n
+    \       description: https://clash.72602.space/ui/\n        siteMonitor: https://clash.72602.space/ui/\n
     \   - Clash At ECS:\n        icon: clash\n        href: http://47.110.67.161:56396/ui\n
     \       description: http://47.110.67.161:56396\n        siteMonitor: http://47.110.67.161:56396/ui\n
     \   - Sub2API-WZ:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n

@@ -16,10 +16,8 @@ operations without loading the matching service skill first.
 | argocd | `argocd-72602-operations` | `argocd` |
 | cert-manager | `cert-manager-72602-operations` | `basic-components` |
 | charge-spot-quest | `charge-spot-quest-72602-operations` | `charge-spot` |
-| grafana | `grafana-72602-operations` | `monitor` |
 | homepage | `homepage-72602-operations` | `monitor` |
 | ingress-nginx | `ingress-nginx-72602-operations` | `basic-components` |
-| loki | `loki-72602-operations` | `monitor` |
 | mailu | `mailu-72602-operations` | `mailu` |
 | minio | `minio-72602-operations` | `storage` |
 | n8n | `n8n-72602-operations` | `n8n` |
@@ -28,20 +26,17 @@ operations without loading the matching service skill first.
 | ops-docs | `ops-docs-72602-operations` | `application` |
 | roaminal | `roaminal-72602-operations` | `roaminal` |
 | postgresql | `postgresql-72602-operations` | `database` |
-| prometheus | `prometheus-72602-operations` | `monitor` |
 | redis-shared | `redis-shared-72602-operations` | `storage` |
 | searxng | `searxng-72602-operations` | `searxng` |
 | sub2api | `sub2api-72602-operations` | `application` |
-| tempo | `tempo-72602-operations` | `monitor` |
-| uptime-kuma | `uptime-kuma-72602-operations` | `monitor` |
 
 ## Supporting services
 
 | Service | Skill | Location |
 |---|---|---|
 | alidns-webhook | `alidns-webhook-72602-operations` | cert-manager namespace |
-| alloy | `alloy-72602-operations` | monitor namespace |
 | mihomo / Clash | `mihomo-72602-operations` | 72602-minipc |
+| NewAPI private relay (`np-relay.service`) | `np-relay-72602-operations` | ecs-99 |
 | squid | `squid-72602-operations` | ecs-99 (`47.110.67.161`) |
 | socat egress bridge | `socat-72602-operations` | 72602-minipc |
 | ECS reverse tunnels | `reverse-tunnel-72602-operations` | 72602-minipc |

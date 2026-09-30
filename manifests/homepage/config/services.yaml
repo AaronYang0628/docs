@@ -19,14 +19,6 @@
           url: https://argocd.72602.space
           key: "{{HOMEPAGE_VAR_ARGOCD_KEY}}"
           insecure: true
-    - Uptime Kuma:
-        icon: sh-uptime-kuma
-        href: https://uptime.72602.space
-        description: Service Availability
-        siteMonitor: https://uptime.72602.space
-        namespace: monitor
-        app: uptime-kuma
-        showStats: true
     - Ops Agent:
         icon: terminal
         href: https://ops.agent.72602.space
@@ -34,22 +26,10 @@
         namespace: application
         app: ops-agent
         showStats: true
-    - Grafana:
-        icon: grafana
-        href: https://grafana.72602.space
-        description: Agent and cluster observability
-        siteMonitor: https://grafana.72602.space
-        namespace: monitor
-        app: grafana
-        showStats: true
 - Basic Services:
     - SSH At 72602:
         icon: terminal
         description: SSH Service At 72602 Home
-        widget:
-          type: uptimekuma
-          url: https://uptime.72602.space
-          slug: 72602-minipc-ssh
     - Clash At 72602:
         icon: clash
         href: https://clash.72602.space/ui/
