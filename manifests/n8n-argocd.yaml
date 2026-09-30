@@ -54,16 +54,14 @@ spec:
             maxUnavailable: null
           editorBaseUrl: https://n8n.72602.space
           extraEnvVars:
-            HTTP_PROXY: http://192.168.0.25:17890
-            HTTPS_PROXY: http://192.168.0.25:17890
             NO_PROXY: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com,.svc,.cluster.local,10.0.0.0/8
-            no_proxy: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com,.svc,.cluster.local,10.0.0.0/8
             NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
             N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
             N8N_FILE_SYSTEM_ALLOWED_PATHS: /data
             N8N_INSTANCE_AI_SEARXNG_URL: http://searxng.searxng.svc.cluster.local:8080/
             N8N_INSTANCE_AI_MODEL_URL: http://sub2api.application.svc.cluster.local:8080/v1
-            N8N_INSTANCE_AI_MODEL: openai/gpt-6-astra
+            # Use stateless tool history with the OpenAI-compatible gateway.
+            N8N_INSTANCE_AI_MODEL: custom/gpt-6-astra
             EXECUTIONS_TIMEOUT: "300"
             EXECUTIONS_TIMEOUT_MAX: "600"
             DB_POSTGRESDB_POOL_SIZE: "10"
@@ -77,6 +75,13 @@ spec:
             N8N_LICENSE_AUTO_RENEW_ENABLED: "true"
             N8N_LICENSE_RENEW_ON_INIT: "true"
           extraEnv:
+            # extraEnvVars uppercases names; Agent's uppercase proxy ignores NO_PROXY.
+            - name: http_proxy
+              value: http://192.168.0.25:17890
+            - name: https_proxy
+              value: http://192.168.0.25:17890
+            - name: no_proxy
+              value: registry.npmjs.org,npmjs.org,npmmirror.com,registry.npmmirror.com,.svc,.cluster.local,10.0.0.0/8
             - name: N8N_INSTANCE_AI_MODEL_API_KEY
               valueFrom:
                 secretKeyRef:
