@@ -38,7 +38,7 @@ spec:
   source:
     repoURL: ghcr.io/aaronyang0628/helm-chart-mirror
     chart: sub2api
-    targetRevision: 0.1.18
+    targetRevision: 0.1.19
     helm:
       values: |
         updateStrategy:
