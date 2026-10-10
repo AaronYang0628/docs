@@ -285,6 +285,53 @@ argocd app get sub2api --hard-refresh
 
 ### 🛎️FAQ
 
+{{% expand title="Admin proxy test reports the wrong egress country" %}}
+
+Runtime observations below were verified on `2026-10-04`. Researched upstream
+source builds the admin **Test proxy** URL from the stored proxy record, rather
+than the Deployment's `HTTP_PROXY`, and does not translate port `17890` to
+`7890`; deployed source parity was not established. Its built-in probes are
+`http://ip-api.com/json/?lang=zh-CN` and
+`http://api64.ipify.org?format=json`.
+
+The admin proxy record `72602-clash` (ID `1`) was active as HTTP
+`192.168.0.25:17890`.
+
+If `ip-api.com` reports China while the Pod is reaching the proxy bridge, check
+Clash rule precedence. The subscription's
+`DOMAIN-SUFFIX,ip-api.com,DIRECT` rule sent that probe through CN host ISP
+egress. Put this prefix rule in `/home/aaron/clashctl/resources/mixin.yaml`:
+
+```yaml
+rules:
+  prefix:
+    - DOMAIN-SUFFIX,ip-api.com,Ghelper
+```
+
+The mixin prefix takes priority over the subscribed DIRECT rule and survives
+subscription refresh. Keep the existing `api64.ipify.org` DIRECT override
+removed. The verified controller selection was `Ghelper` directly pinned to
+`🇸🇬 新加坡07`; `profile.store-selected: true` preserves the selection across
+the owning workflow restart.
+
+After applying through the owning mixin merge/restart workflow, verify both
+exact probe URLs from the Sub2API Pod through
+`http://192.168.0.25:17890`. The verified responses were HTTP 200: ip-api
+reported `status=success`, `countryCode=SG`; api64 returned valid IP JSON.
+`https://ifconfig.co/country-iso` also returned HTTP 200 with `SG`. Sub2API
+was Running/Ready with zero restarts and health `ok`; Argo CD was
+Synced/Healthy on chart `0.1.20`. The proxy UI at
+`https://clash.72602.space/ui/` returned HTTP 200. These are Pod-side
+equivalent URL checks, not an admin **Test proxy** action: no approved tool for
+its dedicated POST endpoint was available.
+
+To roll back the mixin change, restore
+`/home/aaron/clashctl/resources/mixin.yaml.before-ip-api-direct.20261004-074639`
+and run the owning merge/restart workflow. If required, return the controller
+selection to `🌐 全球智能` through its owning workflow.
+
+{{% /expand %}}
+
 {{% expand title="Settings API reports column settings.id does not exist" %}}
 
 If `/api/v1/settings/public` or the admin settings API returns HTTP `500` and

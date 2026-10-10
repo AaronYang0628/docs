@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.18`, application `0.2.9`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:996a0ea43500550f233a2f653de58dcd77f42d3e244805894fcccdd32b612147`
+- Current release: OCI chart `0.1.20`, application `0.2.13`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:834172e90a5e51ae29afc9f93ec13235768eaad77497bc8c83274c141cd55759` (Linux amd64)
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -223,6 +223,67 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
 - No rollback was required. Deployment rollback is a new Git revert;
   migrations are forward-only, so database recovery requires an isolated
   restore and a deliberate configuration switch.
+
+### Verified upgrade: 2026-10-01 (chart 0.1.19 / application 0.2.11)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261001T001943Z`
+  (outside the repository). Only the `sub2api` PostgreSQL database and
+  `application/sub2api-data` PVC (`/app/data`) were backed up. `sub2api.dump`
+  is 38,717,665 bytes (SHA-256
+  `bd4b8663b645e24058a034342b8b1b1fa58f2475fbc5b84a94f79cc509c3ca83`);
+  `sub2api-data.tgz` is 4,638,794 bytes (SHA-256
+  `f2917628f296013f8062891c18172d8116e2f488a5a9466deda463f19989a0d9`). Both
+  artifacts are non-empty and mode `600`; `pg_restore --list` returned 1,214
+  entries and the tar listing returned 10 entries.
+- Published OCI chart `0.1.19` is anonymously pullable; package SHA-256
+  `3bd25eb5b5cdf69c6980e688db9730db86d72f6129315af9eb085c94a8c9dc89` matched
+  Git. GitOps `targetRevision` is `0.1.19`, from commit
+  `b805c440d53daa4f90706b028a5457de7e0790ae`.
+- ArgoCD reported `Synced/Healthy`. Deployment rollout was 1/1 ready and
+  available; the Pod was Ready with 0 restarts, and the running image digest
+  matched Linux amd64 image
+  `ghcr.io/wei-shaw/sub2api@sha256:9a71717a6f82efe663b613c730069ad427a2beee38bd16663346ae1c27a6cbc1`.
+- Service ClusterIP is `10.43.88.246:8080`, with endpoint
+  `10.42.0.70:8080`. Internal `/health` returned HTTP 200 with
+  `{"status":"ok"}`. Dedicated Redis was 1/1 ready at `10.42.0.12:6379`;
+  its one historical restart is not a current health issue.
+- No rollback was required. Roll back deployment configuration with a new Git
+  revert to chart `0.1.18`; do not use `kubectl rollout undo`. Migrations are
+  forward-only. Database rollback requires restoring into an isolated database
+  and making a deliberate configuration switch.
+
+### Verified upgrade: 2026-10-02 (chart 0.1.20 / application 0.2.13)
+
+- Fresh backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261002T154620Z`
+  (outside the repository; directory mode `700`, files mode `600`). Only the
+  `sub2api` database and PVC `application/sub2api-data` mounted at `/app/data`
+  were backed up; exactly two artifacts were created. `sub2api.dump` is
+  39,995,006 bytes (SHA-256
+  `b749ec86ec5aa6244780edeb29b1a7e82fd7cd87881b9d971a5cf6aaf408d2ef`), with
+  1,214 `pg_restore --list` entries. `sub2api-data.tgz` is 4,644,880 bytes
+  (SHA-256
+  `c312329d676c8eab04f87e419ab00a68d6636460bcbe80c650d4028951396160`), with
+  10 tar listing entries.
+- GitOps commit `18c5010062fbb9a1b22450ff3fb8b055f91fa2b1` changed only
+  `targetRevision` from `0.1.19` to `0.1.20`. Published chart `0.1.20` is
+  application `0.2.13`; package SHA-256
+  `b681c230a96ad93ef24a17946fdcb867cad4dae4ac319b70258258bb01b19b6b` and OCI
+  manifest digest
+  `sha256:60d44de5e929d2c4f3fe0a1d6d3b02d5e8597acd7fdaf99e5a02cf08e27a8e34`.
+  An independent anonymous pull matched the Git archive.
+- ArgoCD operation `Succeeded`, `Synced/Healthy`; sync completed at
+  `2026-10-02T15:57:26Z` and Healthy was reported at `16:01:36Z`. Deployment
+  was 1/1 ready and available; Pod `sub2api-c98d8b48b-dmzwg` was Ready/Running
+  with 0 restarts, and the running image digest matched Linux amd64 image
+  `ghcr.io/wei-shaw/sub2api@sha256:834172e90a5e51ae29afc9f93ec13235768eaad77497bc8c83274c141cd55759`.
+- Service ClusterIP `10.43.88.246:8080` had endpoint `10.42.0.74:8080`;
+  internal `/health` returned HTTP 200 with `{"status":"ok"}`. Dedicated Redis
+  StatefulSet was 1/1 with ready endpoint `10.42.0.12:6379`; its Pod has one
+  historical restart.
+- No rollback was required. Deployment rollback is a new Git revert to chart
+  `0.1.19`; do not use `kubectl rollout undo`. Database migrations are
+  forward-only, so database rollback requires restoring into an isolated
+  database and making a deliberate configuration switch.
 
 ### Restore PostgreSQL Safely
 

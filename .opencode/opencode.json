@@ -17,6 +17,7 @@
         "gpt-6-luna",
         "gpt-5.6-sol",
         "gpt-6-sol",
+        "gpt-6.1-sol",
         "gpt-6-astra"
       ],
       "options": {
@@ -77,6 +78,22 @@
         },
         "gpt-6-sol": {
           "name": "GPT-6-Sol",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "options": {
+            "store": false
+          },
+          "variants": {
+            "low": {},
+            "medium": {},
+            "high": {},
+            "xhigh": {}
+          }
+        },
+        "gpt-6.1-sol": {
+          "name": "GPT-6.1-Sol",
           "limit": {
             "context": 272000,
             "output": 128000
