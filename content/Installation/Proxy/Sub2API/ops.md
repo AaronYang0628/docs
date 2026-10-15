@@ -22,8 +22,9 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.18`, application `0.2.9`, image
-`ghcr.io/wei-shaw/sub2api@sha256:996a0ea43500550f233a2f653de58dcd77f42d3e244805894fcccdd32b612147`,
+The expected values are OCI chart `0.1.22`, application `0.2.16`, image
+`ghcr.io/wei-shaw/sub2api@sha256:4a0d0196d3450c71da159137e3419fc144df0c038bbe3b9e87dbbccaef10cab7`
+(Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
 with AOF enabled. Both use `local-path` and `RWO`.
@@ -52,14 +53,58 @@ path.
 
 <p> <b>1.back up</b> PostgreSQL before changing chart or image values </p>
 
-Use the [Backup & Restore](../backup/) runbook. Sub2API executes PostgreSQL
-migrations automatically at startup, and migrations are forward-only. Verify
-the dump before continuing.
+Use the [Backup & Restore](../backup/) runbook. Store the scoped backup outside
+the repository and verify both artifacts before continuing. For the upgrade
+completed on 2026-10-10, the backup was
+`/home/aaron/Ops/backups/sub2api/upgrade-20261010T092354Z`; it contains only:
+
+| Artifact | Size | SHA-256 |
+|---|---:|---|
+| `sub2api.dump` | 45,787,015 bytes | `0e0195256cccbbd985df5079f1d9e0998cd12cfe5e101ddcf471f01d4b767b5f` |
+| `sub2api-data.tgz` | 4,665,673 bytes | `1068b2efe24639bfba000daa90e365c80fd7b874ffc4dea847a1d8e9626acd1e` |
+
+`pg_restore --list` passed with 1,214 entries; listing the PVC archive passed
+with 10 entries. Verify the saved artifacts with:
+
+```bash
+sha256sum \
+  /home/aaron/Ops/backups/sub2api/upgrade-20261010T092354Z/sub2api.dump \
+  /home/aaron/Ops/backups/sub2api/upgrade-20261010T092354Z/sub2api-data.tgz
+pg_restore --list \
+  /home/aaron/Ops/backups/sub2api/upgrade-20261010T092354Z/sub2api.dump
+tar -tzf \
+  /home/aaron/Ops/backups/sub2api/upgrade-20261010T092354Z/sub2api-data.tgz
+```
+
+Do not infer or claim a particular database migration ran.
+
+For the verified 2026-10-14 upgrade, the backup directory was
+`/home/aaron/Ops/backups/sub2api/upgrade-20261014T123853Z` (outside the
+repository, directory mode `700`). It contained exactly the database dump and
+`/app/data` archive, both mode `600`; `pg_restore --list` passed with 1,214
+entries, archive listing passed with 10 entries, and SHA-256 recomputation
+passed. See [Backup & Restore](../backup/) for artifact sizes and hashes.
 
 <p> <b>2.update</b> the Git source </p>
 
 Edit only the reviewed `targetRevision`, `image.tag`, or required values in
-`manifests/sub2api-argocd.yaml`, then inspect and publish the change:
+`manifests/sub2api-argocd.yaml`, then inspect and publish the change. For the
+2026-10-10 upgrade, this manifest changed only at `targetRevision`. The chart
+mirror package SHA-256 was
+`2c82a680a66988ab034e7180d9b2871d49e69f9c4217ffc3173c3790230453d6`; an
+anonymous Helm pull matched the package and index. Chart mirror PR #12 was
+merged in commit `9f8a943e93a1fe4bf92b8ae381537538ea18a6fc`. The GitOps change
+was committed and pushed as
+`ee451e9025fa0ad6cd26e8a849db530693bbc6c8`.
+
+For the 2026-10-14 upgrade, chart mirror PR #13 merged as
+`440034baaaac6efc56eba1ae8c906a475f5f1518`. The chart package SHA-256 was
+`718ff8e75d4e803d351da82e2d02161a86ac85178b8e569ce6b98f241672dccb`; an
+independent anonymous Helm pull matched. Its GHCR OCI manifest digest was
+`sha256:4f3fdb5942b218717099821597b29324f98400256adc560e11cc0b7922372fc8`.
+Chart CI, Mirror consistency CI, Publish Sub2API chart, and Pages workflows
+succeeded. GitOps commit `ff542ee8a14d2615233281cf6886ddc5ab8a59e9` changed
+only `targetRevision`, from `0.1.21` to `0.1.22`.
 
 ```bash
 git -C /home/aaron/Ops/docs diff --check -- manifests/sub2api-argocd.yaml
@@ -82,7 +127,32 @@ argocd app wait sub2api --sync --health --timeout 600
 kubectl -n application rollout status deployment/sub2api --timeout=600s
 kubectl -n application get endpointslice \
   -l kubernetes.io/service-name=sub2api -o wide
+kubectl -n application get statefulset,pod,service,endpoints sub2api-redis
+kubectl -n application exec deployment/sub2api -- wget -qO- http://127.0.0.1:8080/health
 ```
+
+For that upgrade, ArgoCD adopted the Git commit at `2026-10-10T09:34:53Z`,
+observed chart revision `0.1.21`, and reported `Synced/Healthy`; health became
+`Healthy` at `09:37:54Z`. The rollout completed `1/1` with zero Pod restarts,
+the Service endpoint was ready on port `8080`, and the internal `/health`
+response was `{"status":"ok"}`. The dedicated Redis StatefulSet, Pod, and
+endpoint were all ready `1/1`.
+
+For the 2026-10-14 upgrade, parent `ops-docs` was `Synced/Healthy` at commit
+`ff542ee8a14d2615233281cf6886ddc5ab8a59e9`, operation `Succeeded`. Child
+`sub2api` target and observed chart were `0.1.22`, `Synced/Healthy`, operation
+`Succeeded`. Deployment desired/updated/ready/available counts were
+`1/1/1/1`, unavailable `0`; Pod `sub2api-c8d4cd46d-5lb4z` was Running/Ready
+with 0 restarts and its live image ID matched the expected digest. The ready/
+serving Service endpoint was `10.42.0.55:8080`; internal `/health` returned
+HTTP 200 with `{"status":"ok"}`. Dedicated Redis StatefulSet and Pod were
+1/1 ready. Redis had 2 historical restarts, the last terminating on
+2026-10-07 with exit 255; there were no current Redis errors.
+
+Non-fatal observations were one startup timeout fetching the remote model-price
+hash, security allowlist warnings, and a historical readiness failure from
+the replaced Pod. No migration failure was observed; no specific migration is
+asserted.
 
 The Deployment explicitly uses `maxUnavailable: 0` and `maxSurge: 1`.
 Kubernetes adds the new Ready Pod to the EndpointSlice before terminating the
@@ -235,43 +305,26 @@ recharge idempotency path.
 
 ### GitOps Rollback
 
-Restore the previous reviewed chart and image values, and any reviewed
-OpenCode configuration, with `git revert` or a new commit, then let
-ArgoCD converge:
+Restore the previous reviewed chart and image values with a new Git revert
+commit, then let ArgoCD converge. To return this release to chart `0.1.21`,
+revert its GitOps change and sync the parent and child Applications:
 
 ```bash
-git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml .opencode/opencode.json
-git -C /home/aaron/Ops/docs revert <change-commit>
+git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml
+git -C /home/aaron/Ops/docs revert ff542ee8a14d2615233281cf6886ddc5ab8a59e9
 git -C /home/aaron/Ops/docs push origin HEAD:main
-# Record rollback as a new Git revert commit (upgrade commit 67d8fef5859ec579cee101da22cc4988ca789b84); backup artifacts are in `/home/aaron/Ops/backups/sub2api/upgrade-20260920T051850Z` for isolated DB restore.
 
 argocd app get ops-docs --hard-refresh
 argocd app sync ops-docs --revision main
 argocd app wait ops-docs --sync --health --timeout 300
 argocd app sync sub2api
 argocd app wait sub2api --sync --health --timeout 600
-
-kubectl -n application rollout restart deployment/ops-agent
-kubectl -n application rollout status deployment/ops-agent --timeout=300s
 ```
 
-After the Ops Agent Pod rolls back and no Deployment references the
-helper Secret, remove it:
-
-```bash
-test -z "$(kubectl -n application get deployment -o json \
-  | jq -r '.items[].spec.template.spec.containers[]
-          | select(.env[]?.valueFrom.secretKeyRef.name=="sub2api-mcp")
-          | .name')" && \
-  kubectl -n application delete secret sub2api-mcp
-```
-
-An image/chart rollback does not reverse a forward-only PostgreSQL migration.
-Confirm compatibility with the migrated schema; when database recovery is
-required, restore the pre-upgrade dump into a separate database and switch via
-a reviewed Git change. Do not use `kubectl rollout undo`, and do not delete
-PVCs or Secrets as a rollback step until the Git revert and ops-agent
-restart are Healthy.
+An image/chart rollback does not reverse a database change. If database
+rollback is required, restore the pre-upgrade dump into an isolated database
+and switch configuration deliberately through a reviewed Git change. Do not
+use `kubectl rollout undo`; do not delete PVCs or Secrets as a rollback step.
 
 ### Troubleshooting
 

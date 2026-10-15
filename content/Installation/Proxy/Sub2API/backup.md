@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.20`, application `0.2.13`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:834172e90a5e51ae29afc9f93ec13235768eaad77497bc8c83274c141cd55759` (Linux amd64)
+- Current release: OCI chart `0.1.22`, application `0.2.16`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:4a0d0196d3450c71da159137e3419fc144df0c038bbe3b9e87dbbccaef10cab7` (Linux amd64)
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -284,6 +284,47 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   `0.1.19`; do not use `kubectl rollout undo`. Database migrations are
   forward-only, so database rollback requires restoring into an isolated
   database and making a deliberate configuration switch.
+
+### Verified upgrade: 2026-10-14 (chart 0.1.22 / application 0.2.16)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261014T123853Z`
+  (outside the repository; directory mode `700`). Exactly two files, both mode
+  `600`: `sub2api.dump` (52,013,200 bytes, SHA-256
+  `7e3bf6693e21a9ea644cccda36f85f03f506bd1a4dac7bd589118551b7272d8f`) and
+  `sub2api-data.tgz` (4,674,990 bytes, SHA-256
+  `1b68a4c9af54fe032c582e51eee5f039d8b9594a9592441e31e7d2893b164f75`). The
+  dump covered only database/user `sub2api` on `database/postgresql-0`; the
+  archive covered only `application/sub2api-data` mounted at `/app/data`.
+  `pg_restore --list` passed with 1,214 entries, the archive listing passed
+  with 10 entries, and SHA-256 recomputation passed. Initial streamed restore
+  listing timed out; the pod-local temporary-file fallback passed and the
+  temporary file was removed.
+- Chart mirror PR #13 merged as `440034baaaac6efc56eba1ae8c906a475f5f1518`.
+  Package SHA-256 was
+  `718ff8e75d4e803d351da82e2d02161a86ac85178b8e569ce6b98f241672dccb`; an
+  independent anonymous Helm pull matched. GHCR OCI manifest digest was
+  `sha256:4f3fdb5942b218717099821597b29324f98400256adc560e11cc0b7922372fc8`.
+  Chart CI, Mirror consistency CI, Publish Sub2API chart, and Pages workflows
+  succeeded. GitOps commit `ff542ee8a14d2615233281cf6886ddc5ab8a59e9` changed
+  only `targetRevision` from `0.1.21` to `0.1.22`.
+- Parent `ops-docs` was `Synced/Healthy` at that commit, operation
+  `Succeeded`. Child `sub2api` target and observed chart were `0.1.22`,
+  `Synced/Healthy`, operation `Succeeded`. Deployment rollout finished with
+  desired/updated/ready/available `1/1/1/1`, unavailable `0`; Pod
+  `sub2api-c8d4cd46d-5lb4z` was Running/Ready with 0 restarts, and its live
+  image ID matched Linux amd64 image
+  `ghcr.io/wei-shaw/sub2api@sha256:4a0d0196d3450c71da159137e3419fc144df0c038bbe3b9e87dbbccaef10cab7`.
+- Ready/serving Service endpoint was `10.42.0.55:8080`; internal `/health`
+  returned HTTP 200 with `{"status":"ok"}`. Dedicated Redis StatefulSet and
+  Pod were 1/1 ready. Redis had 2 historical restarts; last termination was
+  2026-10-07 with exit 255, with no current Redis errors.
+- Non-fatal observations: one startup timeout fetching the remote model-price
+  hash, security allowlist warnings, and a historical readiness failure from
+  the replaced Pod. No migration failure was observed; no specific migration
+  is asserted. No rollback was required. Roll back the GitOps release with a
+  new Git revert to chart `0.1.21`; a true database rollback requires restoring
+  the dump into an isolated database and making a deliberate configuration
+  switch. Never use `kubectl rollout undo` as a database rollback.
 
 ### Restore PostgreSQL Safely
 

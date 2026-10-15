@@ -476,3 +476,26 @@ kubectl delete pods -n n8n -l app.kubernetes.io/component=worker
 - Review and push the manifest change to `main`, wait for parent `argocd/ops-docs` convergence, then manually sync `argocd/n8n` in the order above.
 - If the repair must be rolled back, create and push a new Git revert of `768558f`, wait for parent convergence, and manually sync n8n again. Do not restore the old inline Application recipe or revert unrelated changes.
 {{% /expand %}}
+
+{{% expand title="Q5: Workflow-specific ECS egress for the WeChat token request" %}}
+The node-scoped ECS egress path is:
+
+- The Kubernetes node InternalIP is `192.168.0.25`. The CNI bridge gateway is a separate address, `10.42.0.1/24`.
+- On the node, the `ecs-squid-forward.service` user unit binds `10.42.0.1:3129` and forwards over SSH via the canonical `ecs-99` alias to ECS loopback Squid at `127.0.0.1:3128`.
+- ECS Squid allows the observed host-local/NAT source `172.31.239.47/32`, alongside its existing restricted trusted client. Do not broaden this ACL.
+- Only the `Get WX Token` node in workflow `Medium公众号发布Bot` uses proxy URL `http://10.42.0.1:3129`. This is not a cluster-wide or n8n-wide proxy setting.
+- Worker HTTP and HTTPS egress through this path was verified with public IP `47.110.67.161`.
+
+The public ECS `:3128` path remains intermittently lossy; it was not opened more broadly as part of this node-scoped route.
+
+**Rollback**
+- Restore the timestamped ECS Squid configuration backup, preserving the existing restricted trusted-client ACL.
+- On the node that owns the user unit, stop and disable it:
+
+```bash
+systemctl --user stop ecs-squid-forward.service
+systemctl --user disable ecs-squid-forward.service
+```
+
+- Restore the pre-change workflow export in n8n so `Get WX Token` no longer uses the node-scoped proxy URL.
+{{% /expand %}}
