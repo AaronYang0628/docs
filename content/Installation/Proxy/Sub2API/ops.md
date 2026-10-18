@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.22`, application `0.2.16`, image
-`ghcr.io/wei-shaw/sub2api@sha256:4a0d0196d3450c71da159137e3419fc144df0c038bbe3b9e87dbbccaef10cab7`
+The expected values are OCI chart `0.1.23`, application `0.2.17`, image
+`ghcr.io/wei-shaw/sub2api@sha256:3578ce8dcddd4befa6817448472166f1501120f7876029c641de698a1a8e2ee7`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -160,6 +160,27 @@ old Pod, and the Service selects only Ready endpoints. This protects new
 requests during rollout, but it does not guarantee completion of requests that
 are already attached to the terminating Pod. Long generations still require
 the application to handle graceful termination and draining correctly.
+
+For the verified 2026-10-17 upgrade, backup artifacts and checksums passed;
+`pg_restore --list` returned 1,226 entries and the `/app/data` archive listing
+contained 10 entries. The chart mirror PR #14 merged as
+`b1668e30bc274ef7a7d5f72ac0ea8a1193b96984`; the anonymously pulled package
+matched SHA-256 `f4095a555c294065e5c409568435a8d80f04fe5ba025e0672dc84c153302b690`.
+The OCI manifest digest was
+`sha256:416a1256412bbe72d9daf472a1a29e43f412552f1cc1d96471950317a038f8e9`; Chart
+CI #48, Mirror consistency CI #39, Publish Sub2API chart #14, and Pages #115
+succeeded. GitOps commit `7b7c409b58c8f4e93c5d167ef7920ba0ead3cc82` changed
+only `targetRevision` from `0.1.22` to `0.1.23`.
+
+The parent and child Applications observed the commit and completed
+`Synced/Healthy`, operation `Succeeded`. Deployment desired/updated/ready/
+available counts were `1/1/1/1`; Pod `sub2api-68ff596d85-58pkb` was Ready with
+0 restarts and its image ID matched the expected Linux amd64 digest. The Service
+had one ready/serving TCP `8080` endpoint and internal `/health` returned HTTP
+200. Redis was 1/1 ready; master and headless endpoints were ready/serving.
+One historical readiness warning on the replaced Pod and one unclassified
+error-like line in the bounded log tail were observed. There was no current
+rollout failure; no specific migration or migration success is asserted.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
@@ -306,12 +327,12 @@ recharge idempotency path.
 ### GitOps Rollback
 
 Restore the previous reviewed chart and image values with a new Git revert
-commit, then let ArgoCD converge. To return this release to chart `0.1.21`,
+commit, then let ArgoCD converge. To return this release to chart `0.1.22`,
 revert its GitOps change and sync the parent and child Applications:
 
 ```bash
 git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml
-git -C /home/aaron/Ops/docs revert ff542ee8a14d2615233281cf6886ddc5ab8a59e9
+git -C /home/aaron/Ops/docs revert 7b7c409b58c8f4e93c5d167ef7920ba0ead3cc82
 git -C /home/aaron/Ops/docs push origin HEAD:main
 
 argocd app get ops-docs --hard-refresh
