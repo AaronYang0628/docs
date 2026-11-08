@@ -36,7 +36,7 @@ spec:
           passwordKey: password
 
         persistence:
-          enabled: true
+          enabled: false
           storageClass: local-path
           size: 20Gi
           annotations:
