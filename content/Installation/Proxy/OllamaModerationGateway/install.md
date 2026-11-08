@@ -1,132 +1,50 @@
 +++
-title = "Install (ArgoCD)"
-description = "Deploy Ollama Moderation Gateway via 72602 GitOps ArgoCD"
+title = "Retirement Record"
+description = "Retirement record for the 72602 Ollama Moderation Gateway"
 +++
 
-### 🚀Installation
+### Retirement
 
-{{< tabs groupid="environment" style="primary" title="Environment" icon="server" >}}
+The Ollama Moderation Gateway was retired on 2026-11-08. Do not run the former
+installation or Secret-creation commands from repository history.
 
-{{< tab title="72602" >}}
-  {{< tabs groupid="install-method-72602" title="Install By" icon="thumbtack" >}}
+### GitOps changes
 
-  {{% tab title="🐙ArgoCD" %}}
-  {{% include "/Installation/SNIPPET/_argo_cd_preliminary.md" %}}
+- `250ef03fd8f07f28df99adf42715b395c891aa5b`: added cascade finalizers to
+  both child Applications.
+- `6e8e61a01e7822e4d45fcd3bc13bc1e0f3a3fe17`: removed the Roaminal bootstrap
+  Job before service retirement.
+- `4f08ce5b6b485456194ed9a879350ee1451da912`: restored the chart-required
+  single-replica value after the pinned chart rejected zero replicas.
+- `707953229eff9ed25b6b20fe94e26882f5ec96b2`: disabled Roaminal persistence.
+- `b51c24709b7d8800d7d565f610a86a75343e5f15`: made Roaminal pruning occur
+  after workload replacement.
+- `a89ef003808032b0438df9b7c50424d1159b84b2`: removed both child Application
+  manifests from the parent source.
 
-  <p> <b>1.verify source and create namespace</b> </p>
+The pinned Roaminal chart revision requires exactly one replica and rejects a
+zero-replica render. With persistence disabled, the Deployment was reconciled
+to an `emptyDir` data volume; a temporary scale to zero released Kubernetes PVC
+protection so Argo CD could prune the PVC and local-path PV. No PVC was deleted
+directly.
 
-  {{% notice style="transparent" %}}
-  ```bash
-  git -C /home/aaron/Ops/docs fetch origin main
-  git -C /home/aaron/Ops/docs \
-    show origin/main:manifests/ollama-moderation-gateway-argocd.yaml >/dev/null
+### Verification
 
-  argocd app get ops-docs --hard-refresh
-  argocd app sync ops-docs --revision main
-  argocd app wait ops-docs --sync --timeout 300
+- `argocd/ops-docs` is `Synced/Healthy` at revision
+  `a89ef003808032b0438df9b7c50424d1159b84b2`.
+- Both child Applications, their Deployments, Services, Ingresses,
+  Certificates, PVC, and PV are absent.
+- The `moderation` and `roaminal` namespaces remain `Active`, including their
+  default ServiceAccounts and `kube-root-ca.crt` ConfigMaps.
+- The former moderation public route returns HTTP `404`; the former Roaminal
+  host has no cluster Ingress and the public edge returns an empty-body default
+  response.
+- Service-owned runtime and TLS Secrets were deleted only after the resource
+  absence checks. Secret data was never read, and no backup was created.
 
-  kubectl wait --for=jsonpath='{.status.phase}'=Active \
-    namespace/moderation --timeout=120s
-  ```
-  {{% /notice %}}
+### Rollback guidance
 
-  The parent `ops-docs` Application reads the `manifests` path and creates the
-  child Application. The child creates namespace `moderation` through
-  `CreateNamespace=true`.
-
-  <p> <b>2.prepare runtime secret</b> </p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  test -s /home/aaron/Ops/docs/.moderation.env
-  test "$(stat -c %a /home/aaron/Ops/docs/.moderation.env)" = 600
-
-  kubectl -n moderation create secret generic ollama-moderation-gateway \
-    --from-env-file=/home/aaron/Ops/docs/.moderation.env \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-  kubectl -n moderation get secret ollama-moderation-gateway --output=name
-  ```
-  {{% /notice %}}
-
-  The ignored `.moderation.env` file must contain `OLLAMA_API_KEYS` and
-  `MODERATION_API_KEYS`. Secret values remain outside Git and terminal output.
-
-  <p> <b>3.verify GitOps source and sync child</b> </p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  # confirm parent application source
-  kubectl -n argocd get application ops-docs \
-    -o jsonpath='{.spec.source.repoURL}{"\n"}{.spec.source.path}'
-
-  # refresh and sync the child (ollama-moderation-gateway)
-  argocd app get ollama-moderation-gateway --hard-refresh
-  argocd app sync ollama-moderation-gateway
-  argocd app wait ollama-moderation-gateway --sync --health --timeout 600
-  ```
-  {{% /notice %}}
-
-  <p> <b>4.verify deployment, service, ingress and certificate</b> </p>
-
-  {{% notice style="transparent" %}}
-  ```bash
-  # chart source details
-  kubectl -n argocd get application ollama-moderation-gateway \
-    -o jsonpath='{.spec.source.repoURL}{"\n"}{.spec.source.path}{"\n"}{.spec.source.targetRevision}{"\n"}'
-
-  # image and release verification
-  kubectl -n moderation get deployment ollama-moderation-gateway \
-    -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"="}{.image}{"\n"}{end}'
-
-  # rollout status
-  kubectl -n moderation rollout status deployment/ollama-moderation-gateway --timeout=600s
-  kubectl -n moderation get pods,svc,ingress
-  kubectl -n moderation get certificate,certificaterequest,order,challenge
-  kubectl -n moderation get endpointslice -l kubernetes.io/service-name=ollama-moderation-gateway
-
-  # health checks
-  curl -fsS https://moderation.llm.72602.space/health
-  curl -fsS https://moderation.llm.72602.space/readyz
-
-  # authenticated moderation request; do not echo the key or response body
-  set +x
-  read -rsp 'Gateway API key: ' GATEWAY_KEY; printf '\n'
-  curl -fsS -X POST https://moderation.llm.72602.space/v1/moderations \
-    -H "Authorization: Bearer ${GATEWAY_KEY}" \
-    -H "Content-Type: application/json" \
-    --json '{"model":"moderation-fast","input":"hello"}' \
-    | jq -e '.results | length == 1' >/dev/null
-  unset GATEWAY_KEY
-  ```
-  {{% /notice %}}
-
-{{% notice style="transparent" %}}
-**Current Operational State**: Deployment `ollama-moderation-gateway` desired replicas: **3**, available replicas: **3**. Service reports **three Ready endpoints**. Single-node resource metrics are healthy. The image, runtime configuration and Ingress remain unchanged; only `replicaCount` was changed.
-{{% /notice %}}
-
-  Expected release values: chart `ollama-moderation-gateway` version `0.1.0` and image
-  `ghcr.io/aaronyang0628/ollama-moderation-gateway@sha256:6957f8a32ad93577500c6952d7dd0b9ae970672b82570144852c5fe5766773c5`. The TLS certificate `moderation.llm.72602.space-tls` should be `Ready` with expiry `2026-12-13T00:55:24Z`.
-
-  {{% /tab %}}
-
-  {{< /tabs >}}
-{{< /tab >}}
-
-{{< /tabs >}}
-
-### 📦Rollback Guidance
-
-If a deployment must be reverted, create a reviewed Git revert for the deployment source commit, push it, and sync the parent application. Runtime secrets and TLS certificates are external resources and are **not** modified by the rollback.
-
-```bash
-# create a reviewed revert in the docs repository
-cd /home/aaron/Ops/docs
-git fetch origin main
-git revert --no-edit 39c48b3
-git push origin main
-argocd app sync ops-docs --revision main
-argocd app wait ops-docs --sync --health --timeout 300
-```
-
-After rollback, re-run the verification steps above to ensure the service is healthy.
+There is no rollback for the deleted PVC/PV data or Secrets. Recreating the
+service would require a new reviewed Git source commit and externally supplied
+runtime credentials; do not restore the retired child manifests by direct
+cluster apply.
