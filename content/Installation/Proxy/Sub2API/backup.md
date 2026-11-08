@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.23`, application `0.2.17`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:3578ce8dcddd4befa6817448472166f1501120f7876029c641de698a1a8e2ee7` (Linux amd64)
+- Current release: OCI chart `0.1.24`, application `0.2.19`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:b5a90edf9f3798eafa7a0b4b2b6ebc47036ff45ac475ff6186ea28812d9e0555` (Linux amd64)
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -366,6 +366,33 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   rollback requires restoring the dump into an isolated database and
   deliberately switching configuration. Do not use `kubectl rollout undo` as
   a database rollback.
+
+### Verified upgrade: 2026-10-29 (chart 0.1.24 / application 0.2.19)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261029T034912Z`
+  (outside the repository). Exactly two files were created:
+  `sub2api.dump` (71,124,292 bytes, SHA-256
+  `c34138082011c0ac67334ff5f7c48c970d836e94d21be43dbb5b8f673f342319`) and
+  `sub2api-data.tgz` (4,701,059 bytes, SHA-256
+  `0b4fda8516b168f5a063f6aa9896aab22786f56717add37fb33149ce33a9dee4`).
+  `pg_restore --list` showed 1,226 entries and the tar archive listing showed
+  10 entries.
+- GitOps commit `a3894400e43bb9488c1bc364398310515e378296` changed only
+  `targetRevision`, from chart `0.1.23` to `0.1.24`. The application image was
+  `ghcr.io/wei-shaw/sub2api@sha256:b5a90edf9f3798eafa7a0b4b2b6ebc47036ff45ac475ff6186ea28812d9e0555`.
+- ArgoCD reported `Synced/Healthy`, operation `Succeeded`. Deployment was
+  1/1; the Pod was Ready with 0 restarts and used the target image digest.
+  The ready Service endpoint was `10.42.0.61:8080`; internal `/health`
+  returned `{"status":"ok"}`. The dedicated Redis StatefulSet and Pod were
+  1/1 Ready at endpoint `10.42.0.16:6379`.
+- The ArgoCD CLI token had expired, so verification used Kubernetes Application
+  status only. No migration details are asserted.
+- No rollback was required. To roll back the release, create a Git revert of
+  `a3894400e43bb9488c1bc364398310515e378296`; this restores chart `0.1.23` and
+  lets ArgoCD reconcile. A database restore is separate: restore the backup
+  only into an isolated database, verify it, then make a deliberate reviewed
+  configuration switch. Do not use `kubectl rollout undo` as a database
+  rollback.
 
 ### Restore PostgreSQL Safely
 

@@ -126,6 +126,24 @@ systemctl list-timers 72602-wireguard-runtime-repair.timer --all
 sudo journalctl -t 72602-wireguard-repair --since "-15 min"
 ```
 
+The existing ECS `tunnel-healthcheck.timer` also runs every 60 seconds and
+performs conditional WireGuard runtime recovery; it reuses the existing timer
+and unit, with no additional timer or unit. Recovery is attempted only when the
+ECS WireGuard service is active, its `wg0` address and route to `10.77.0.2` are
+correct, the latest handshake is at least 300 seconds old, both the WireGuard
+peer ping and direct ingress HTTPS check fail, and both the SSH Web backup and
+HAProxy frontend are healthy. The check uses `flock` to prevent concurrent
+repairs and enforces a 300-second retry cooldown.
+
+Through the existing ECS-to-minipc reverse SSH path on port `10021`, it first
+validates the minipc WireGuard service, `wg0` address, and route. Only after
+those checks pass does it run `wg set wg0 listen-port 0` at runtime and ping
+`10.77.0.1` as a best-effort action to trigger a handshake. Recovery is verified
+when ECS observes a fresh handshake and the direct ingress HTTPS check passes
+twice consecutively; the minipc ping is not an acceptance condition. This does
+not restart `wg-quick`, change persistent configuration, or touch cluster
+services.
+
 `systemd-networkd` also retries failures with a five-second delay and a
 60-second, 12-start limit. The previous outage was not automatically repaired
 because networkd's watchdog restart loop hit its default five-start limit after
