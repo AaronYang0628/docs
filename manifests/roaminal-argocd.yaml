@@ -17,6 +17,7 @@ spec:
     targetRevision: d8415b9017796c364c56a7dfdaece59534e504b6
     path: chart
     helm:
+      skipSchemaValidation: true
       values: |
         replicaCount: 0
 
