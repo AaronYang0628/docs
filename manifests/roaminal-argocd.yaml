@@ -17,9 +17,8 @@ spec:
     targetRevision: d8415b9017796c364c56a7dfdaece59534e504b6
     path: chart
     helm:
-      skipSchemaValidation: true
       values: |
-        replicaCount: 0
+        replicaCount: 1
 
         image:
           digest: sha256:ef0784f5bb0e385dd97ed32331da0703f00d24acdaecbf49ed3701efac0ed4a6
