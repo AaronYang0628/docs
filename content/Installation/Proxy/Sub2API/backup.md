@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.24`, application `0.2.19`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:b5a90edf9f3798eafa7a0b4b2b6ebc47036ff45ac475ff6186ea28812d9e0555` (Linux amd64)
+- Current release: OCI chart `0.1.25`, application `0.2.20`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0` (Linux amd64)
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -393,6 +393,40 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   only into an isolated database, verify it, then make a deliberate reviewed
   configuration switch. Do not use `kubectl rollout undo` as a database
   rollback.
+
+### Verified upgrade: 2026-11-08 (chart 0.1.25 / application 0.2.20)
+
+- Backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261108T023944Z`
+  (outside the repository; directory mode `700`, exactly two files, both mode
+  `600`). `sub2api.dump` was 78,577,025 bytes (SHA-256
+  `176322036de80b940f00b0975a8a6c6fee0ba31c7c130f8788ebc106834bd0b6`);
+  `sub2api-data.tgz` was 4,817,192 bytes (SHA-256
+  `bace923f7bbaf2132672495299eb67214ba090d55702fb83793da6374500acd4`).
+  `pg_restore --list` returned 1,231 entries, the archive listing returned 10
+  entries, and checksums passed.
+- Mirror PR #16 merged as `ec3138c2beb645cc8db11b4072a952b530f574cf`.
+  GHCR Publish Sub2API chart and Pages workflows succeeded. An independent
+  anonymous Helm pull matched Git package SHA-256
+  `d10eefce7d341261840a67486205791dd0b87c9f40bb7d2a1dd3e3d69eefd396`; OCI
+  manifest digest was
+  `sha256:8e0154dcb9af076835444f2dba419d2ca06db71e58a5e3728ef9cd41bb69fb81`.
+  GitOps commit `4f15af66e6257beb6500347ee8ea2107bf379868` changed only
+  `targetRevision`, from `0.1.24` to `0.1.25`.
+- Parent `ops-docs` observed the current main commit and was `Synced/Healthy`.
+  Child `sub2api` target and observed chart were `0.1.25`, `Synced/Healthy`,
+  operation `Succeeded`. Deployment was 1/1; Pod
+  `sub2api-75894b5886-6hm86` was Ready with 0 restarts and its image digest
+  matched Linux amd64 image
+  `ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0`.
+- Ready Service endpoint was `10.42.0.76:8080`; internal `/health` returned
+  HTTP 200 with `{"status":"ok"}`. Dedicated Redis was 1/1 Ready at
+  `10.42.0.16:6379`; both application PVCs remained Bound.
+- No migration details were verified, and no rollback was required. To roll
+  back the deployment, create a Git revert of
+  `4f15af66e6257beb6500347ee8ea2107bf379868` to chart `0.1.24` and let ArgoCD
+  reconcile. Database restoration is separate: restore into an isolated
+  database, verify it, then make a deliberate reviewed configuration switch.
+  Do not use `kubectl rollout undo` as a database rollback.
 
 ### Restore PostgreSQL Safely
 

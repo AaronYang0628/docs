@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.23`, application `0.2.17`, image
-`ghcr.io/wei-shaw/sub2api@sha256:3578ce8dcddd4befa6817448472166f1501120f7876029c641de698a1a8e2ee7`
+The expected values are OCI chart `0.1.25`, application `0.2.20`, image
+`ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -83,6 +83,12 @@ For the verified 2026-10-14 upgrade, the backup directory was
 repository, directory mode `700`). It contained exactly the database dump and
 `/app/data` archive, both mode `600`; `pg_restore --list` passed with 1,214
 entries, archive listing passed with 10 entries, and SHA-256 recomputation
+passed. See [Backup & Restore](../backup/) for artifact sizes and hashes.
+
+For the verified 2026-11-08 upgrade, the backup directory was
+`/home/aaron/Ops/backups/sub2api/upgrade-20261108T023944Z`, with exactly the
+database dump and `/app/data` archive, both mode `600`. `pg_restore --list`
+returned 1,231 entries, the archive listing returned 10 entries, and checksums
 passed. See [Backup & Restore](../backup/) for artifact sizes and hashes.
 
 <p> <b>2.update</b> the Git source </p>
@@ -181,6 +187,28 @@ had one ready/serving TCP `8080` endpoint and internal `/health` returned HTTP
 One historical readiness warning on the replaced Pod and one unclassified
 error-like line in the bounded log tail were observed. There was no current
 rollout failure; no specific migration or migration success is asserted.
+
+For the verified 2026-11-08 upgrade, chart mirror PR #16 merged as
+`ec3138c2beb645cc8db11b4072a952b530f574cf`; GHCR Publish Sub2API chart and
+Pages workflows succeeded. An independent anonymous Helm pull matched Git
+package SHA-256
+`d10eefce7d341261840a67486205791dd0b87c9f40bb7d2a1dd3e3d69eefd396`; the OCI
+manifest digest was
+`sha256:8e0154dcb9af076835444f2dba419d2ca06db71e58a5e3728ef9cd41bb69fb81`.
+GitOps commit `4f15af66e6257beb6500347ee8ea2107bf379868` changed only
+`targetRevision` from `0.1.24` to `0.1.25`. Parent `ops-docs` observed the
+current main commit and was `Synced/Healthy`; child `sub2api` was
+`Synced/Healthy`, operation `Succeeded`, on target and observed chart `0.1.25`.
+Deployment was 1/1; Pod `sub2api-75894b5886-6hm86` was Ready with 0 restarts
+and used Linux amd64 image
+`ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0`.
+The Service endpoint `10.42.0.76:8080` returned HTTP 200
+`{"status":"ok"}` from internal `/health`; dedicated Redis was 1/1 Ready at
+`10.42.0.16:6379`, and both application PVCs were Bound. No migration details
+were verified and no rollback was required. Deployment rollback is a new Git
+revert of `4f15af66e6257beb6500347ee8ea2107bf379868` to chart `0.1.24`;
+database restoration requires an isolated restore and a deliberate reviewed
+configuration switch. Do not use `kubectl rollout undo` as a database rollback.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
@@ -327,12 +355,12 @@ recharge idempotency path.
 ### GitOps Rollback
 
 Restore the previous reviewed chart and image values with a new Git revert
-commit, then let ArgoCD converge. To return this release to chart `0.1.22`,
-revert its GitOps change and sync the parent and child Applications:
+commit, then let ArgoCD converge. To return the 2026-11-08 release to chart
+`0.1.24`, revert its GitOps change and sync the parent and child Applications:
 
 ```bash
 git -C /home/aaron/Ops/docs log --oneline -- manifests/sub2api-argocd.yaml
-git -C /home/aaron/Ops/docs revert 7b7c409b58c8f4e93c5d167ef7920ba0ead3cc82
+git -C /home/aaron/Ops/docs revert 4f15af66e6257beb6500347ee8ea2107bf379868
 git -C /home/aaron/Ops/docs push origin HEAD:main
 
 argocd app get ops-docs --hard-refresh
