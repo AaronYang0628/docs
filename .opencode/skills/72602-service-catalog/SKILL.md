@@ -24,6 +24,7 @@ operations without loading the matching service skill first.
 | ollama-moderation-gateway | `ollama-moderation-gateway-72602-operations` | `moderation` |
 | ops-agent | `ops-agent-72602-operations` | `application` |
 | ops-docs | `ops-docs-72602-operations` | `application` |
+| payee-bench | `payee-bench-72602-operations` | `payee-bench` |
 | roaminal | `roaminal-72602-operations` | `roaminal` |
 | postgresql | `postgresql-72602-operations` | `database` |
 | redis-shared | `redis-shared-72602-operations` | `storage` |
