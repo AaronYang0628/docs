@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: payee-bench
+  namespace: payee-bench
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: payee-bench
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP
