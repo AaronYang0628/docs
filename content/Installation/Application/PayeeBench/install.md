@@ -1,6 +1,7 @@
 +++
 title = "Install (ArgoCD)"
 description = "Deploy payee-bench to 72602 via ArgoCD GitOps"
+url = "/Installation/Application/PayeeBench/install/"
 +++
 
 ### 🚀Installation
