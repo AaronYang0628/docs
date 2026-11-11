@@ -8,6 +8,9 @@ spec:
     repoURL: 'https://github.com/AaronYang0628/docs.git'
     targetRevision: main
     path: manifests
+    directory:
+      recurse: true
+      include: '{*.yaml,payee-bench/*.yaml}'
   syncPolicy:
     automated:
       prune: true
