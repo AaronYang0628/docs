@@ -37,6 +37,7 @@ operations without loading the matching service skill first.
 |---|---|---|
 | alidns-webhook | `alidns-webhook-72602-operations` | cert-manager namespace |
 | mihomo / Clash | `mihomo-72602-operations` | 72602-minipc |
+| ECS Clash / Mihomo | `ecs-clash-operations` | ecs-99 |
 | NewAPI private relay (`np-relay.service`) | `np-relay-72602-operations` | ecs-99 |
 | squid | `squid-72602-operations` | ecs-99 (`47.110.67.161`) |
 | socat egress bridge | `socat-72602-operations` | 72602-minipc |

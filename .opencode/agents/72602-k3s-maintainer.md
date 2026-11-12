@@ -1,7 +1,7 @@
 ---
 description: Operates the 72602 k3s cluster from 72602-minipc; use for diagnostics, GitOps changes, ingress, certificates, tunnels, proxies, Sub2API administration and recharge, and application operations in the 72602 environment.
 mode: subagent
-model: openai/gpt-5.6-luna
+model: openai/gpt-6-luna
 variant: max
 permission:
   bash: allow
