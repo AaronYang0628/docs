@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.25`, application `0.2.20`, image
-`ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0`
+The expected values are OCI chart `0.1.26`, application `0.2.21`, image
+`ghcr.io/wei-shaw/sub2api@sha256:cb10d92e89b37c1b732ab6f66cd0bb2164cc8d2d49004e7b9301c1c3d5f1a4a5`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -90,6 +90,16 @@ For the verified 2026-11-08 upgrade, the backup directory was
 database dump and `/app/data` archive, both mode `600`. `pg_restore --list`
 returned 1,231 entries, the archive listing returned 10 entries, and checksums
 passed. See [Backup & Restore](../backup/) for artifact sizes and hashes.
+
+For the verified 2026-11-11 upgrade, see [Backup & Restore](../backup/) for the
+scoped backup artifacts and validation. Mirror PR #17 merged as
+`1f12535c33d6602996cd34adc8222147244ee5ff`; the published chart package SHA-256
+was `2c2c87dc8d8a362a7ef64632c8ec7eae1467f8358863b4afbb0e2925f3f1ff98`. An
+anonymous OCI pull returned digest
+`sha256:c380e605b8b0fae4bbc8f85976a160314ce1551329a767ee4972d3bbdd2e32aa`,
+matching the repository package; the Pages index and catalog show the release.
+GitOps commit `915e943088010bc50448aac8c8e9e71d8d21bd43` changed only
+`targetRevision` from `0.1.25` to `0.1.26`.
 
 <p> <b>2.update</b> the Git source </p>
 
@@ -209,6 +219,16 @@ were verified and no rollback was required. Deployment rollback is a new Git
 revert of `4f15af66e6257beb6500347ee8ea2107bf379868` to chart `0.1.24`;
 database restoration requires an isolated restore and a deliberate reviewed
 configuration switch. Do not use `kubectl rollout undo` as a database rollback.
+
+For the verified 2026-11-11 rollout, ArgoCD was `Synced/Healthy` on chart
+`0.1.26`; Deployment was 1/1 and Pod `sub2api-76bc4bd684-sth24` was Ready with
+0 restarts and the expected image digest. Service endpoint
+`10.42.0.111:8080` and internal and public `/health` returned
+`{"status":"ok"}`. Dedicated Redis was 1/1 Ready at `10.42.0.16:6379`.
+Release rollback is a Git revert of
+`915e943088010bc50448aac8c8e9e71d8d21bd43`. Database rollback requires an
+isolated restore followed by a deliberate configuration switch; no migration
+details are asserted.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 

@@ -11,8 +11,8 @@ tags = ["sub2api", "ai"]
 - Git owner: `argocd/ops-docs`, source `https://github.com/AaronYang0628/docs.git`, path `manifests`
 - ArgoCD Application: `argocd/sub2api`
 - Namespace: `application`
-- OCI chart: `ghcr.io/aaronyang0628/helm-chart-mirror/sub2api` (`0.1.25`)
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0`
+- OCI chart: `ghcr.io/aaronyang0628/helm-chart-mirror/sub2api` (`0.1.26`, upstream app `0.2.21`)
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:cb10d92e89b37c1b732ab6f66cd0bb2164cc8d2d49004e7b9301c1c3d5f1a4a5`
 - Public API and OAuth host: `token.72602.space`
 - Ingress class: `nginx`
 - TLS certificate: `token.72602.space-tls` (`Ready`)

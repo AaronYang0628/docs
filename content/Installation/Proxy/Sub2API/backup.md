@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.25`, application `0.2.20`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:e5da8d1e51cd97fab4464cdfa4e54a1466ecb470ca5ce6d4e740ebeaeef714a0` (Linux amd64)
+- Current release: OCI chart `0.1.26`, application `0.2.21`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:cb10d92e89b37c1b732ab6f66cd0bb2164cc8d2d49004e7b9301c1c3d5f1a4a5`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -427,6 +427,39 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   reconcile. Database restoration is separate: restore into an isolated
   database, verify it, then make a deliberate reviewed configuration switch.
   Do not use `kubectl rollout undo` as a database rollback.
+
+### Verified upgrade: 2026-11-11 (chart 0.1.26 / application 0.2.21)
+
+- Fresh backup directory: `/home/aaron/Ops/backups/sub2api/upgrade-20261111T052550Z`
+  (outside the repository; directory mode `700`). Scope was only the `sub2api`
+  PostgreSQL database and mounted `/app/data` PVC. `sub2api.dump` was
+  81,899,473 bytes (SHA-256
+  `dd35796baf399aaf862695e92af26e5581365fb5cc47db5f6f570abb4a486fff`, mode
+  `600`); `pg_restore --list` returned 1,247 entries. `sub2api-data.tgz` was
+  4,844,655 bytes (SHA-256
+  `d51101aca2a94d4b76cd691103fb854aaf32ec7a8c450a14053c35a7cff17a91`, mode
+  `600`); tar listing returned 10 entries. Local `pg_restore` was unavailable
+  and an initial stdin validation timed out; final in-container verification
+  passed.
+- Published image:
+  `ghcr.io/wei-shaw/sub2api@sha256:cb10d92e89b37c1b732ab6f66cd0bb2164cc8d2d49004e7b9301c1c3d5f1a4a5`.
+  Mirror PR #17 merged as `1f12535c33d6602996cd34adc8222147244ee5ff`;
+  package SHA-256 was
+  `2c2c87dc8d8a362a7ef64632c8ec7eae1467f8358863b4afbb0e2925f3f1ff98`.
+  Anonymous OCI pull returned Helm OCI digest
+  `sha256:c380e605b8b0fae4bbc8f85976a160314ce1551329a767ee4972d3bbdd2e32aa`,
+  matching the repository package. Pages index and catalog show the release.
+  GitOps commit `915e943088010bc50448aac8c8e9e71d8d21bd43` changed only
+  `targetRevision` from `0.1.25` to `0.1.26`.
+- ArgoCD was `Synced/Healthy`. Deployment was 1/1; Pod
+  `sub2api-76bc4bd684-sth24` was Ready with 0 restarts and the expected image
+  digest. Service endpoint `10.42.0.111:8080` was ready; internal and public
+  `/health` returned `{"status":"ok"}`. Dedicated Redis was 1/1 Ready at
+  `10.42.0.16:6379`.
+- No migration details are asserted. Release rollback is a Git revert of
+  `915e943088010bc50448aac8c8e9e71d8d21bd43`. A database rollback requires
+  restoring into an isolated database followed by a deliberate configuration
+  switch.
 
 ### Restore PostgreSQL Safely
 
