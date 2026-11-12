@@ -26,7 +26,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: app
-          image: docker.io/library/payee-bench:csp-redirect-20261112
+          image: docker.io/library/payee-bench:token-exclusive-20261112
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
