@@ -26,7 +26,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: app
-          image: docker.io/library/payee-bench:local-cancel-20261113-r2
+          image: docker.io/library/payee-bench:cancel-expiry-20261113-r1
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
