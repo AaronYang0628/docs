@@ -26,7 +26,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: app
-          image: docker.io/library/payee-bench:booth-20261113-r4
+          image: docker.io/library/payee-bench:holo-20261114-r1
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
