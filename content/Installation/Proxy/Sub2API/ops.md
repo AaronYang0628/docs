@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.26`, application `0.2.21`, image
-`ghcr.io/wei-shaw/sub2api@sha256:cb10d92e89b37c1b732ab6f66cd0bb2164cc8d2d49004e7b9301c1c3d5f1a4a5`
+The expected values are OCI chart `0.1.27`, application `0.2.22`, image
+`ghcr.io/wei-shaw/sub2api@sha256:459cb6072321d509531d4f85bbeecd8a3709ca24c0bbcf576d7aebcf5d6a4ff9`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -229,6 +229,29 @@ Release rollback is a Git revert of
 `915e943088010bc50448aac8c8e9e71d8d21bd43`. Database rollback requires an
 isolated restore followed by a deliberate configuration switch; no migration
 details are asserted.
+
+For the verified 2026-11-17 upgrade, the backup and validation details are in
+[Backup & Restore](../backup/). Mirror PR #18 merged as
+`7413411632d4e32d6a33d7bc52db579b03493134`; the chart package SHA-256 was
+`59672be451e6152009801c4cccdb2aa20afe95446a41f894b38963b0c39e52a3`, and an
+anonymous OCI pull returned manifest digest
+`sha256:a93e2f41274e4cfaa659b1dd041dd0b8751b04778b5d1f5ff1e905783bcb7d06`.
+Chart CI, mirror CI, publish, and Pages workflows succeeded; the Pages index
+and catalog updated. GitOps commit
+`5df6a6074f4486d0f216747320543586b4e2582f` changed only `targetRevision` from
+`0.1.26` to `0.1.27`.
+
+ArgoCD reported `Synced/Healthy` on observed chart `0.1.27`, with automated
+sync `Succeeded`. Deployment was 1/1; Pod `sub2api-7895b77c-qtnhn` was Ready
+with 0 restarts and the expected image digest. The ready Service endpoint was
+`10.42.0.193:8080`; internal and public `/health` returned HTTP 200 with
+`{"status":"ok"}`. Dedicated Redis was 1/1 Ready at `10.42.0.16:6379`, and
+PVCs were Bound. No Warning events were found for the new Pod or Deployment;
+rollout briefly waited for the old replica to terminate. Redis has two
+historical restarts, unchanged. No migration details are asserted. Deployment
+rollback is a new Git revert of
+`5df6a6074f4486d0f216747320543586b4e2582f`; database rollback requires an
+isolated restore and deliberate configuration switch.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 

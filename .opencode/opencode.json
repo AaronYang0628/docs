@@ -6,7 +6,6 @@
   ],
   "enabled_providers": [
     "openai",
-    "grok",
     "glm",
     "deepseek"
   ],
@@ -14,8 +13,8 @@
     "openai": {
       "whitelist": [
         "gpt-6-luna",
-        "gpt-6.1-sol",
-        "gpt-6-astra"
+        "gpt-6.2-sol",
+        "gpt-6.2-astra"
       ],
       "options": {
         "baseURL": "https://token.72602.space/v1",
@@ -41,8 +40,8 @@
             "xhigh": {}
           }
         },
-        "gpt-6.1-sol": {
-          "name": "GPT-6.1-Sol",
+        "gpt-6.2-sol": {
+          "name": "gpt-6.2-sol",
           "limit": {
             "context": 272000,
             "output": 128000
@@ -57,8 +56,8 @@
             "xhigh": {}
           }
         },
-        "gpt-6-astra": {
-          "name": "GPT-6-Astra",
+        "gpt-6.2-astra": {
+          "name": "gpt-6.2-astra",
           "limit": {
             "context": 272000,
             "output": 128000
@@ -71,33 +70,6 @@
             "medium": {},
             "high": {},
             "xhigh": {}
-          }
-        }
-      }
-    },
-    "grok": {
-      "options": {
-        "baseURL": "https://token.72602.space/v1",
-        "apiKey": "{env:GROK_API_KEY}",
-        "headerTimeout": 60000,
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "npm": "@ai-sdk/openai",
-      "name": "Grok via Sub2API",
-      "models": {
-        "grok-4.7": {
-          "name": "Grok 4.7",
-          "limit": {
-            "context": 1000000,
-            "output": 128000
-          }
-        },
-        "grok-4.6": {
-          "name": "Grok 4.6",
-          "limit": {
-            "context": 1000000,
-            "output": 128000
           }
         }
       }
@@ -139,7 +111,7 @@
       }
     },
     "plan": {
-      "model": "openai/gpt-6.1-sol",
+      "model": "openai/gpt-6.2-sol",
       "variant": "xhigh",
       "options": {
         "store": false
