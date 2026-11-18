@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.27`, application `0.2.22`, image
-`ghcr.io/wei-shaw/sub2api@sha256:459cb6072321d509531d4f85bbeecd8a3709ca24c0bbcf576d7aebcf5d6a4ff9`
+The expected values are OCI chart `0.1.28`, application `0.2.23`, image
+`ghcr.io/wei-shaw/sub2api@sha256:0cc625218210f98e94b72da1a69f8678792b6f6a0ab4ecd6a4e5818a21867167`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -252,6 +252,29 @@ historical restarts, unchanged. No migration details are asserted. Deployment
 rollback is a new Git revert of
 `5df6a6074f4486d0f216747320543586b4e2582f`; database rollback requires an
 isolated restore and deliberate configuration switch.
+
+For the verified 2026-11-18 upgrade, see [Backup & Restore](../backup/). Mirror
+PR #19 merged as `13c68a083ef0139d02f36ca246ff7ddf9fda2209`; Chart CI and Mirror
+CI passed, and publish workflow #44265593722 and Pages workflow #44265594131
+succeeded. The anonymous chart pull manifest was
+`sha256:5d8325234cd55647be4db03132a4d3ee58b45819fbe51eabb9dcc441bd53bb23`; its
+package SHA-256 was
+`d1c66a7aca80918b15034eb3d52ad89fe4b19fb50114fb333d1798b30863fbe1`. The public
+index and catalog list chart `0.1.28` / application `0.2.23`. GitOps commit
+`5dc7236f46c7a62b7474c56e5420b27091e8fb67` changed only
+`manifests/sub2api-argocd.yaml`, updating `targetRevision` from `0.1.27` to
+`0.1.28`.
+
+ArgoCD parent and child were `Synced/Healthy`; the Sub2API operation succeeded.
+Deployment was 1/1. Pod `sub2api-5c9457446-lxs5m` had 0 restarts and the expected
+image digest. The Service had a ready endpoint; internal and public `/health`
+returned HTTP 200 with `{"status":"ok"}`. Ingress and TLS were ready, the
+dedicated Redis was 1/1 with a ready endpoint, PostgreSQL was Ready, and the
+application and Redis PVCs were Bound. Replacement events were normal; Redis
+had two historical restarts. No migration details are asserted. Release
+rollback is a new Git revert of
+`5dc7236f46c7a62b7474c56e5420b27091e8fb67`; database rollback requires an
+isolated restore followed by a deliberate configuration switch.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
