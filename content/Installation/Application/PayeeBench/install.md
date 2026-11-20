@@ -37,12 +37,13 @@ url = "/Installation/Application/PayeeBench/install/"
   ```bash
   git clone https://github.com/AaronYang0628/payee-bench.git /home/aaron/build/payee-bench
   cd /home/aaron/build/payee-bench
-  podman build --format docker \
+  git checkout --detach 3fd993e
+  podman build --format docker --network=host \
     --build-arg HTTP_PROXY=http://192.168.0.25:17890 \
     --build-arg HTTPS_PROXY=http://192.168.0.25:17890 \
-    -t docker.io/library/payee-bench:669a90e .
-  podman save --format oci-archive -o /tmp/payee-bench.tar docker.io/library/payee-bench:669a90e
-  sudo k3s ctr -n k8s.io images import /tmp/payee-bench.tar
+    -t docker.io/library/payee-bench:3fd993e .
+  podman save --format oci-archive -o /tmp/payee-bench-3fd993e.tar docker.io/library/payee-bench:3fd993e
+  sudo k3s ctr -n k8s.io images import /tmp/payee-bench-3fd993e.tar
   ```
   {{% /notice %}}
 

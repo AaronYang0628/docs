@@ -12,7 +12,7 @@ Own the payee-bench application, its SQLite data, runtime Secret, and public Ing
 - Parent Application: `argocd/ops-docs` applies `manifests/payee-bench/` directly.
 - Namespace: `payee-bench`, created by the explicit Namespace manifest with sync-wave `-1`.
 - Runtime Secret: `payee-bench-runtime`, created outside Git; never print or read its data.
-- Image: `docker.io/library/payee-bench:669a90e`, built from the pinned payee-bench source and imported into local k3s containerd.
+- Image: `docker.io/library/payee-bench:3fd993e`, built from payee-bench source commit `3fd993e` and imported into local k3s containerd.
 - SQLite: one replica only, `Recreate` rollout strategy, persistent PVC mounted at `/app/data`. The production database is `/app/data/shop.sqlite`.
 - Service: ClusterIP port 3000 only. Public traffic enters through the shared `nginx` Ingress at `https://pay.72602.space`, with TLS issued by `lets-encrypt`.
 - GitOps source: `/home/aaron/Ops/docs`; the parent `ops-docs` Application applies the payee-bench manifests. Application code and image builds remain owned by the `payee-bench` repository.
