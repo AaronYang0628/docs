@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.28`, application `0.2.23`, image
-`ghcr.io/wei-shaw/sub2api@sha256:0cc625218210f98e94b72da1a69f8678792b6f6a0ab4ecd6a4e5818a21867167`
+The expected values are OCI chart `0.1.29`, application `0.2.24`, image
+`ghcr.io/wei-shaw/sub2api@sha256:329e1fb6b17e84bd8d28c7d1da61fc678a3b68c6a2f99180d65541fd774fc652`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -275,6 +275,27 @@ had two historical restarts. No migration details are asserted. Release
 rollback is a new Git revert of
 `5dc7236f46c7a62b7474c56e5420b27091e8fb67`; database rollback requires an
 isolated restore followed by a deliberate configuration switch.
+
+For the verified 2026-11-21 upgrade, see [Backup & Restore](../backup/). Mirror
+PR #20 merged. The chart package SHA-256 was
+`b69628bb7050dc8f435a9228458ca17e88b44b4ee1a949aa342a9a1aedb3d413`; an
+anonymous OCI pull and package checksum matched. Mirror CI, Sub2API chart CI,
+publish workflow run `44849477770`, and Pages workflow run `44849477077`
+succeeded. GitOps commit `423a4c4a5b2ec115b7934c9e3645956b778dd9ec` changed only
+`targetRevision` from `0.1.28` to `0.1.29`.
+
+ArgoCD reported `Synced/Healthy`, operation `Succeeded`. Deployment was 1/1;
+Pod `sub2api-75dd49bfc7-ftk89` was Ready with 0 restarts on a Linux/amd64 node,
+and its runtime image ID matched
+`ghcr.io/wei-shaw/sub2api@sha256:329e1fb6b17e84bd8d28c7d1da61fc678a3b68c6a2f99180d65541fd774fc652`.
+The ready Service endpoint was `10.42.0.240:8080`; internal and public
+`/health` returned HTTP 200 with `{"status":"ok"}`. Dedicated Redis and shared
+PostgreSQL were 1/1 Ready with ready endpoints. The Sub2API data, Redis, and
+PostgreSQL PVCs (10Gi, 8Gi, and 8Gi) were Bound. No specific migration is
+asserted. Deployment rollback is a new Git revert of
+`423a4c4a5b2ec115b7934c9e3645956b778dd9ec`; because migrations are forward-only,
+database recovery requires restoring into an isolated database and deliberately
+switching configuration.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
