@@ -7,8 +7,8 @@ description = "Sub2API pre-upgrade backup and recovery runbook"
 
 - Database: PostgreSQL (`database/postgresql-0`), DB/user `sub2api`
 - Git source: `manifests/sub2api-argocd.yaml`, owned by `argocd/ops-docs`
-- Current release: OCI chart `0.1.29`, application `0.2.24`
-- Application image: `ghcr.io/wei-shaw/sub2api@sha256:329e1fb6b17e84bd8d28c7d1da61fc678a3b68c6a2f99180d65541fd774fc652`
+- Current release: OCI chart `0.1.30`, application `0.2.25`
+- Application image: `ghcr.io/wei-shaw/sub2api@sha256:a532a5f09005081338bd2d503a6f463aef941f3c382dbc8637163c7230c42146`
 - Runtime data: `application/sub2api-data`, `10Gi`, `local-path`, `RWO`
 - Redis data: `8Gi`, `local-path`, `RWO`; AOF is enabled
 - Runtime Secrets: `application/sub2api-auth`,
@@ -556,6 +556,44 @@ sha256sum -c "$BACKUP_DIR/SHA256SUMS"
   forward-only, database recovery requires restoring to an isolated database
   and making a deliberate configuration switch; this is not a database
   downgrade.
+
+### Verified upgrade: 2026-11-24 (chart 0.1.30 / application 0.2.25)
+
+- Fresh scoped pre-upgrade backup directory:
+  `/home/aaron/Ops/backups/sub2api/upgrade-20261124T130444Z` (outside the
+  repository; directory mode `700`, exactly two files, both mode `600`). The
+  `sub2api.dump` was 91,160,962 bytes (SHA-256
+  `b60c74bc522fa113ef9020c7bfb66f141eea2c08ae884e31e097621f8f05da16`);
+  `sub2api-data.tgz` was 5,059,678 bytes (SHA-256
+  `2c1b3936cad67c67635a4f2aa574a526389ec734c7dde91682c113f62b877828`).
+  `pg_restore --list` passed with 1,259 entries using an in-container
+  temporary-copy fallback; the temporary copy was removed. The `/app/data`
+  archive listing returned 10 entries.
+- Official Sub2API `v0.2.25` image is
+  `ghcr.io/wei-shaw/sub2api@sha256:a532a5f09005081338bd2d503a6f463aef941f3c382dbc8637163c7230c42146`
+  (Linux amd64). Mirror PR #21 merged as
+  `7dd06ee87f04159812693f2cb50e4441224135b7`; candidate chart CI run
+  `45395651473` and Mirror consistency CI run `45395651445` passed at head
+  `0433ddad5e515abbee80559eaab592a4ce280f38`. Publish Sub2API chart run
+  `45395933800` and Pages run `45395928993` succeeded. An anonymous Helm pull
+  returned OCI manifest digest
+  `sha256:7179980e0cad76cf76f8d56f6160f5d1fa6b5239eff29bdf42a3b1c96a83ec43`;
+  package SHA-256 `7ba8e62a7c1f8b9630662ecae1add51a9f653f83f69faba3b62491c905ec54f4`
+  matched the main index and package. Catalog and index list chart `0.1.30` /
+  app `0.2.25`.
+- GitOps commit `015df28d461ba3758e907b5ec6ebf85641895859` changed only
+  `manifests/sub2api-argocd.yaml`, from `targetRevision` `0.1.29` to `0.1.30`.
+  ArgoCD reported `Synced/Healthy`, operation `Succeeded`; Deployment was 1/1.
+  Pod `sub2api-6b96465975-wsm8z` was Running/Ready with 0 restarts and its
+  image spec and image ID matched the expected Linux amd64 digest. The ready
+  Service endpoint was `10.42.0.249`; internal and public `/health` returned
+  HTTP 200 with `{"status":"ok"}`. Dedicated Redis and shared PostgreSQL were
+  Ready; Sub2API data (10Gi), Redis (8Gi), and PostgreSQL (8Gi) PVCs were Bound.
+  No specific migration is asserted.
+- Deployment rollback is a new Git revert of
+  `015df28d461ba3758e907b5ec6ebf85641895859`. Migrations are forward-only, so
+  database recovery requires an isolated restore followed by a deliberate
+  configuration switch.
 
 ### Restore PostgreSQL Safely
 

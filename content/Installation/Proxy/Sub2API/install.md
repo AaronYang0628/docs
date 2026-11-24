@@ -125,8 +125,8 @@ description = "Deploy Sub2API through the 72602 GitOps parent and OCI Helm child
   ```
   {{% /notice %}}
 
-  Expected release values are chart `0.1.29`, application `0.2.24`, and image
-  `ghcr.io/wei-shaw/sub2api@sha256:329e1fb6b17e84bd8d28c7d1da61fc678a3b68c6a2f99180d65541fd774fc652`
+  Expected release values are chart `0.1.30`, application `0.2.25`, and image
+  `ghcr.io/wei-shaw/sub2api@sha256:a532a5f09005081338bd2d503a6f463aef941f3c382dbc8637163c7230c42146`
   (Linux amd64).
   The TLS certificate is `Ready`; the
   `sub2api-data` PVC is `10Gi` and the Redis PVC is `8Gi`, both `local-path`

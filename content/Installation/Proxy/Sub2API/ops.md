@@ -22,8 +22,8 @@ kubectl -n application get pods,svc,ingress,pvc
 kubectl -n application get certificate,certificaterequest,order,challenge
 ```
 
-The expected values are OCI chart `0.1.29`, application `0.2.24`, image
-`ghcr.io/wei-shaw/sub2api@sha256:329e1fb6b17e84bd8d28c7d1da61fc678a3b68c6a2f99180d65541fd774fc652`
+The expected values are OCI chart `0.1.30`, application `0.2.25`, image
+`ghcr.io/wei-shaw/sub2api@sha256:a532a5f09005081338bd2d503a6f463aef941f3c382dbc8637163c7230c42146`
 (Linux amd64),
 namespace `application`, and host
 `token.72602.space`. The application PVC is `10Gi`; the Redis PVC is `8Gi`
@@ -296,6 +296,32 @@ asserted. Deployment rollback is a new Git revert of
 `423a4c4a5b2ec115b7934c9e3645956b778dd9ec`; because migrations are forward-only,
 database recovery requires restoring into an isolated database and deliberately
 switching configuration.
+
+For the verified 2026-11-24 upgrade, see [Backup & Restore](../backup/). Official
+Sub2API `v0.2.25` uses Linux amd64 image
+`ghcr.io/wei-shaw/sub2api@sha256:a532a5f09005081338bd2d503a6f463aef941f3c382dbc8637163c7230c42146`.
+Mirror PR #21 merged as `7dd06ee87f04159812693f2cb50e4441224135b7`. Candidate
+chart and mirror consistency CI passed at head `0433ddad5e515abbee80559eaab592a4ce280f38`
+(runs `45395651473` and `45395651445`). Publish Sub2API chart run
+`45395933800` and Pages run `45395928993` succeeded. An anonymous Helm pull of
+chart `0.1.30` returned OCI manifest digest
+`sha256:7179980e0cad76cf76f8d56f6160f5d1fa6b5239eff29bdf42a3b1c96a83ec43`; its
+package SHA-256 was
+`7ba8e62a7c1f8b9630662ecae1add51a9f653f83f69faba3b62491c905ec54f4`, matching
+the main index and package. The catalog and index list chart `0.1.30` / app
+`0.2.25`. GitOps commit `015df28d461ba3758e907b5ec6ebf85641895859` changed
+only `manifests/sub2api-argocd.yaml`, from `targetRevision` `0.1.29` to `0.1.30`.
+
+ArgoCD reported `Synced/Healthy`, operation `Succeeded`; Deployment was 1/1.
+Pod `sub2api-6b96465975-wsm8z` was Running/Ready with 0 restarts, on Linux
+amd64, and both its image spec and image ID matched the pinned digest. The ready
+Service endpoint was `10.42.0.249`; internal and public `/health` returned HTTP
+200 with `{"status":"ok"}`. Dedicated Redis and shared PostgreSQL were Ready;
+the Sub2API data (10Gi), Redis (8Gi), and PostgreSQL (8Gi) PVCs were Bound. No
+specific migration is asserted. Deployment rollback is a new Git revert of
+`015df28d461ba3758e907b5ec6ebf85641895859`. Migrations are forward-only;
+database recovery requires an isolated restore followed by a deliberate
+configuration switch.
 
 <p> <b>4.verify</b> the public and authenticated model path </p>
 
