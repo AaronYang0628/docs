@@ -12,7 +12,15 @@ Own the payee-bench application, its SQLite data, runtime Secret, and public Ing
 - Parent Application: `argocd/ops-docs` applies `manifests/payee-bench/` directly.
 - Namespace: `payee-bench`, created by the explicit Namespace manifest with sync-wave `-1`.
 - Runtime Secret: `payee-bench-runtime`, created outside Git; never print or read its data.
-- Image: `docker.io/library/payee-bench:3fd993e`, built from payee-bench source commit `3fd993e` and imported into local k3s containerd.
+- Image: `docker.io/library/payee-bench:6331da7`, built from payee-bench source commit `6331da7` and imported into local k3s containerd.
+
+## Subscription model groups
+
+- `/token` lists subscription plans by a display model group with one shared description per group. `/sys` has a `模型分组` column and an edit drawer for subscription products.
+- A group assignment is an explicit choice stored in `products.delivery_meta.modelGroup`: empty means explicitly unassigned, absent means never classified. A plan that was never classified defaults to OpenAI only while its upstream group is one of `10, 11, 12, 13, 21, 22`; any other plan shows as 模型分组待确认 until an admin classifies it in `/sys`.
+- Shared group name and description live in the `subscription_groups` table; a per-plan note is `products.delivery_meta.planDescription`. Upstream plan sync keeps updating name, price, limits, validity, upstream description and order (`products.catalog_position`) and never overwrites these.
+- Plan name, price, validity, active flag, channel and the upstream group id used for fulfilment stay read-only; the server rejects changes to them.
+- Classifying a plan is an authenticated `/sys` action on production data. Do not perform it without the owner.
 - SQLite: one replica only, `Recreate` rollout strategy, persistent PVC mounted at `/app/data`. The production database is `/app/data/shop.sqlite`.
 - Service: ClusterIP port 3000 only. Public traffic enters through the shared `nginx` Ingress at `https://pay.72602.space`, with TLS issued by `lets-encrypt`.
 - GitOps source: `/home/aaron/Ops/docs`; the parent `ops-docs` Application applies the payee-bench manifests. Application code and image builds remain owned by the `payee-bench` repository.
