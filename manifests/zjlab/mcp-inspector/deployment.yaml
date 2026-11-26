@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-inspector
+  namespace: mcp-inspector
+  labels:
+    app.kubernetes.io/name: mcp-inspector
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: mcp-inspector
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-inspector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mcp-inspector
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: mcp-inspector
+    spec:
+      # Image exists only in this node's containerd (k3s ctr -n k8s.io import).
+      nodeSelector:
+        kubernetes.io/hostname: zjlab-ubuntu
+      # hostNetwork so the pod can reach host-loopback MCP servers such as
+      # nanhu-bridge-mcp (127.0.0.1:8765). Host ports 6274/6275/6278 were free
+      # at deployment time; the NodePort service still fronts the UI.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mcp-inspector
+          image: localhost/mcp-inspector:2.16.0-everything-2.3.1
+          imagePullPolicy: Never
+          # Inspector 2.x: single hono web server on CLIENT_PORT serving UI +
+          # MCP bridge. The image has no CMD, so the container runs with no
+          # positional target: combined with MCP_CATALOG_PATH that makes the
+          # server catalog writable, so the UI shows the "Add Servers" button
+          # (ad-hoc/config launches are read-only sessions by design).
+          env:
+            - name: MCP_INSPECTOR_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-inspector-auth
+                  key: token
+            # Writable server catalog; seeded once by the initContainer.
+            - name: MCP_CATALOG_PATH
+              value: /data/mcp-catalog.json
+            # Exact browser origins allowed to talk to the API. Requests
+            # carrying any other Origin header are rejected (DNS-rebinding
+            # guard). Extend when the access path changes. TLS is required:
+            # WebCrypto (crypto.subtle, crypto.randomUUID) only exists in
+            # browser Secure Contexts, and plain http on an IP is insecure.
+            - name: ALLOWED_ORIGINS
+              value: https://10.15.49.212:30080,https://10.15.51.75:30080,https://localhost:30080,https://127.0.0.1:30080,https://10.15.49.212:6274,https://localhost:6274,https://127.0.0.1:6274
+            # Host-header allowlist (bare hostnames).
+            - name: MCP_INSPECTOR_ALLOWED_HOSTS
+              value: 10.15.49.212,10.15.51.75,localhost,127.0.0.1
+            # Serve HTTPS on CLIENT_PORT so the UI is a Secure Context.
+            - name: INSPECTOR_TLS_KEY_PATH
+              value: /etc/inspector-tls/tls.key
+            - name: INSPECTOR_TLS_CERT_PATH
+              value: /etc/inspector-tls/tls.crt
+          ports:
+            - name: ui
+              containerPort: 6274
+            - name: sandbox
+              containerPort: 6275
+            - name: app-origin
+              containerPort: 6278
+          readinessProbe:
+            httpGet:
+              path: /
+              port: ui
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: ui
+              scheme: HTTPS
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tls
+              mountPath: /etc/inspector-tls
+              readOnly: true
+      initContainers:
+        - name: seed-catalog
+          # Same busybox the local-path provisioner already caches on the node.
+          image: docker.io/rancher/mirrored-library-busybox:1.37.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          # Seed the writable catalog once per pod so everything + nanhu are
+          # present out of the box. If the file already exists (UI edits),
+          # leave it untouched. Runs as uid 1000 so the inspector can edit it.
+          args:
+            - >
+              if [ ! -f /data/mcp-catalog.json ]; then
+              printf '%s' '{"mcpServers":{"everything":{"type":"stdio","command":"mcp-server-everything","args":[]},"nanhu":{"type":"streamable-http","url":"http://127.0.0.1:8765/mcp"}}}' > /data/mcp-catalog.json;
+              fi
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: tls
+          secret:
+            secretName: mcp-inspector-tls
+            defaultMode: 0444

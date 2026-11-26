@@ -98,6 +98,20 @@
             "context": 1000000,
             "output": 128000
           }
+        },
+        "glm-5.4": {
+          "name": "GLM 5.4",
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          }
+        },
+        "glm-5.3-flashx": {
+          "name": "GLM 5.3-FlashX",
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          }
         }
       }
     }
@@ -198,8 +212,6 @@
     }
   },
   "plugin": [
-    "opencode-vibeguard@0.1.0",
-    "@prevalentware/opencode-goal-plugin@0.1.24"
   ],
   "share": "disabled",
   "tool_output": {

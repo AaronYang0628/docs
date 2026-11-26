@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mcp-inspector
+  labels:
+    app.kubernetes.io/part-of: mcp-inspector
