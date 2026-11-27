@@ -7,7 +7,8 @@
   "enabled_providers": [
     "openai",
     "glm",
-    "deepseek"
+    "deepseek",
+    "magpie"
   ],
   "provider": {
     "openai": {
@@ -23,6 +24,7 @@
         "timeout": 600000,
         "chunkTimeout": 120000
       },
+      "name": "Codex via 72602 API Cafe",
       "models": {
         "gpt-6-luna": {
           "name": "GPT-6-Luna",
@@ -83,7 +85,7 @@
         "chunkTimeout": 120000
       },
       "npm": "@ai-sdk/openai",
-      "name": "GLM via Sub2API",
+      "name": "GLM via 72602 API Cafe",
       "models": {
         "glm-5.3": {
           "name": "GLM 5.3",
