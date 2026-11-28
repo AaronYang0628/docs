@@ -12,7 +12,7 @@ Own the payee-bench application, its SQLite data, runtime Secret, and public Ing
 - Parent Application: `argocd/ops-docs` applies `manifests/payee-bench/` directly.
 - Namespace: `payee-bench`, created by the explicit Namespace manifest with sync-wave `-1`.
 - Runtime Secret: `payee-bench-runtime`, created outside Git; never print or read its data.
-- Image: `docker.io/library/payee-bench:6331da7`, built from payee-bench source commit `6331da7` and imported into local k3s containerd.
+- Image: `docker.io/library/payee-bench:16593f2`, built from payee-bench source commit `16593f2` and imported into local k3s containerd.
 
 ## Subscription model groups
 
@@ -21,6 +21,14 @@ Own the payee-bench application, its SQLite data, runtime Secret, and public Ing
 - Shared group name and description live in the `subscription_groups` table; a per-plan note is `products.delivery_meta.planDescription`. Upstream plan sync keeps updating name, price, limits, validity, upstream description and order (`products.catalog_position`) and never overwrites these.
 - Plan name, price, validity, active flag, channel and the upstream group id used for fulfilment stay read-only; the server rejects changes to them.
 - Classifying a plan is an authenticated `/sys` action on production data. Do not perform it without the owner.
+
+## Subscription repurchase
+
+- A buyer who holds a live term in a plan's upstream group is judged on its usage report, on the longest period the group limits. Quota left refuses the order with `409 SUBSCRIPTION_ACTIVE`; a spent term is revoked (`POST /api/v1/admin/subscriptions/:id/revoke`) and then assigned as a new record with a full new term. `extend` is no longer used, so repurchase never stacks days.
+- The scoped admin key needs `subscriptions.read`, `subscriptions.assign` and `subscriptions.revoke`. Without the revoke permission a repurchase of a spent term is refunded and the old term is left untouched. The owner grants permissions; never test them against a buyer's subscription.
+- A plan code is delivered only when nothing was written upstream and the account is known to hold no live term. A payment that provably changed nothing while a live term holds the account, or while the account could not be read, is cancelled and refunded through the existing cancellation refund task. Unknown write outcomes stay `unknown`.
+- Before a rollout, read `/app/data/shop.sqlite` for paid orders whose `credit_attempt` is empty or `processing`: the single replica restarts under `Recreate`.
+- Already-stacked historical subscriptions are not corrected by the release.
 - SQLite: one replica only, `Recreate` rollout strategy, persistent PVC mounted at `/app/data`. The production database is `/app/data/shop.sqlite`.
 - Service: ClusterIP port 3000 only. Public traffic enters through the shared `nginx` Ingress at `https://pay.72602.space`, with TLS issued by `lets-encrypt`.
 - GitOps source: `/home/aaron/Ops/docs`; the parent `ops-docs` Application applies the payee-bench manifests. Application code and image builds remain owned by the `payee-bench` repository.
