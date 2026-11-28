@@ -1052,7 +1052,7 @@ data:
     \       siteMonitor: https://sub2api.home.geekcity.tech:32443\n    - Minio Ingress:\n
     \       icon: minio\n        href: https://console.minio.72602.space\n        description:
     https://console.minio.72602.space\n        siteMonitor: https://console.minio.72602.space\n-
-    72602 Hosted:\n    - Sub2API-AY:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/sub2api.png\n
+    72602 Hosted:\n    - API-CAFE:\n        icon: https://raw.githubusercontent.com/AaronYang0628/docs/refs/heads/main/static/icons/alembic.jpg\n
     \       href: https://token.72602.space\n        description: https://token.72602.space\n
     \       siteMonitor: https://token.72602.space\n        namespace: application\n
     \       app: sub2api\n        showStats: true\n    - Mailu:\n        icon: https://raw.githubusercontent.com/Mailu/Mailu/master/docs/assets/logomark.png\n
